@@ -2,6 +2,12 @@ import type { PixelMask } from "../../core/maskUtils";
 import { headOrientations, maskForView, type HeadOrientation, type ViewMasks } from "../orientation";
 import { legFrames, liftFoot, onLegs, sleeveFrames as sleevesOver, smallerFoot, type LegPose } from "../legPoses";
 import { armsFrames } from "../arms";
+import { skirtFlowingFrontMask } from "../masks/clothes/bottom/skirtFlowingFront.mask";
+import { skirtFlowingSideMask } from "../masks/clothes/bottom/skirtFlowingSide.mask";
+import { skirtPencilFrontMask } from "../masks/clothes/bottom/skirtPencilFront.mask";
+import { skirtPencilSideMask } from "../masks/clothes/bottom/skirtPencilSide.mask";
+import { skirtPleatedFrontMask } from "../masks/clothes/bottom/skirtPleatedFront.mask";
+import { skirtPleatedSideMask } from "../masks/clothes/bottom/skirtPleatedSide.mask";
 import { skirtFrontMask } from "../masks/clothes/bottom/skirtFront.mask";
 import { skirtSideMask } from "../masks/clothes/bottom/skirtSide.mask";
 import { shortsFrontMask } from "../masks/clothes/bottom/shortsFront.mask";
@@ -46,12 +52,20 @@ export type GarmentLayer = {
     armPoses?: readonly ArmPose[];
     /** The mask in each leg pose, for a garment that moves with the legs. Without it the garment stays as it is. */
     poses?: Record<LegPose, PixelMask>;
+    /** A garment that sways when walking, like hair: its rows below the pivot row shift sideways, further the lower they are. `reach` is how far the hem moves. */
+    swing?: { pivot: number; reach?: number };
 };
 
 export type GarmentDefinition = {
     slot: GarmentSlot;
     /** A one-piece top (a dress, overalls) that also covers the legs, so no bottom is drawn under it. */
     coversBottom?: true;
+    /** A long bottom that hangs over the tops of the shoes, so the shoes are drawn under it. */
+    hangsOverShoes?: true;
+    /** A floor-length bottom that stops just above the feet: only the last row of the legs and shoes shows under it. */
+    showsOnlyFeet?: true;
+    /** A floor-length bottom that covers the legs and feet, so neither is drawn. */
+    coversFeet?: true;
     byOrientation: Partial<Record<HeadOrientation, readonly GarmentLayer[]>>;
     fallback: readonly GarmentLayer[];
 };
@@ -59,7 +73,7 @@ export type GarmentDefinition = {
 type ViewedLayer = Omit<GarmentLayer, "mask" | "poses"> & { masks: ViewMasks; poses?: Record<LegPose, ViewMasks> };
 
 /** Builds a garment that is drawn from the front, either side and the back, each from its own mask. */
-function viewed(slot: GarmentSlot, layers: readonly ViewedLayer[], extra: { coversBottom?: true } = {}): GarmentDefinition {
+function viewed(slot: GarmentSlot, layers: readonly ViewedLayer[], extra: { coversBottom?: true; hangsOverShoes?: true; showsOnlyFeet?: true; coversFeet?: true } = {}): GarmentDefinition {
     const forView = (o: HeadOrientation): GarmentLayer[] =>
         layers.map(({ masks, poses, ...rest }) => ({
             ...rest,
@@ -98,6 +112,56 @@ export const bottomStyles = {
     shorts: viewed("bottom", [{ masks: { front: shortsFrontMask, side: shortsSideMask }, offsetX: 2, offsetY: 12, placement: "overBody" }]),
     skirt: viewed("bottom", [{ masks: { front: skirtFrontMask, side: skirtSideMask }, offsetX: 2, offsetY: 12, placement: "overBody" }])
 } as const satisfies Record<BottomStyle, GarmentDefinition>;
+
+/** What a skirt is like: flowing and pleated skirts flare from the hips, and a pencil skirt hugs the legs straight down. */
+export const skirtShapes = { flowing: 1, pleated: 1, pencil: 1 } as const;
+export type SkirtShape = keyof typeof skirtShapes;
+/**
+ * How far down a skirt goes, in rows below the waist: mini is the one-row skirt, and a floor-length skirt reaches the last
+ * row of the feet. A skirt from short to floor is the top rows of the full-length mask of its shape. Ankle length stops just above the
+ * feet, so only their last row shows; floor length covers the feet.
+ */
+export const skirtLengths = { mini: 1, short: 1, knee: 1, ankle: 1, floor: 1 } as const;
+export type SkirtLength = keyof typeof skirtLengths;
+
+const SKIRT_ROWS: Record<Exclude<SkirtLength, "mini">, number> = { short: 2, knee: 3, ankle: 4, floor: 5 };
+const SKIRT_MASKS: Record<SkirtShape, ViewMasks> = {
+    flowing: { front: skirtFlowingFrontMask, side: skirtFlowingSideMask },
+    pleated: { front: skirtPleatedFrontMask, side: skirtPleatedSideMask },
+    pencil: { front: skirtPencilFrontMask, side: skirtPencilSideMask }
+};
+/**
+ * How far, in pixels, the hem of a skirt sways when walking, by length. A flowing skirt sways more than a pleated one,
+ * which is stiffer, and a pencil skirt does not sway. Short skirts have little hem to move.
+ */
+const SKIRT_SWAY: Record<SkirtShape, Partial<Record<SkirtLength, number>>> = {
+    flowing: { short: 1, knee: 1, ankle: 2, floor: 2 },
+    pleated: { knee: 1, ankle: 1, floor: 1 },
+    pencil: {}
+};
+/** Where a skirt is worn on the legs, which decides what happens to the shoes: they go under a skirt that reaches them. */
+const SKIRT_FLAGS: Partial<Record<SkirtLength, { hangsOverShoes?: true; showsOnlyFeet?: true; coversFeet?: true }>> = {
+    knee: { hangsOverShoes: true },
+    ankle: { showsOnlyFeet: true },
+    floor: { coversFeet: true }
+};
+
+function skirtOf(shape: SkirtShape, length: SkirtLength): GarmentDefinition {
+    if (length === "mini") return bottomStyles.skirt;
+    const rows = SKIRT_ROWS[length];
+    const masks = SKIRT_MASKS[shape];
+    const reach = SKIRT_SWAY[shape][length];
+    return viewed(
+        "bottom",
+        [{ masks: { front: masks.front.slice(0, rows), side: masks.side.slice(0, rows) }, offsetX: 0, offsetY: 12, placement: "overBody", ...(reach ? { swing: { pivot: 12, reach } } : {}) }],
+        SKIRT_FLAGS[length]
+    );
+}
+
+/** Every skirt, by shape and length. The mini skirt is the same whatever the shape, since one row has none. */
+export const skirtStyles = Object.fromEntries(
+    (Object.keys(skirtShapes) as SkirtShape[]).map((shape) => [shape, Object.fromEntries((Object.keys(skirtLengths) as SkirtLength[]).map((length) => [length, skirtOf(shape, length)]))])
+) as Record<SkirtShape, Record<SkirtLength, GarmentDefinition>>;
 
 /**
  * Footwear follows the legs. At the front the raised foot is the neutral footwear moved up two rows and made smaller, as the leg is, the

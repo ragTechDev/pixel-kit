@@ -1,4 +1,4 @@
-import type { HairLayer } from "./styles/hairStyles";
+import type { PixelMask } from "../core/maskUtils";
 import type { HeadOrientation } from "./orientation";
 import type { LegPose } from "./legPoses";
 import { plantedSide } from "./legs";
@@ -12,26 +12,35 @@ export const HAIR_SWING = 2;
  * trails behind on a left-foot step, which is the left of the picture facing right and the right facing left, and swings
  * forward on a right-foot one.
  */
-function direction(pose: LegPose, view: HeadOrientation): number {
+export function direction(pose: LegPose, view: HeadOrientation): number {
     const planted = plantedSide(pose, view);
     if (planted !== 0) return planted;
     return view === "right" ? PROFILE_SIGN[pose] : view === "left" ? -PROFILE_SIGN[pose] : 0;
 }
 const PROFILE_SIGN = { neutral: 0, contactLeft: -1, contactRight: 1 } as const;
 
-const swung = new WeakMap<HairLayer, Map<string, HairLayer>>();
+/** What can swing: a layer of hair or of clothing, with a mask, where it sits and how it swings. */
+export interface SwingLayer {
+    readonly mask: PixelMask;
+    readonly offsetX: number;
+    readonly offsetY: number;
+    readonly swing?: { readonly pivot: number; readonly reach?: number; readonly up?: true };
+    readonly tie?: { readonly x: number; readonly y: number };
+}
+
+const swung = new WeakMap<object, Map<string, SwingLayer>>();
 
 /**
- * A layer of hair in a walking pose. The rows of a lock below its pivot (where it is tied, or where it leaves the head)
- * are shifted sideways, further the lower they are, so the top stays and the end swishes. Layers with no pivot are
- * the hair on the head, and do not move.
+ * A layer of hair or clothing in a walking pose. The rows of a lock below its pivot (where it is tied, or where it leaves
+ * the head) are shifted sideways, further the lower they are, so the top stays and the end swishes, or a skirt's hem sways.
+ * Layers with no pivot are the hair on the head, or clothing that does not move, and are returned as they are.
  */
-export function swingHair(layer: HairLayer, pose: LegPose, view: HeadOrientation): HairLayer {
+export function swingLayer<T extends SwingLayer>(layer: T, pose: LegPose, view: HeadOrientation): T {
     const { swing } = layer;
     const amount = (swing?.reach ?? HAIR_SWING) * direction(pose, view);
     if (!swing || amount === 0) return layer;
     const key = `${pose}|${view}`;
-    const cache = swung.get(layer) ?? new Map<string, HairLayer>();
+    const cache = swung.get(layer) ?? new Map<string, SwingLayer>();
     swung.set(layer, cache);
     let out = cache.get(key);
     if (!out) {
@@ -56,5 +65,5 @@ export function swingHair(layer: HairLayer, pose: LegPose, view: HeadOrientation
         out = { ...layer, mask, offsetX: layer.offsetX - left, ...(tie ? { tie } : {}) };
         cache.set(key, out);
     }
-    return out;
+    return out as T;
 }

@@ -49,6 +49,8 @@ const dims = {
   "eye colour": count(lib.eyePalettes),
   clothing,
   shoes: (count(lib.shoeStyles) - 1) * colours + 1,
+  "skirt shape": count(lib.skirtShapes),
+  "skirt length": count(lib.skirtLengths),
   "arm pose": keysIn("src/avatar/buildAvatar.ts", "ARM_POSES"),
   "leg pose": count(lib.legPoses)
 };

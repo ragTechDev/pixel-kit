@@ -9,7 +9,7 @@ import { headFrontMask } from "./masks/headFront.mask";
 import { headSideMask } from "./masks/headSide.mask";
 import { backHands, legPoses, splitHalves, type LegPose } from "./legPoses";
 import { armOver, legsFrames } from "./legs";
-import { swingHair } from "./hairSwing";
+import { swingLayer } from "./hairSwing";
 import { armsFrames, handsFrames } from "./arms";
 import { torsoFrontMask } from "./masks/torsoFront.mask";
 import { torsoSideMask } from "./masks/torsoSide.mask";
@@ -19,6 +19,9 @@ import { headOrientations, maskForView, type HeadOrientation } from "./orientati
 import {
     bottomStyles,
     shoeStyles,
+    skirtLengths,
+    skirtShapes,
+    skirtStyles,
     topStyles,
     type ArmPose,
     type BottomStyle,
@@ -26,6 +29,8 @@ import {
     type GarmentLayer,
     type GarmentPlacement,
     type ShoeStyle,
+    type SkirtLength,
+    type SkirtShape,
     type TopStyle
 } from "./styles/clothesStyles";
 import {
@@ -73,6 +78,10 @@ export interface AvatarConfig {
     shoeColor?: ClothesColor;
     topStyle?: TopStyle;
     bottomStyle?: BottomStyle;
+    /** What kind of skirt a `skirt` bottom is. Only a skirt has one. */
+    skirtShape?: SkirtShape;
+    /** How far down a `skirt` bottom goes, from the one-row `mini` to `floor`, which covers the feet. Only a skirt has one. */
+    skirtLength?: SkirtLength;
     shoeStyle?: ShoeStyle;
     armPose?: ArmPose;
     legPose?: LegPose;
@@ -99,6 +108,8 @@ export const defaultAvatarConfig: Readonly<Required<Omit<AvatarConfig, PieceColo
     clothesColor: "blue",
     topStyle: "shirt",
     bottomStyle: "shorts",
+    skirtShape: "flowing",
+    skirtLength: "mini",
     shoeStyle: "boots",
     armPose: "down",
     legPose: "neutral"
@@ -120,6 +131,8 @@ const allowed: { [K in Exclude<keyof AvatarConfig, PieceColorField>]-?: object }
     clothesColor: clothesPalettes,
     topStyle: topStyles,
     bottomStyle: bottomStyles,
+    skirtShape: skirtShapes,
+    skirtLength: skirtLengths,
     shoeStyle: shoeStyles,
     armPose: ARM_POSES,
     legPose: legPoses
@@ -156,6 +169,12 @@ export function resolveAvatarConfig(config: AvatarConfig = {}): ResolvedAvatarCo
     // Only tied hair has an accessory, and the colour of no accessory does not count.
     if (!hairAccessoryApplies(out.hairLength as HairLength, out.backHairStyle as BackHairStyle)) out.hairAccessory = "none";
     if (out.hairAccessory === "none") delete out.hairAccessoryColor;
+    // Only a skirt that is not covered by a dress or overalls has a shape and a length, and the one-row mini skirt has no shape.
+    if (out.bottomStyle !== "skirt" || (topStyles[out.topStyle as keyof typeof topStyles] as GarmentDefinition).coversBottom === true) {
+        out.skirtShape = defaultAvatarConfig.skirtShape;
+        out.skirtLength = defaultAvatarConfig.skirtLength;
+    }
+    if (out.skirtLength === "mini") out.skirtShape = defaultAvatarConfig.skirtShape;
     return out as ResolvedAvatarConfig;
 }
 
@@ -168,7 +187,11 @@ const shaded = new WeakMap<PixelMask, Sprite>();
 function shadedSprite(mask: PixelMask): Sprite {
     let sprite = shaded.get(mask);
     if (!sprite) {
-        sprite = shadeMask(mask);
+        // An "S" in a mask is a fold line: part of the shape, but drawn in the shadow colour (the sprite is padded one pixel).
+        sprite = shadeMask(mask.some((row) => row.includes("S")) ? mask.map((row) => row.replace(/S/g, "1")) : mask);
+        mask.forEach((row, y) => {
+            for (let x = 0; x < row.length; x += 1) if (row[x] === "S") (sprite as { px: Uint8Array }).px[(y + 1) * sprite!.width + x + 1] = SLOT.shadow;
+        });
         shaded.set(mask, sprite);
     }
     return sprite;
@@ -218,7 +241,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
 
     const hairLayers: readonly HairLayer[] = resolveHairLayers(c.frontHairStyle, c.backHairStyle, c.hairLength, c.hairDrape, o);
     // In a walking pose the lower hair swishes. The size covers both swings, so the avatar keeps it in every pose.
-    const hairIn = (pose: LegPose) => hairLayers.map((h) => swingHair(h, pose, o));
+    const hairIn = (pose: LegPose) => hairLayers.map((h) => swingLayer(h, pose, o));
     const hairNow = hairIn(c.legPose);
     // A one-piece top (a dress, overalls) covers the legs, so nothing is drawn for the bottom.
     const coversBottom = (topStyles[c.topStyle] as GarmentDefinition).coversBottom === true;
@@ -226,11 +249,27 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         const slots = clothesSlots(color);
         return layers.map((l) => ({ ...l, slots }));
     };
-    const garments = [
+    // A long skirt hangs over the tops of the shoes, so then the shoes are drawn before it, with the clothes on the body.
+    // A flowing or pleated skirt sways in a walking pose.
+    const bottomDefinition = (c.bottomStyle === "skirt" ? skirtStyles[c.skirtShape][c.skirtLength] : bottomStyles[c.bottomStyle]) as GarmentDefinition;
+    // An ankle-length skirt stops just above the feet, so only the last row of the legs and shoes shows under it, and a
+    // floor-length one covers them, so there are no shoes or legs to draw.
+    const coversFeet = !coversBottom && bottomDefinition.coversFeet === true;
+    const feetOnly = !coversBottom && bottomDefinition.showsOnlyFeet === true;
+    const underSkirt = !coversBottom && (bottomDefinition.hangsOverShoes === true || feetOnly);
+    const lastRow = (mask: PixelMask): PixelMask => mask.map((row, y) => (y === mask.length - 1 ? row : "0".repeat(row.length)));
+    const shoes = (coversFeet ? [] : piece(garmentLayersFor(shoeStyles[c.shoeStyle], o), c.shoeColor)).map((g) => ({
+        ...g,
+        ...(underSkirt ? { placement: "overBody" as const } : {}),
+        ...(feetOnly ? { mask: lastRow(g.poses?.[c.legPose] ?? g.mask), poses: undefined } : {})
+    }));
+    const garmentsFor = (pose: LegPose) => [
         ...piece(garmentLayersFor(topStyles[c.topStyle], o), c.topColor),
-        ...(coversBottom ? [] : piece(garmentLayersFor(bottomStyles[c.bottomStyle], o), c.bottomColor)),
-        ...piece(garmentLayersFor(shoeStyles[c.shoeStyle], o), c.shoeColor)
+        ...(underSkirt ? shoes : []),
+        ...(coversBottom ? [] : piece(garmentLayersFor(bottomDefinition, o).map((l) => swingLayer(l, pose, o)), c.bottomColor)),
+        ...(underSkirt ? [] : shoes)
     ];
+    const garments = garmentsFor(c.legPose);
 
     const garmentsAt = (placement: GarmentPlacement) =>
         garments
@@ -262,7 +301,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     const withAccessory = (h: HairLayer): Layer[] => (h.tie?.under ? [...accessoryLayers(h), hairLayer(h)] : [hairLayer(h), ...accessoryLayers(h)]);
     const hairAt = (placement: HairLayer["placement"]) => hairNow.filter((h) => h.placement === placement).flatMap(withAccessory);
 
-    const legs = layer(maskForView(legsFrames[c.legPose], o), skin, 2, 13);
+    const legs = layer(feetOnly ? lastRow(maskForView(legsFrames[c.legPose], o)) : maskForView(legsFrames[c.legPose], o), skin, 2, 13);
     const torso = layer(maskForView(torsoMasks, o), skin, 2, 6);
     const inProfile = o === "left" || o === "right";
     // In a walking pose, from the front the arm that has come in close to the body is drawn over the clothes, and from
@@ -297,7 +336,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     const layers: Layer[] = [
         ...hairAt("behindBody"),
         ...garmentsAt("behindBody"),
-        legs,
+        ...(coversFeet ? [] : [legs]),
         torso,
         // In profile the arm hangs in front of the torso, so it goes over the clothes on the body.
         ...handsUnder,
@@ -326,7 +365,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         arms,
         head,
         ...[...hairLayers, ...hairIn("contactLeft"), ...hairIn("contactRight")].flatMap(withAccessory),
-        ...garments.map((g) => layer(g.mask, g.slots, g.offsetX, g.offsetY))
+        ...[...garments, ...garmentsFor("contactLeft"), ...garmentsFor("contactRight")].map((g) => layer(g.mask, g.slots, g.offsetX, g.offsetY))
     ]);
 
     return composeSprites(layers, bounds);

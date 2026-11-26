@@ -514,3 +514,85 @@ test("walk cycle: an accessory tied at the root of a tuft stays put while the fr
         assert.notEqual(where(frames[1], hair), where(frames[0], hair), `${headOrientation}: the tuft swings`);
     }
 });
+
+test("a skirt has a shape and a length, and nothing else does", () => {
+    const skirt = { bottomStyle: "skirt", topStyle: "shirt" };
+    assert.equal(resolveAvatarConfig({ ...skirt, skirtShape: "pleated", skirtLength: "knee" }).skirtShape, "pleated");
+    assert.equal(resolveAvatarConfig({ ...skirt, skirtShape: "pencil", skirtLength: "floor" }).skirtLength, "floor");
+    // Anything unknown falls back, and what does not apply is dropped so equivalent looks share a key.
+    assert.equal(resolveAvatarConfig({ ...skirt, skirtLength: "midi" }).skirtLength, "mini");
+    assert.equal(avatarKey({ ...skirt, skirtShape: "pleated", skirtLength: "mini" }), avatarKey({ ...skirt }), "a mini skirt has no shape");
+    assert.equal(avatarKey({ bottomStyle: "shorts", skirtShape: "pencil", skirtLength: "floor" }), avatarKey({ bottomStyle: "shorts" }), "shorts have neither");
+    assert.equal(avatarKey({ ...skirt, topStyle: "dress", skirtShape: "pencil", skirtLength: "floor" }), avatarKey({ ...skirt, topStyle: "dress" }), "a dress covers the skirt");
+    assert.deepEqual(buildAvatar({ ...skirt, topStyle: "dress", skirtLength: "floor" }), buildAvatar({ topStyle: "dress", bottomStyle: "none" }));
+    // The plain skirt is the mini skirt, as it always was.
+    assert.deepEqual(buildAvatar({ bottomStyle: "skirt" }), buildAvatar({ bottomStyle: "skirt", skirtShape: "flowing", skirtLength: "mini" }));
+});
+
+test("skirts get longer with the length, in every shape", () => {
+    const red = new Set(Object.values(clothesPalettes.red));
+    const skirtPixels = (look) => {
+        const r = buildAvatar({ bottomStyle: "skirt", bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald", ...look });
+        return [...r.px].filter((p) => red.has(r.colors[p])).length;
+    };
+    for (const skirtShape of ["flowing", "pleated", "pencil"]) {
+        const counts = ["mini", "short", "knee", "ankle", "floor"].map((skirtLength) => skirtPixels({ skirtShape, skirtLength }));
+        for (let i = 1; i < counts.length; i += 1) assert.ok(counts[i] > counts[i - 1], `${skirtShape}: longer skirts have more skirt (${counts})`);
+    }
+});
+
+test("flowing and pleated skirts sway like hair when walking, a pencil skirt does not, and every pose is one size", () => {
+    const red = new Set(Object.values(clothesPalettes.red));
+    // Only the hem, the skirt's two lowest rows, is compared, since a swinging hand can cover the top of it.
+    const hem = (f) => {
+        const at = [...f.px].map((p, i) => (red.has(f.colors[p]) ? i : -1)).filter((i) => i >= 0);
+        const last = Math.floor(at[at.length - 1] / f.width) - 1;
+        return at.filter((i) => Math.floor(i / f.width) >= last).join();
+    };
+    const swaying = { flowing: ["short", "knee", "ankle", "floor"], pleated: ["knee", "ankle", "floor"], pencil: [] };
+    for (const headOrientation of ["front", "back", "left", "right"]) {
+        for (const skirtShape of ["flowing", "pleated", "pencil"]) {
+            for (const skirtLength of ["short", "knee", "ankle", "floor"]) {
+                const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) =>
+                    buildAvatar({ headOrientation, legPose, bottomStyle: "skirt", skirtShape, skirtLength, bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald" })
+                );
+                const label = `${headOrientation} ${skirtShape} ${skirtLength}`;
+                for (const f of frames) assert.deepEqual([f.width, f.height], [frames[0].width, frames[0].height], `${label}: one size in every pose`);
+                const moves = hem(frames[1]) !== hem(frames[0]) && hem(frames[2]) !== hem(frames[0]);
+                assert.equal(moves, swaying[skirtShape].includes(skirtLength), `${label}: ${moves ? "sways" : "stays"}`);
+            }
+        }
+    }
+});
+
+test("an ankle-length skirt shows only the last row of the feet, and a floor-length one covers them", () => {
+    const red = new Set(Object.values(clothesPalettes.red));
+    for (const skirtShape of ["flowing", "pleated", "pencil"]) {
+        for (const headOrientation of ["front", "back", "left", "right"]) {
+            for (const shoeStyle of ["boots", "shoes", "sandals"]) {
+                for (const legPose of ["neutral", "contactLeft", "contactRight"]) {
+                    const look = { headOrientation, legPose, bottomStyle: "skirt", skirtShape, bottomColor: "red", shoeStyle, shoeColor: "yellow", clothesColor: "blue", topStyle: "shirt", hairLength: "bald" };
+                    const ankle = buildAvatar({ ...look, skirtLength: "ankle" });
+                    const floor = buildAvatar({ ...look, skirtLength: "floor" });
+                    const onlySkirt = (f, rows) => {
+                        for (const y of rows) for (let x = 0; x < f.width; x += 1) assert.ok(!f.colors[f.px[y * f.width + x]] || red.has(f.colors[f.px[y * f.width + x]]), `${skirtShape} ${headOrientation} ${shoeStyle} ${legPose}: only skirt at row ${y}`);
+                    };
+                    // The row above the hem is all skirt for both. The floor-length skirt reaches the last rows, with no feet there.
+                    onlySkirt(ankle, [ankle.height - 4]);
+                    onlySkirt(floor, [floor.height - 4, floor.height - 3, floor.height - 2]);
+                }
+            }
+        }
+    }
+});
+
+test("a pleated skirt has fold lines in the shadow colour, and a flowing or pencil one has none", () => {
+    const ramp = clothesPalettes.red;
+    const folds = (look) => {
+        const r = buildAvatar({ bottomStyle: "skirt", bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald", skirtLength: "floor", ...look });
+        return [...r.px].filter((p) => r.colors[p] === ramp.shadow).length;
+    };
+    const flowing = folds({ skirtShape: "flowing" });
+    assert.ok(folds({ skirtShape: "pleated" }) > flowing + 4, "pleats add fold lines");
+    assert.ok(folds({ skirtShape: "pleated", headOrientation: "right" }) > folds({ skirtShape: "flowing", headOrientation: "right" }), "and so do they in profile");
+});
