@@ -2,6 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+    randomAvatar,
     avatarKey,
     backHairStylesFor,
     buildAvatar,
@@ -749,4 +750,22 @@ test("a top that reaches the bottom can hang over it, and no other top has a tuc
     }
     // A longer top has more cloth: the tunic reaches past the hips.
     assert.ok(cloth({ topLength: "tunic" }) > cloth({ topLength: "hip" }) && cloth({ topLength: "hip" }) > cloth({ topLength: "long" }));
+});
+
+test("randomAvatar is the same for a seed, differs between seeds, and is always a dressed, valid look", () => {
+    assert.deepEqual(randomAvatar(7), randomAvatar(7));
+    const looks = Array.from({ length: 200 }, (_, seed) => randomAvatar(seed));
+    assert.ok(new Set(looks.map((look) => avatarKey(look))).size > 150, "seeds give a variety of looks");
+    for (const look of looks) {
+        assert.deepEqual(resolveAvatarConfig(look), look, "every choice is in the fixed tables");
+        assert.equal(look.topStyle, "top");
+        assert.notEqual(look.bottomStyle, "none");
+        assert.notEqual(look.hairLength, "bald");
+        assert.notEqual(look.shoeStyle, "none");
+        assert.deepEqual([look.headOrientation, look.legPose], ["front", "neutral"]);
+        const avatar = buildAvatar(look);
+        assert.ok(avatar.width > 0 && avatar.height >= 24, "it builds");
+    }
+    assert.ok(looks.some((look) => look.tuck === "onePiece") && looks.some((look) => look.bottomStyle === "skirt") && looks.some((look) => look.bottomStyle === "pants"), "it mixes one-pieces, skirts and pants");
+    assert.notDeepEqual(randomAvatar(), randomAvatar(), "with no seed it is different each time");
 });

@@ -13,6 +13,7 @@ export {
     type AvatarConfig,
     type HeadOrientation
 } from "./avatar/buildAvatar";
+export { randomAvatar } from "./avatar/randomAvatar";
 export { buildTile, tileIds } from "./world/tiles";
 export { TILE_SIZE } from "./world/size";
 export { tilePalettes, tileThemes, defaultTileTheme, tileColorGroups, type TileColor, type TileColors, type TileColorGroup, type TileTheme } from "./world/tiles/palettes";

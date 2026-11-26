@@ -134,25 +134,16 @@ const scene = defineMap(
   ]
 );
 
-const pick = (table, i) => Object.keys(table)[i % Object.keys(table).length];
-const person = (i, extra = {}) => ({
-  skinTone: pick(lib.skinPalettes, i),
-  hairColor: pick(lib.hairPalettes, i + 1 + Math.floor(i / 3)),
-  eyeColor: pick(lib.eyePalettes, i),
-  clothesColor: pick(lib.clothesPalettes, 2 * i + 1),
-  frontHairStyle: pick(lib.frontHairStyles, i),
-  backHairStyle: pick(lib.backHairStyles, i + 1),
-  ...extra
-});
-
+// Every look is a seeded random one, so the images are the same each time they are rendered.
+const walk = (x, seed, headOrientation, legPose = "neutral") => ({ x, config: { ...lib.randomAvatar(seed), headOrientation, legPose } });
 const walkers = [
-  { x: 40, config: person(0, { topStyle: "top", bottomStyle: "pants", shoeStyle: "boots", headOrientation: "right", legPose: "contactLeft" }) },
-  { x: 128, config: person(1, { topLength: "hip", tuck: "onePiece", bottomStyle: "skirt", bottomLength: "knee", shoeStyle: "sandals", headOrientation: "front" }) },
-  { x: 200, config: person(2, { topStyle: "top", sleeveLength: "long", bottomStyle: "skirt", shoeStyle: "shoes", headOrientation: "left", legPose: "contactLeft" }) },
-  { x: 300, config: person(3, { topLength: "hip", tuck: "onePiece", bottomStyle: "pants", bottomLength: "ankle", collar: "straps", shoeStyle: "boots", headOrientation: "front" }) },
-  { x: 380, config: person(4, { topStyle: "top", sleeveLength: "none", collar: "straps", bottomStyle: "pants", shoeStyle: "sandals", headOrientation: "right", legPose: "contactLeft" }) },
-  { x: 470, config: person(5, { topStyle: "top", bottomStyle: "skirt", shoeStyle: "shoes", headOrientation: "front" }) },
-  { x: 560, config: person(6, { topStyle: "top", sleeveLength: "long", bottomStyle: "pants", shoeStyle: "boots", headOrientation: "left", legPose: "contactLeft" }) }
+  walk(40, 1, "right", "contactLeft"),
+  walk(128, 2, "front"),
+  walk(200, 3, "left", "contactLeft"),
+  walk(300, 4, "front"),
+  walk(380, 5, "right", "contactLeft"),
+  walk(470, 6, "front"),
+  walk(560, 7, "left", "contactLeft")
 ];
 
 const world = buildMap(scene);
@@ -167,7 +158,7 @@ save("banner", banner, 2, { png: true });
 
 // ─── Avatars ────────────────────────────────────────────────────────────────
 
-const avatarConfigs = walkers.map((w, i) => ({ ...w.config, headOrientation: "front", legPose: "neutral", armPose: ["down", "forward", "back"][i % 3] }));
+const avatarConfigs = Array.from({ length: 14 }, (_, i) => ({ ...lib.randomAvatar(100 + i), armPose: ["down", "forward", "back"][i % 3] }));
 save("avatars", sheet(avatarConfigs.map((c) => buildAvatar(c)), { columns: 7, gap: 6 }), 6, { png: true });
 
 // ─── Tiles, objects, themes ─────────────────────────────────────────────────
