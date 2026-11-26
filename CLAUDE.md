@@ -1,4 +1,4 @@
-# CLAUDE.md — pixel-mask-engine
+# CLAUDE.md — pixel-kit
 
 This repo will be **open source**. Write everything in it (code, comments, commit messages, docs, sample data) as if it is already public.
 
@@ -8,7 +8,7 @@ A TypeScript library that composes and renders pixel-art avatars (and, next, til
 
 ## Current state (core and Sprite refactor done)
 
-- Entries: `@ragtechdev/pixel-mask-engine` (pure core: `buildAvatar`, `buildTile`, `avatarKey`, `createCache`, `toSvg*`, style and palette tables), `@ragtechdev/pixel-mask-engine/canvas` (`paintRaster`, `drawRaster`) and `@ragtechdev/pixel-mask-engine/react` (`Avatar`, `Tile`, `Icon`, `WorldObject`, `World`, `PixelImage`). React is an optional peer.
+- Entries: `@ragtechdev/pixel-sprites` (pure core: `buildAvatar`, `buildTile`, `avatarKey`, `createCache`, `toSvg*`, style and palette tables), `@ragtechdev/pixel-sprites/canvas` (`paintRaster`, `drawRaster`) and `@ragtechdev/pixel-sprites/react` (`Avatar`, `Tile`, `Icon`, `WorldObject`, `World`, `PixelImage`). React is an optional peer.
 - `Sprite` (`src/core/sprite.ts`) is the single image primitive: palette-slot indices plus an origin. Avatar shape masks are still `"0"`/`"1"` strings, auto-shaded by `shadeMask` using `src/core/lighting.ts`. Tile masks are `"0"`/`"1"` layers painted in named colours, resolved through the fixed `tilePalettes`. `composeSprites` (internal) produces a colour-resolved `Raster`.
 - `resolveAvatarConfig` replaces any value that isn't in the fixed tables with its default.
 - Size baseline before the refactor: the whole bundle was about 3.3 KB gzipped. After it, an avatar-only import is about 3.28 KB, the full core entry is about 4.25 KB (it now includes tiles), and the react and canvas entries add about 0.46 KB and 0.45 KB.
@@ -26,7 +26,7 @@ Next: more objects and a pet on `Sprite`; more tile types and objects; a Web Wor
 
 ## Target design
 
-1. **Zero-dependency, tree-shakeable ESM core** (pure TypeScript, no React, no DOM types in the core entry). The React/Preact component is a separate optional entry point (for example `@ragtechdev/pixel-mask-engine/react`), with React as an optional peer dependency.
+1. **Zero-dependency, tree-shakeable ESM core** (pure TypeScript, no React, no DOM types in the core entry). The React/Preact component is a separate optional entry point (for example `@ragtechdev/pixel-sprites/react`), with React as an optional peer dependency.
 2. **One `Sprite` abstraction** shared by avatars, tiles, furniture, decor and a pet: a palette-indexed mask plus size and anchor. Replace the three mask formats with this one.
 3. **Render once, reuse.** Paint each unique config to an offscreen canvas or sprite sheet, cache by a hash of the config, and draw with `image-rendering: pixelated`. Keep a plain SVG path for non-canvas use if it is cheap. Move batch generation into a Web Worker with `OffscreenCanvas` only if it measurably blocks the main thread.
 4. **Framework-agnostic API.** The consumer app mounts a canvas module outside its UI framework, so the core must be callable without any framework.
@@ -71,7 +71,7 @@ The package manager is pnpm (pinned in `packageManager`); do not use npm or comm
 - `minimumReleaseAge` delays brand-new versions by 3 days.
 - `trustPolicy: no-downgrade` rejects versions that lost provenance. Exceptions go in `trustPolicyExclude`, exact version only, with a comment saying why. Never add one without reviewing the package (maintainer, repo, publish history).
 - Always install with `--frozen-lockfile` in CI. Add a dependency only after checking its size and licence.
-- Publishing happens only from `.github/workflows/release.yml` via npm trusted publishing (OIDC, with provenance). No npm token is stored anywhere. The npm trusted-publisher entry needs the **npm publish** permission (not "stage publish"), and its owner, repo, workflow and environment must match GitHub's spelling exactly (`ragTechDev`, `pixel-mask-engine`, `release.yml`, `npm-publish`).
+- Publishing happens only from `.github/workflows/release.yml` via npm trusted publishing (OIDC, with provenance). No npm token is stored anywhere. The npm trusted-publisher entry needs the **npm publish** permission (not "stage publish"), and its owner, repo, workflow and environment must match GitHub's spelling exactly (`ragTechDev`, `pixel-kit`, `release.yml`, `npm-publish`).
 - A release needs a manual approval: the `npm-publish` GitHub environment has a required reviewer and only allows `v*` tags.
 - GitHub Actions are pinned to commit SHAs. Repo policy (Settings -> Actions) requires SHA pinning and allows only GitHub-owned actions plus `pnpm/action-setup`. To use a new action, review it first, then add it to that allow-list.
 - Dependabot (`.github/dependabot.yml`) proposes weekly updates for Actions and dev dependencies, skipping versions younger than 3 days. Review each PR: check the changelog, and treat any new install-script warning or trust-policy failure as a stop sign, not something to exclude by reflex.

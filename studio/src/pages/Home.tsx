@@ -25,8 +25,8 @@ export function HomePage({ route }: { route: Route }) {
         <div className="stack" style={{ gap: 24 }}>
             <section ref={hero} className="panel hero">
                 <div className="stack" style={{ maxWidth: 560 }}>
-                    <h1>Pixel Mask Studio</h1>
-                    <p>Browse every icon, tile, object and avatar in ragTech's Pixel Mask Library. Preview them at 8x8 or 16x16 and in 1 or 2-bit colour, then copy the code.</p>
+                    <h1>Pixel Kit Studio</h1>
+                    <p>Browse every icon, tile, object and avatar in ragTech's Pixel Sprites. Preview them at 8x8 or 16x16 and in 1 or 2-bit colour, then copy the code.</p>
                     <div className="row">
                         <a className="btn primary" href={href(["icons"], route)}>Browse icons</a>
                         <a className="btn" href={href(["docs"], route)}>Read the docs</a>

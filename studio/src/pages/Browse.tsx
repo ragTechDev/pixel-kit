@@ -42,12 +42,12 @@ function snippets(component: string, builder: string, id: string, route: Route, 
     const attrs = [...props, size && `size={${size}}`, bits && `bits={${bits}}`, palette && `palette="${palette}"`].filter(Boolean).join(" ");
     const v = coreOptions(route);
     return [
-        { label: "React", code: `import { ${component} } from "@ragtechdev/pixel-mask-engine/react";\n\n<${component} id="${id}"${attrs ? ` ${attrs}` : ""} />` },
+        { label: "React", code: `import { ${component} } from "@ragtechdev/pixel-sprites/react";\n\n<${component} id="${id}"${attrs ? ` ${attrs}` : ""} />` },
         {
             label: "Core",
             code: v
-                ? `import { ${builder}, toVariant } from "@ragtechdev/pixel-mask-engine";\n\nconst raster = toVariant(${builder}("${id}"${args}), ${v});`
-                : `import { ${builder} } from "@ragtechdev/pixel-mask-engine";\n\nconst raster = ${builder}("${id}"${args});`
+                ? `import { ${builder}, toVariant } from "@ragtechdev/pixel-sprites";\n\nconst raster = toVariant(${builder}("${id}"${args}), ${v});`
+                : `import { ${builder} } from "@ragtechdev/pixel-sprites";\n\nconst raster = ${builder}("${id}"${args});`
         }
     ];
 }

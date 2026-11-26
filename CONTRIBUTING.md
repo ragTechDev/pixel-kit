@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping grow ragTech's Pixel Mask Library! We keep things small on purpose, so a few gentle rules apply. Everything here is meant to make your contribution easy to review.
+Thank you for helping grow ragTech's Pixel Sprites! We keep things small on purpose, so a few gentle rules apply. Everything here is meant to make your contribution easy to review.
 
 ## For pull requests
 

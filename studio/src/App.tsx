@@ -16,7 +16,7 @@ const library = [
     ["worlds", "Worlds"]
 ] as const;
 
-const GITHUB = "https://github.com/ragTechDev/pixel-mask-engine";
+const GITHUB = "https://github.com/ragTechDev/pixel-kit";
 
 export default function App() {
     const route = useRoute();
@@ -32,7 +32,7 @@ export default function App() {
         : library.find(([id]) => id === section)?.[1];
 
     useEffect(() => {
-        document.title = title ? `${title} · Pixel Mask Studio` : "Pixel Mask Studio";
+        document.title = title ? `${title} · Pixel Kit Studio` : "Pixel Kit Studio";
     }, [title]);
 
     // Moving to another Docs page starts it at the top.
@@ -58,14 +58,14 @@ export default function App() {
                 <div className="top-main">
                     <a className="brand" href={href([], route)}>
                         <img className="brand-mark" src="./favicon.svg" width="24" height="24" alt="" style={{ imageRendering: "pixelated" }} />
-                        Pixel Mask Studio
+                        Pixel Kit Studio
                     </a>
                     <span className="credit">with ♥ by <a href="https://ragtechdev.com">ragTech</a></span>
                     <nav className="nav" aria-label="Sections">
                         <a href={href(["icons"], route)} aria-current={inLibrary ? "page" : undefined}>Library</a>
                         <a href={href(["docs"], route)} aria-current={inDocs ? "page" : undefined}>Docs</a>
                     </nav>
-                    <a className="top-note" href={GITHUB} aria-label="pixel-mask-engine on GitHub">GitHub ↗</a>
+                    <a className="top-note" href={GITHUB} aria-label="pixel-kit on GitHub">GitHub ↗</a>
                 </div>
             </header>
             {(inLibrary || inDocs) && (
@@ -82,7 +82,7 @@ export default function App() {
             )}
             <main className="page">{page}</main>
             <footer className="foot">
-                <span>ragTech's Pixel Mask Library. Code MIT, art CC BY 4.0.</span>
+                <span>ragTech's Pixel Sprites. Code MIT, art CC BY 4.0.</span>
                 <a href={GITHUB}>GitHub</a>
             </footer>
         </div>
