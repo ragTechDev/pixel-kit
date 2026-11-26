@@ -213,10 +213,15 @@ test("walking alternates two leg poses within a step, one of them the standing p
 test("characters of different widths are centred on their tile", () => {
     const p = play();
     p.game.advance(1);
-    const ctx = fakeContext();
+    // The looks are random, so draw new ones until the characters on screen are not all the same width.
+    let ctx = fakeContext();
     p.game.render(ctx);
-    const widths = new Set(ctx.draws.slice(1).map(([raster]) => raster.width));
-    assert.ok(widths.size >= 2, "the hero and the pigtailed character are not the same width");
+    for (let tries = 0; tries < 200 && new Set(ctx.draws.slice(1).map(([raster]) => raster.width)).size < 2; tries += 1) {
+        p.randomize();
+        ctx = fakeContext();
+        p.game.render(ctx);
+    }
+    assert.ok(new Set(ctx.draws.slice(1).map(([raster]) => raster.width)).size >= 2, "the hero and a character are not the same width");
     for (const [raster, x] of ctx.draws.slice(1)) {
         const tileLeft = x - Math.floor((16 - raster.width) / 2);
         assert.equal(tileLeft % 16, (p.camera.x * -1) % 16 === 0 ? 0 : tileLeft % 16, "drawn relative to a tile edge");
