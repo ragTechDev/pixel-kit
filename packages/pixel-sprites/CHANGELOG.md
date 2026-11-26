@@ -22,6 +22,9 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 - Hands. The end of each arm is now its own skin layer, drawn over the clothes with its own outline, so an arm swung in front overlaps the body. Every avatar's pixels change slightly because of it.
 - Walk-cycle legs, footwear (boots, shoes, sandals) and, from the front and back, arms and sleeves that swing against the legs, for every view. The right-foot frame is the left-foot one flipped, and the back view is the front flipped. A side view cannot show which foot leads, so both feet share its stride.
 
+### Changed
+- The long-sleeve and spaghetti tops end at the same height as the shirt. The long-sleeve top was two rows longer and the spaghetti top one row longer, which left a bare gap above the bottom on the shirt and none on them. Their pixels change, so the golden fixtures with those tops are re-recorded.
+
 ## [0.9.0] - 2026-11-26
 
 ### Breaking changes
