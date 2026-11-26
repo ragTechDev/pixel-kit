@@ -1,0 +1,13 @@
+// A shirt collar: two pointed flaps, in the darkest tone (D), either side of the neck.
+// The collar rows of a top, from the shoulders down, front then side: the first is hidden under the head's outline and the
+// rest are the neck and chest. The rows below them are the same for every collar.
+export const shirtCollarFrontMask = [
+    "001111100",
+    "01D111D10",
+    "011D1D110"
+];
+export const shirtCollarSideMask = [
+    "001111100",
+    "00111D100",
+    "0011D1100"
+];

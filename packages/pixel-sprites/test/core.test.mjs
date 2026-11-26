@@ -16,6 +16,7 @@ import {
     hairPalettes,
     hairTextures,
     legPoses,
+    collars,
     resolveAvatarConfig,
     skinPalettes,
     tileIds,
@@ -112,8 +113,8 @@ test("each piece of clothing can have its own colour, following clothesColor whe
     const shape = (r) => Array.from(r.px, (p) => (p === 0 ? 0 : 1)).join("");
     assert.equal(shape(shoesOnly), shape(buildAvatar()), "the shape is the same");
 
-    const dress = buildAvatar({ topStyle: "dress", topColor: "pink", bottomColor: "green" });
-    assert.ok(has(dress, "pink") && !has(dress, "green"), "a dress takes the top colour, and the bottom colour has nothing to colour");
+    const dress = buildAvatar({ tuck: "onePiece", bottomStyle: "skirt", bottomLength: "knee", topColor: "pink", bottomColor: "green" });
+    assert.ok(has(dress, "pink") && !has(dress, "green"), "a one-piece takes the top colour, and the bottom colour has nothing to colour");
 });
 
 test("piece colours that match clothesColor, or are unknown, change nothing", () => {
@@ -126,19 +127,27 @@ test("piece colours that match clothesColor, or are unknown, change nothing", ()
     assert.deepEqual(buildAvatar({ topColor: "blue" }), buildAvatar(), "the default avatar's pixels are unchanged");
 });
 
-test("a dress or overalls is a top that covers the bottom", () => {
-    for (const topStyle of ["dress", "overalls"]) {
-        assert.deepEqual(buildAvatar({ topStyle, bottomStyle: "skirt" }), buildAvatar({ topStyle, bottomStyle: "none" }), `${topStyle} hides the bottom`);
-        assert.notDeepEqual(buildAvatar({ topStyle }), buildAvatar({ topStyle: "shirt" }), `${topStyle} is not a shirt`);
+test("a one-piece joins the top and the bottom into one garment with no seam", () => {
+    const dress = { tuck: "onePiece", topLength: "hip", bottomStyle: "skirt", bottomLength: "knee", shoeStyle: "none", hairLength: "bald", topColor: "pink", bottomColor: "green", clothesColor: "blue" };
+    const apart = { ...dress, tuck: "tucked" };
+    for (const headOrientation of ["front", "right", "back"]) {
+        const whole = buildAvatar({ ...dress, headOrientation });
+        const split = buildAvatar({ ...apart, headOrientation });
+        assert.notDeepEqual(whole, split, `${headOrientation}: a one-piece is not a top over a skirt`);
+        const colours = (r) => new Set(Array.from(r.px, (p) => r.colors[p]));
+        assert.ok(!colours(whole).has(clothesPalettes.green.base), "the bottom colour is not used");
     }
-    assert.notDeepEqual(buildAvatar({ topStyle: "shirt", bottomStyle: "skirt" }), buildAvatar({ topStyle: "shirt", bottomStyle: "none" }), "a shirt does not");
-});
-
-test("the old fullOutfitStyle and outfitColor options are gone", () => {
-    const resolved = resolveAvatarConfig({ fullOutfitStyle: "dress", outfitColor: "pink" });
-    assert.equal("fullOutfitStyle" in resolved, false);
-    assert.equal("outfitColor" in resolved, false);
-    assert.deepEqual(buildAvatar({ fullOutfitStyle: "dress" }), buildAvatar());
+    // The pixels where the top meets the bottom are cloth, not an outline: the one-piece has no darker row across it.
+    const r = buildAvatar({ ...dress, headOrientation: "front" });
+    const pink = new Set(Object.values(clothesPalettes.pink));
+    const rows = Array.from({ length: r.height }, (_, y) => Array.from({ length: r.width }, (_, x) => r.colors[r.px[y * r.width + x]]).filter((c) => pink.has(c)).length);
+    assert.ok(rows.filter((n) => n > 0).every((n) => n >= 3), "every row of the garment has cloth across it");
+    // It needs a bottom to join, and the tuck of an ordinary top changes nothing about it.
+    assert.equal(avatarKey({ tuck: "onePiece", bottomStyle: "none" }), avatarKey({ bottomStyle: "none" }));
+    assert.equal(avatarKey({ tuck: "onePiece", topStyle: "none" }), avatarKey({ topStyle: "none" }));
+    assert.equal(avatarKey({ ...dress, bottomColor: "red" }), avatarKey(dress), "the bottom colour has nothing to colour");
+    assert.equal(avatarKey({ ...dress, topLength: "crop" }), avatarKey({ ...dress, topLength: "regular" }), "a one-piece is as long as it takes to reach the bottom");
+    assert.equal(resolveAvatarConfig({ ...dress, fullOutfitStyle: "dress" }).fullOutfitStyle, undefined);
 });
 
 test("black is not a clothes colour", () => {
@@ -523,8 +532,6 @@ test("a skirt has a shape and a length, and nothing else does", () => {
     assert.equal(resolveAvatarConfig({ ...skirt, bottomLength: "maxi" }).bottomLength, "short");
     assert.equal(avatarKey({ ...skirt, skirtShape: "pleated", bottomLength: "short" }), avatarKey({ ...skirt }), "a one-row skirt has no shape");
     assert.equal(avatarKey({ bottomStyle: "none", skirtShape: "pencil", bottomLength: "floor" }), avatarKey({ bottomStyle: "none" }), "no bottom has neither");
-    assert.equal(avatarKey({ ...skirt, topStyle: "dress", skirtShape: "pencil", bottomLength: "floor" }), avatarKey({ ...skirt, topStyle: "dress" }), "a dress covers the skirt");
-    assert.deepEqual(buildAvatar({ ...skirt, topStyle: "dress", bottomLength: "floor" }), buildAvatar({ topStyle: "dress", bottomStyle: "none" }));
     // The plain skirt is the one-row skirt, as it always was.
     assert.deepEqual(buildAvatar({ bottomStyle: "skirt" }), buildAvatar({ bottomStyle: "skirt", skirtShape: "flowing", bottomLength: "short" }));
 });
@@ -600,12 +607,9 @@ test("a pleated skirt has fold lines in the shadow colour, and a flowing or penc
 test("pants have a length and no shape, and the shortest pants are what an avatar wears by default", () => {
     assert.equal(resolveAvatarConfig({ bottomStyle: "pants", bottomLength: "ankle" }).bottomLength, "ankle");
     assert.equal(avatarKey({ bottomStyle: "pants", skirtShape: "pencil", bottomLength: "ankle" }), avatarKey({ bottomStyle: "pants", bottomLength: "ankle" }), "pants have no shape");
-    assert.equal(avatarKey({ bottomStyle: "pants", topStyle: "dress", bottomLength: "floor" }), avatarKey({ bottomStyle: "pants", topStyle: "dress" }), "a dress covers pants");
-    assert.deepEqual(buildAvatar({ bottomStyle: "pants", topStyle: "overalls", bottomLength: "floor" }), buildAvatar({ topStyle: "overalls", bottomStyle: "none" }));
-    // The default look is the shortest pants, and the old "shorts" is not a bottom any more, so it falls back to them.
+    // The default look is the shortest pants.
     assert.equal(defaultAvatarConfig.bottomStyle, "pants");
     assert.equal(defaultAvatarConfig.bottomLength, "short");
-    assert.equal(resolveAvatarConfig({ bottomStyle: "shorts" }).bottomStyle, "pants");
     for (const headOrientation of ["front", "left", "right", "back"]) {
         for (const legPose of ["neutral", "contactLeft", "contactRight"]) {
             assert.deepEqual(buildAvatar({ headOrientation, legPose, bottomStyle: "pants", bottomLength: "short" }), buildAvatar({ headOrientation, legPose }), `${headOrientation} ${legPose}`);
@@ -647,4 +651,99 @@ test("ankle-length pants show only the last row of the feet, and floor-length pa
             }
         }
     }
+});
+
+test("a top has a length, sleeves and a collar", () => {
+    assert.equal(defaultAvatarConfig.topStyle, "top");
+    assert.deepEqual([defaultAvatarConfig.topLength, defaultAvatarConfig.sleeveLength, defaultAvatarConfig.collar], ["regular", "short", "round"]);
+    assert.equal(resolveAvatarConfig({ topStyle: "shirt" }).topStyle, "top", "an unknown top falls back");
+    // Anything unknown falls back, and what does not apply is dropped so equivalent looks share a key.
+    assert.equal(resolveAvatarConfig({ collar: "ruff" }).collar, "round");
+    assert.equal(avatarKey({ topStyle: "none", collar: "cowl" }), avatarKey({ topStyle: "none" }), "no top has none of them");
+    for (const collar of ["strapless", "straps", "halter"]) {
+        assert.equal(resolveAvatarConfig({ collar, sleeveLength: "long" }).sleeveLength, "none", `${collar} has no sleeves`);
+        assert.equal(avatarKey({ collar, sleeveLength: "long" }), avatarKey({ collar }), `${collar}: sleeves do not count`);
+    }
+    assert.equal(resolveAvatarConfig({ collar: "offShoulder", sleeveLength: "long" }).sleeveLength, "long", "an off-shoulder top can have sleeves");
+});
+
+test("collars: each neckline is drawn differently from the front, and every top keeps its size across poses", () => {
+    const ids = Object.keys(collars);
+    assert.ok(ids.length >= 19, `${ids.length} collars`);
+    const seen = new Map();
+    for (const collar of ids) {
+        const f = buildAvatar({ topStyle: "top", collar, sleeveLength: "none", hairLength: "bald" });
+        const key = [...f.px].map((p) => f.colors[p]).join();
+        assert.ok(!seen.has(key), `${collar} looks like ${seen.get(key)}`);
+        seen.set(key, collar);
+    }
+    for (const collar of ids) {
+        for (const topLength of ["crop", "short", "regular", "long"]) {
+            for (const sleeveLength of ["none", "cap", "short", "long"]) {
+                for (const headOrientation of ["front", "back", "left", "right"]) {
+                    const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) => buildAvatar({ topStyle: "top", collar, topLength, sleeveLength, headOrientation, legPose, hairLength: "bald" }));
+                    for (const f of frames) assert.deepEqual([f.width, f.height], [frames[0].width, frames[0].height], `${collar} ${topLength} ${sleeveLength} ${headOrientation}`);
+                }
+            }
+        }
+    }
+});
+
+test("tops get longer with the length, and sleeves get longer with the sleeve length", () => {
+    const red = new Set(Object.values(clothesPalettes.red));
+    const cloth = (look) => {
+        const r = buildAvatar({ topStyle: "top", topColor: "red", clothesColor: "blue", bottomStyle: "none", shoeStyle: "none", hairLength: "bald", ...look });
+        return [...r.px].filter((p) => red.has(r.colors[p])).length;
+    };
+    for (const collar of ["round", "v", "turtleneck", "strapless", "straps"]) {
+        const lengths = ["crop", "short", "regular", "long"].map((topLength) => cloth({ collar, topLength, sleeveLength: "none" }));
+        for (let i = 1; i < lengths.length; i += 1) assert.ok(lengths[i] > lengths[i - 1], `${collar}: longer tops have more cloth (${lengths})`);
+    }
+    for (const collar of ["round", "shirt", "cowl", "offShoulder"]) {
+        const sleeves = ["none", "cap", "short", "long"].map((sleeveLength) => cloth({ collar, sleeveLength }));
+        for (let i = 1; i < sleeves.length; i += 1) assert.ok(sleeves[i] > sleeves[i - 1], `${collar}: longer sleeves have more cloth (${sleeves})`);
+    }
+});
+
+test("collar details are drawn in the darkest tone, and a neckline opening shows bare skin", () => {
+    const base = { topStyle: "top", sleeveLength: "none", topColor: "red", clothesColor: "blue", bottomStyle: "none", shoeStyle: "none", hairLength: "bald", skinTone: "light" };
+    const count = (collar, colour) => {
+        const r = buildAvatar({ ...base, collar });
+        return [...r.px].filter((p) => r.colors[p] === colour).length;
+    };
+    const darkest = clothesPalettes.red.outline;
+    const plain = count("round", darkest);
+    for (const collar of ["shirt", "polo", "henley", "turtleneck", "mock", "cowl"]) assert.ok(count(collar, darkest) > plain, `${collar} has dark marks that a round neck lacks`);
+    // An opening has no outline of its own, so the skin under it shows: more skin than a round neck, and no skin-coloured outline.
+    const skin = skinPalettes.light.base;
+    const bare = count("round", skin);
+    for (const collar of ["scoop", "square", "v", "plunge", "boat", "sweetheart", "keyhole"]) assert.ok(count(collar, skin) > bare, `${collar} shows bare skin at the neck`);
+});
+
+test("a top that reaches the bottom can hang over it, and no other top has a tuck", () => {
+    // Only a hip or tunic top, over a bottom, has a tuck: for anything else it does not change the look or the key.
+    for (const topLength of ["crop", "short", "regular", "long"]) assert.equal(avatarKey({ topStyle: "top", topLength, tuck: "tucked" }), avatarKey({ topStyle: "top", topLength }), `${topLength} does not meet the bottom`);
+    assert.equal(avatarKey({ topStyle: "top", topLength: "hip", bottomStyle: "none", tuck: "tucked" }), avatarKey({ topStyle: "top", topLength: "hip", bottomStyle: "none" }), "no bottom to hang over");
+    // A top that reaches the bottom hangs over it unless it is tucked in.
+    assert.equal(defaultAvatarConfig.tuck, "untucked");
+    assert.notEqual(avatarKey({ topStyle: "top", topLength: "hip", tuck: "tucked" }), avatarKey({ topStyle: "top", topLength: "hip" }));
+    const red = new Set(Object.values(clothesPalettes.red));
+    const cloth = (look) => {
+        const r = buildAvatar({ topStyle: "top", topColor: "red", bottomColor: "blue", clothesColor: "blue", shoeStyle: "none", hairLength: "bald", sleeveLength: "none", ...look });
+        return [...r.px].filter((p) => red.has(r.colors[p])).length;
+    };
+    for (const bottom of [{ bottomStyle: "pants", bottomLength: "ankle" }, { bottomStyle: "skirt", skirtShape: "pencil", bottomLength: "calf" }]) {
+        for (const topLength of ["hip", "tunic"]) {
+            for (const headOrientation of ["front", "back", "left", "right"]) {
+                const look = { topLength, headOrientation, ...bottom };
+                // Over the bottom the top shows more of itself, and it is the same picture size either way.
+                assert.ok(cloth({ ...look, tuck: "untucked" }) > cloth({ ...look, tuck: "tucked" }), `${topLength} over ${bottom.bottomStyle} ${headOrientation}`);
+                const a = buildAvatar({ topStyle: "top", ...look, tuck: "untucked" });
+                const b = buildAvatar({ topStyle: "top", ...look, tuck: "tucked" });
+                assert.deepEqual([a.width, a.height], [b.width, b.height]);
+            }
+        }
+    }
+    // A longer top has more cloth: the tunic reaches past the hips.
+    assert.ok(cloth({ topLength: "tunic" }) > cloth({ topLength: "hip" }) && cloth({ topLength: "hip" }) > cloth({ topLength: "long" }));
 });

@@ -28,14 +28,12 @@ const orientations = keysIn("src/avatar/orientation.ts", "headOrientations");
 if (!orientations) throw new Error("Could not count head orientations in src/avatar/orientation.ts");
 
 // Each piece of clothing has its own colour. A top is absent (one look) or one of its styles in one of
-// the colours; a one-piece top (a dress, overalls) also covers the bottom, so it has no bottom to pair with.
-// Any other top pairs with a bottom, which is absent or one of its styles in one of the colours. Shoes work the same way.
+// the colours, and pairs with a bottom, which is absent or one of its styles in one of the colours. Shoes work the same way.
+// How a top is worn (tucked, untucked or one-piece with the bottom) is counted on its own, as "tuck".
 const colours = count(lib.clothesPalettes);
 const tops = Object.entries(lib.topStyles).filter(([id]) => id !== "none");
-const onePiece = tops.filter(([, def]) => def.coversBottom).length;
-const separate = tops.length - onePiece;
 const bottoms = count(lib.bottomStyles) - 1;
-const clothing = onePiece * colours + (separate * colours + 1) * (bottoms * colours + 1);
+const clothing = (tops.length * colours + 1) * (bottoms * colours + 1);
 const dims = {
   "head orientation": orientations,
   "skin tone": count(lib.skinPalettes),
@@ -49,6 +47,10 @@ const dims = {
   "eye colour": count(lib.eyePalettes),
   clothing,
   shoes: (count(lib.shoeStyles) - 1) * colours + 1,
+  "top length": count(lib.topLengths),
+  "sleeve length": count(lib.sleeveLengths),
+  collar: count(lib.collars),
+  tuck: count(lib.tucks),
   "skirt shape": count(lib.skirtShapes),
   "bottom length": count(lib.bottomLengths),
   "arm pose": keysIn("src/avatar/buildAvatar.ts", "ARM_POSES"),

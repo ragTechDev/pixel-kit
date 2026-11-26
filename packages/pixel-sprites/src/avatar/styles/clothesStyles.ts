@@ -1,4 +1,4 @@
-import type { PixelMask } from "../../core/maskUtils";
+import { mirrorMask, type PixelMask } from "../../core/maskUtils";
 import { headOrientations, maskForView, type HeadOrientation, type ViewMasks } from "../orientation";
 import { legFrames, liftFoot, onLegs, sleeveFrames as sleevesOver, smallerFoot, type LegPose } from "../legPoses";
 import { armsFrames } from "../arms";
@@ -13,10 +13,6 @@ import { skirtFrontMask } from "../masks/clothes/bottom/skirtFront.mask";
 import { skirtSideMask } from "../masks/clothes/bottom/skirtSide.mask";
 import { shortsFrontMask } from "../masks/clothes/bottom/shortsFront.mask";
 import { shortsSideMask } from "../masks/clothes/bottom/shortsSide.mask";
-import { dressTorsoFrontMask } from "../masks/clothes/full/dressTorsoFront.mask";
-import { dressTorsoSideMask } from "../masks/clothes/full/dressTorsoSide.mask";
-import { overallsTorsoFrontMask } from "../masks/clothes/full/overallsTorsoFront.mask";
-import { overallsTorsoSideMask } from "../masks/clothes/full/overallsTorsoSide.mask";
 import { bootsFrontMask } from "../masks/clothes/shoes/bootsFront.mask";
 import { bootsSideMask } from "../masks/clothes/shoes/bootsSide.mask";
 import { armsSideBackMask } from "../masks/armsSideBack.mask";
@@ -28,16 +24,29 @@ import { sandalsSideContactMask } from "../masks/clothes/shoes/sandalsSideContac
 import { shoesFrontMask } from "../masks/clothes/shoes/shoesFront.mask";
 import { shoesSideMask } from "../masks/clothes/shoes/shoesSide.mask";
 import { shoesSideContactMask } from "../masks/clothes/shoes/shoesSideContact.mask";
+import { roundCollarFrontMask, roundCollarSideMask } from "../masks/clothes/top/collar/round.mask";
+import { scoopCollarFrontMask, scoopCollarSideMask } from "../masks/clothes/top/collar/scoop.mask";
+import { squareCollarFrontMask, squareCollarSideMask } from "../masks/clothes/top/collar/square.mask";
+import { vCollarFrontMask, vCollarSideMask } from "../masks/clothes/top/collar/v.mask";
+import { plungeCollarFrontMask, plungeCollarSideMask } from "../masks/clothes/top/collar/plunge.mask";
+import { boatCollarFrontMask, boatCollarSideMask } from "../masks/clothes/top/collar/boat.mask";
+import { sweetheartCollarFrontMask, sweetheartCollarSideMask } from "../masks/clothes/top/collar/sweetheart.mask";
+import { keyholeCollarFrontMask, keyholeCollarSideMask } from "../masks/clothes/top/collar/keyhole.mask";
+import { shirtCollarFrontMask, shirtCollarSideMask } from "../masks/clothes/top/collar/shirt.mask";
+import { poloCollarFrontMask, poloCollarSideMask } from "../masks/clothes/top/collar/polo.mask";
+import { henleyCollarFrontMask, henleyCollarSideMask } from "../masks/clothes/top/collar/henley.mask";
+import { turtleneckCollarFrontMask, turtleneckCollarSideMask } from "../masks/clothes/top/collar/turtleneck.mask";
+import { mockCollarFrontMask, mockCollarSideMask } from "../masks/clothes/top/collar/mock.mask";
+import { cowlCollarFrontMask, cowlCollarSideMask } from "../masks/clothes/top/collar/cowl.mask";
+import { halterCollarFrontMask, halterCollarSideMask } from "../masks/clothes/top/collar/halter.mask";
+import { offShoulderCollarFrontMask, offShoulderCollarSideMask } from "../masks/clothes/top/collar/offShoulder.mask";
+import { oneShoulderCollarFrontMask, oneShoulderCollarSideMask } from "../masks/clothes/top/collar/oneShoulder.mask";
+import { strapsCollarFrontMask, strapsCollarSideMask } from "../masks/clothes/top/collar/straps.mask";
+import { straplessCollarFrontMask, straplessCollarSideMask } from "../masks/clothes/top/collar/strapless.mask";
 import { longSleevesFrontMask } from "../masks/clothes/top/longSleevesFront.mask";
 import { longSleevesSideMask } from "../masks/clothes/top/longSleevesSide.mask";
-import { longSleeveTorsoFrontMask } from "../masks/clothes/top/longSleeveTorsoFront.mask";
-import { longSleeveTorsoSideMask } from "../masks/clothes/top/longSleeveTorsoSide.mask";
 import { shirtSleevesFrontMask } from "../masks/clothes/top/shirtSleevesFront.mask";
 import { shirtSleevesSideMask } from "../masks/clothes/top/shirtSleevesSide.mask";
-import { shirtTorsoFrontMask } from "../masks/clothes/top/shirtTorsoFront.mask";
-import { shirtTorsoSideMask } from "../masks/clothes/top/shirtTorsoSide.mask";
-import { spaghettiTopTorsoFrontMask } from "../masks/clothes/top/spaghettiTopTorsoFront.mask";
-import { spaghettiTopTorsoSideMask } from "../masks/clothes/top/spaghettiTopTorsoSide.mask";
 
 export type ArmPose = "down" | "forward" | "back";
 export type { LegPose };
@@ -59,8 +68,6 @@ export type GarmentLayer = {
 
 export type GarmentDefinition = {
     slot: GarmentSlot;
-    /** A one-piece top (a dress, overalls) that also covers the legs, so no bottom is drawn under it. */
-    coversBottom?: true;
     /** A long bottom that hangs over the tops of the shoes, so the shoes are drawn under it. */
     hangsOverShoes?: true;
     /** A floor-length bottom that stops just above the feet: only the last row of the legs and shoes shows under it. */
@@ -74,7 +81,7 @@ export type GarmentDefinition = {
 type ViewedLayer = Omit<GarmentLayer, "mask" | "poses"> & { masks: ViewMasks; poses?: Record<LegPose, ViewMasks> };
 
 /** Builds a garment that is drawn from the front, either side and the back, each from its own mask. */
-function viewed(slot: GarmentSlot, layers: readonly ViewedLayer[], extra: { coversBottom?: true; hangsOverShoes?: true; showsOnlyFeet?: true; coversFeet?: true } = {}): GarmentDefinition {
+function viewed(slot: GarmentSlot, layers: readonly ViewedLayer[], extra: { hangsOverShoes?: true; showsOnlyFeet?: true; coversFeet?: true } = {}): GarmentDefinition {
     const forView = (o: HeadOrientation): GarmentLayer[] =>
         layers.map(({ masks, poses, ...rest }) => ({
             ...rest,
@@ -89,23 +96,126 @@ function viewed(slot: GarmentSlot, layers: readonly ViewedLayer[], extra: { cove
 const sleeveFrames = (front: PixelMask, side: PixelMask) =>
     sleevesOver(front, side, armsFrames, { forward: armsSideForwardMask.slice(0, side.length), back: armsSideBackMask.slice(0, side.length) });
 
-export type TopStyle = "none" | "spaghetti" | "shirt" | "longSleeve" | "overalls" | "dress";
+export type TopStyle = "none" | "top";
 export type BottomStyle = "none" | "skirt" | "pants";
 export type ShoeStyle = "none" | "boots" | "sandals" | "shoes";
 
+/**
+ * How far down a top goes, in rows from the shoulder. Regular is where a shirt ends. A hip-length top reaches the row where a
+ * bottom begins, and a tunic hangs past it, widening over the hips: those are the tops that can go over the bottom.
+ */
+export const topLengths = { crop: 1, short: 1, regular: 1, long: 1, hip: 1, tunic: 1 } as const;
+export type TopLength = keyof typeof topLengths;
+const TOP_ROWS: Record<TopLength, number> = { crop: 3, short: 4, regular: 5, long: 6, hip: 7, tunic: 9 };
+/** Whether a top is long enough to meet the bottom, so that it matters which of the two is over the other. */
+export const topMeetsBottom = (length: TopLength): boolean => TOP_ROWS[length] >= 7;
+
+/**
+ * How a top and a bottom go together. A top that meets the bottom goes over it, hanging free (`untucked`, the default), or
+ * the bottom goes over the top, which is `tucked` in. As a `onePiece` the two are a single garment, with no seam between them.
+ */
+export const tucks = { tucked: 1, untucked: 1, onePiece: 1 } as const;
+export type Tuck = keyof typeof tucks;
+
+/** How far down the arm a top's sleeves go, in rows: a cap sleeve is two, a short sleeve three and a long sleeve four. */
+export const sleeveLengths = { none: 1, cap: 1, short: 1, long: 1 } as const;
+export type SleeveLength = keyof typeof sleeveLengths;
+const SLEEVES: Record<Exclude<SleeveLength, "none">, ViewMasks> = {
+    cap: { front: shirtSleevesFrontMask.slice(0, 2), side: shirtSleevesSideMask.slice(0, 2) },
+    short: { front: shirtSleevesFrontMask, side: shirtSleevesSideMask },
+    long: { front: longSleevesFrontMask, side: longSleevesSideMask }
+};
+
+type CollarDefinition = {
+    /** The collar rows, the first three or four rows of a top, from the front and in profile. */
+    front: PixelMask;
+    side: PixelMask;
+    /** From behind: the front's rows, the front's flipped, or a plain round neck, which most necklines are at the back. */
+    back: "same" | "mirror" | "round";
+    /** Whether the collar has sleeves. Straps, a strapless top and a halter neck leave the arms bare. */
+    sleeves: boolean;
+};
+/**
+ * The cut-out of a neckline is marked "N", an opening with no outline of its own, so that bare skin shows there instead of a
+ * dark edge: any gap between the cloth in a row of the collar. Straps keep their outlines, as the spaghetti top always had.
+ */
+const openNeck = (rows: PixelMask): PixelMask =>
+    rows.map((row) => {
+        const first = row.search(/[^0]/);
+        const last = row.length - 1 - [...row].reverse().findIndex((c) => c !== "0");
+        return first < 0 ? row : row.slice(0, first) + row.slice(first, last + 1).replace(/0/g, "N") + row.slice(last + 1);
+    });
+const collar = (front: PixelMask, side: PixelMask, back: CollarDefinition["back"], sleeves = true, open = true): CollarDefinition => ({
+    front: open ? openNeck(front) : front,
+    side: open ? openNeck(side) : side,
+    back,
+    sleeves
+});
+const COLLARS = {
+    round: collar(roundCollarFrontMask, roundCollarSideMask, "same"),
+    scoop: collar(scoopCollarFrontMask, scoopCollarSideMask, "round"),
+    square: collar(squareCollarFrontMask, squareCollarSideMask, "round"),
+    v: collar(vCollarFrontMask, vCollarSideMask, "round"),
+    plunge: collar(plungeCollarFrontMask, plungeCollarSideMask, "round"),
+    boat: collar(boatCollarFrontMask, boatCollarSideMask, "round"),
+    sweetheart: collar(sweetheartCollarFrontMask, sweetheartCollarSideMask, "round"),
+    keyhole: collar(keyholeCollarFrontMask, keyholeCollarSideMask, "round"),
+    shirt: collar(shirtCollarFrontMask, shirtCollarSideMask, "same"),
+    polo: collar(poloCollarFrontMask, poloCollarSideMask, "same"),
+    henley: collar(henleyCollarFrontMask, henleyCollarSideMask, "round"),
+    turtleneck: collar(turtleneckCollarFrontMask, turtleneckCollarSideMask, "same"),
+    mock: collar(mockCollarFrontMask, mockCollarSideMask, "same"),
+    cowl: collar(cowlCollarFrontMask, cowlCollarSideMask, "same"),
+    halter: collar(halterCollarFrontMask, halterCollarSideMask, "same", false),
+    offShoulder: collar(offShoulderCollarFrontMask, offShoulderCollarSideMask, "same"),
+    oneShoulder: collar(oneShoulderCollarFrontMask, oneShoulderCollarSideMask, "mirror"),
+    straps: collar(strapsCollarFrontMask, strapsCollarSideMask, "same", false, false),
+    strapless: collar(straplessCollarFrontMask, straplessCollarSideMask, "same", false)
+} as const satisfies Record<string, CollarDefinition>;
+
+/** The neckline of a top, from the shoulders down: how it is cut, and what hangs at the neck. */
+export const collars = Object.fromEntries(Object.keys(COLLARS).map((id) => [id, 1])) as { [K in keyof typeof COLLARS]: 1 };
+export type Collar = keyof typeof COLLARS;
+/** Whether a collar has sleeves. A top with none of its own has bare arms, whatever `sleeveLength` says. */
+export const collarHasSleeves = (id: Collar): boolean => COLLARS[id].sleeves;
+
+/**
+ * The torso of a top: its collar rows, then the same body row down to the length (a collar with more rows than the length
+ * gives is as long as its collar). A top from behind has its own collar rows.
+ */
+function topMasks(length: TopLength, id: Collar): ViewMasks {
+    const c = COLLARS[id];
+    // From the row of the hips down, a top widens over them, as wide as the legs are.
+    const down = (collar: PixelMask, body: string, hips: string) =>
+        [...collar, ...Array.from({ length: Math.max(0, TOP_ROWS[length] - collar.length) }, (_, i) => (collar.length + i >= 6 ? hips : body))];
+    const back = c.back === "same" ? c.front : c.back === "mirror" ? mirrorMask(c.front) : COLLARS.round.front;
+    return { front: down(c.front, "011111110", "111111111"), side: down(c.side, "001111100", "011111110"), back: down(back, "011111110", "111111111") };
+}
+
+const sleevePoses = new Map<SleeveLength, Record<LegPose, ViewMasks>>();
+const topMemo = new Map<string, GarmentDefinition>();
+
+/** A top by its length, its sleeves and its collar. Made once, then reused. */
+export function topOf(length: TopLength, sleeves: SleeveLength, id: Collar): GarmentDefinition {
+    const key = `${length}|${sleeves}|${id}`;
+    let top = topMemo.get(key);
+    if (!top) {
+        const layers: ViewedLayer[] = [{ masks: topMasks(length, id), offsetX: 2, offsetY: 6, placement: "overBody" }];
+        if (sleeves !== "none" && COLLARS[id].sleeves) {
+            const masks = SLEEVES[sleeves];
+            if (!sleevePoses.has(sleeves)) sleevePoses.set(sleeves, sleeveFrames(masks.front, masks.side));
+            layers.push({ masks, poses: sleevePoses.get(sleeves), offsetX: 0, offsetY: 6, placement: "overArms", armPoses: ["down"] });
+        }
+        top = viewed("top", layers);
+        topMemo.set(key, top);
+    }
+    return top;
+}
+
 export const topStyles = {
     none: { slot: "top", byOrientation: {}, fallback: [] },
-    spaghetti: viewed("top", [{ masks: { front: spaghettiTopTorsoFrontMask, side: spaghettiTopTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" }]),
-    shirt: viewed("top", [
-        { masks: { front: shirtTorsoFrontMask, side: shirtTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" },
-        { masks: { front: shirtSleevesFrontMask, side: shirtSleevesSideMask }, poses: sleeveFrames(shirtSleevesFrontMask, shirtSleevesSideMask), offsetX: 0, offsetY: 6, placement: "overArms", armPoses: ["down"] }
-    ]),
-    longSleeve: viewed("top", [
-        { masks: { front: longSleeveTorsoFrontMask, side: longSleeveTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" },
-        { masks: { front: longSleevesFrontMask, side: longSleevesSideMask }, poses: sleeveFrames(longSleevesFrontMask, longSleevesSideMask), offsetX: 0, offsetY: 6, placement: "overArms", armPoses: ["down"] }
-    ]),
-    overalls: viewed("top", [{ masks: { front: overallsTorsoFrontMask, side: overallsTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" }], { coversBottom: true }),
-    dress: viewed("top", [{ masks: { front: dressTorsoFrontMask, side: dressTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" }], { coversBottom: true })
+    // A plain top: regular length, short sleeves and a round neck. `topOf` has the rest.
+    top: topOf("regular", "short", "round")
 } as const satisfies Record<TopStyle, GarmentDefinition>;
 
 /** The shortest pants: one row at the hips, as wide as the legs. */
@@ -204,3 +314,72 @@ function pantsOf(length: BottomLength): GarmentDefinition {
 
 /** Every pair of pants, by length. */
 export const pantsStyles = Object.fromEntries((Object.keys(bottomLengths) as BottomLength[]).map((length) => [length, pantsOf(length)])) as Record<BottomLength, GarmentDefinition>;
+
+/**
+ * Two masks as one, for a top and a bottom worn as a single garment. The rows between the end of the top and the start of
+ * the bottom are filled with the top's last row, and where the two overlap the top's marks win. The result is one shape,
+ * so it is shaded as one and has one outline around it, and none where the top meets the bottom.
+ */
+function joinMasks(top: PixelMask, topAt: { x: number; y: number }, bottom: PixelMask, bottomAt: { x: number; y: number }): { mask: PixelMask; x: number; y: number } {
+    const x = Math.min(topAt.x, bottomAt.x);
+    const y = topAt.y;
+    const width = Math.max(topAt.x + top[0].length, bottomAt.x + bottom[0].length) - x;
+    const height = Math.max(topAt.y + top.length, bottomAt.y + bottom.length) - y;
+    const waist = top[top.length - 1].replace(/[SDN]/g, "1");
+    const mask = Array.from({ length: height }, (_, r) => {
+        const cells = Array<string>(width).fill("0");
+        const put = (row: string | undefined, at: number) => {
+            if (row) for (let i = 0; i < row.length; i += 1) if (row[i] !== "0" && cells[at - x + i] === "0") cells[at - x + i] = row[i];
+        };
+        put(top[r], topAt.x);
+        put(bottom[y + r - bottomAt.y], bottomAt.x);
+        if (y + r >= topAt.y + top.length && y + r < bottomAt.y) put(waist, topAt.x);
+        return cells.join("");
+    });
+    return { mask, x, y };
+}
+
+const joined = new WeakMap<GarmentDefinition, WeakMap<GarmentDefinition, GarmentDefinition>>();
+
+/**
+ * A top and a bottom as one garment, such as a dress (a top and a skirt) or overalls (a top with straps and pants). The
+ * torso of the top and the bottom are merged into one layer that follows the bottom: it steps with pants and sways with a
+ * flowing skirt. The sleeves stay as they are. It takes whatever the bottom does to the shoes. Made once, then reused.
+ */
+export function onePieceOf(top: GarmentDefinition, bottom: GarmentDefinition): GarmentDefinition {
+    let byBottom = joined.get(top);
+    if (!byBottom) joined.set(top, (byBottom = new WeakMap()));
+    let one = byBottom.get(bottom);
+    if (!one) {
+        const forView = (o: HeadOrientation): GarmentLayer[] => {
+            const topLayers = top.byOrientation[o] ?? top.fallback;
+            const bottomLayer = (bottom.byOrientation[o] ?? bottom.fallback)[0];
+            const torso = topLayers.find((l) => l.placement === "overBody");
+            if (!torso || !bottomLayer) return [...topLayers];
+            const at = (l: GarmentLayer) => ({ x: l.offsetX, y: l.offsetY });
+            const whole = joinMasks(torso.mask, at(torso), bottomLayer.mask, at(bottomLayer));
+            const layer: GarmentLayer = {
+                mask: whole.mask,
+                offsetX: whole.x,
+                offsetY: whole.y,
+                placement: "overBody",
+                ...(bottomLayer.poses && {
+                    poses: Object.fromEntries(Object.entries(bottomLayer.poses).map(([pose, m]) => [pose, joinMasks(torso.mask, at(torso), m, at(bottomLayer)).mask])) as Record<LegPose, PixelMask>
+                }),
+                ...(bottomLayer.swing && { swing: bottomLayer.swing })
+            };
+            return [layer, ...topLayers.filter((l) => l !== torso)];
+        };
+        const { hangsOverShoes, showsOnlyFeet, coversFeet } = bottom;
+        one = {
+            slot: "top",
+            ...(hangsOverShoes && { hangsOverShoes }),
+            ...(showsOnlyFeet && { showsOnlyFeet }),
+            ...(coversFeet && { coversFeet }),
+            byOrientation: Object.fromEntries(Object.keys(headOrientations).map((o) => [o, forView(o as HeadOrientation)])),
+            fallback: forView("front")
+        };
+        byBottom.set(bottom, one);
+    }
+    return one;
+}

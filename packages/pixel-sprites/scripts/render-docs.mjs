@@ -146,13 +146,13 @@ const person = (i, extra = {}) => ({
 });
 
 const walkers = [
-  { x: 40, config: person(0, { topStyle: "shirt", bottomStyle: "pants", shoeStyle: "boots", headOrientation: "right", legPose: "contactLeft" }) },
-  { x: 128, config: person(1, { topStyle: "dress", shoeStyle: "sandals", headOrientation: "front" }) },
-  { x: 200, config: person(2, { topStyle: "longSleeve", bottomStyle: "skirt", shoeStyle: "shoes", headOrientation: "left", legPose: "contactLeft" }) },
-  { x: 300, config: person(3, { topStyle: "overalls", shoeStyle: "boots", headOrientation: "front" }) },
-  { x: 380, config: person(4, { topStyle: "spaghetti", bottomStyle: "pants", shoeStyle: "sandals", headOrientation: "right", legPose: "contactLeft" }) },
-  { x: 470, config: person(5, { topStyle: "shirt", bottomStyle: "skirt", shoeStyle: "shoes", headOrientation: "front" }) },
-  { x: 560, config: person(6, { topStyle: "longSleeve", bottomStyle: "pants", shoeStyle: "boots", headOrientation: "left", legPose: "contactLeft" }) }
+  { x: 40, config: person(0, { topStyle: "top", bottomStyle: "pants", shoeStyle: "boots", headOrientation: "right", legPose: "contactLeft" }) },
+  { x: 128, config: person(1, { topLength: "hip", tuck: "onePiece", bottomStyle: "skirt", bottomLength: "knee", shoeStyle: "sandals", headOrientation: "front" }) },
+  { x: 200, config: person(2, { topStyle: "top", sleeveLength: "long", bottomStyle: "skirt", shoeStyle: "shoes", headOrientation: "left", legPose: "contactLeft" }) },
+  { x: 300, config: person(3, { topLength: "hip", tuck: "onePiece", bottomStyle: "pants", bottomLength: "ankle", collar: "straps", shoeStyle: "boots", headOrientation: "front" }) },
+  { x: 380, config: person(4, { topStyle: "top", sleeveLength: "none", collar: "straps", bottomStyle: "pants", shoeStyle: "sandals", headOrientation: "right", legPose: "contactLeft" }) },
+  { x: 470, config: person(5, { topStyle: "top", bottomStyle: "skirt", shoeStyle: "shoes", headOrientation: "front" }) },
+  { x: 560, config: person(6, { topStyle: "top", sleeveLength: "long", bottomStyle: "pants", shoeStyle: "boots", headOrientation: "left", legPose: "contactLeft" }) }
 ];
 
 const world = buildMap(scene);
@@ -198,7 +198,7 @@ save("icons", sheet(iconIds.map((id) => buildIcon(id)), { columns: 14, gap: 4 })
 
 // The three README "Use it" snippets, rendered with exactly the options and scales the snippets use.
 save("example-icon", buildIcon("heart"), 4);
-save("example-avatar", buildAvatar({ skinTone: "medium", hairColor: "black", topStyle: "shirt" }), 4);
+save("example-avatar", buildAvatar({ skinTone: "medium", hairColor: "black", topStyle: "top" }), 4);
 const exampleMap = defineMap(townTileset, ["gggg", "gwwg", "pppp"], [{ id: "tree", x: 0, y: 0 }]);
 save("example-world", buildMap(exampleMap, "autumn"), 2);
 

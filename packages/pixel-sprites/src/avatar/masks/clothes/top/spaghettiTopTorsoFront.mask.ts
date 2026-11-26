@@ -1,7 +1,0 @@
-export const spaghettiTopTorsoFrontMask = [
-    "010000010",
-    "010000010",
-    "011111110",
-    "011111110",
-    "011111110"
-];

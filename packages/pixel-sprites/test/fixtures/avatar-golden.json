@@ -210,7 +210,9 @@
   },
   {
    "config": {
-    "topStyle": "spaghetti"
+    "topStyle": "top",
+    "sleeveLength": "none",
+    "collar": "straps"
    },
    "width": 18,
    "height": 24,
@@ -218,7 +220,7 @@
   },
   {
    "config": {
-    "topStyle": "shirt"
+    "topStyle": "top"
    },
    "width": 18,
    "height": 24,
@@ -226,7 +228,8 @@
   },
   {
    "config": {
-    "topStyle": "longSleeve"
+    "topStyle": "top",
+    "sleeveLength": "long"
    },
    "width": 18,
    "height": 24,
@@ -264,19 +267,28 @@
   },
   {
    "config": {
-    "topStyle": "overalls"
+    "topStyle": "top",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomStyle": "pants",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 18,
    "height": 24,
-   "sha256": "2830766d6526a3996b099babeecfe2538505bb2ba56ee92014d3aafad7271ad6"
+   "sha256": "3c7809f6abd3a0fcf48b296286b559d2fb41f0ed4b6b3fcab0c5c92692220c88"
   },
   {
    "config": {
-    "topStyle": "dress"
+    "topStyle": "top",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomStyle": "skirt",
+    "bottomLength": "knee"
    },
-   "width": 18,
+   "width": 19,
    "height": 24,
-   "sha256": "406d6035f79f9ad8bb5229baa35e6489fdd42f8bba97cbf79dade7f00b919585"
+   "sha256": "c2d5f25983191a03cb606cc5b441bc662f86409e80577cc536b37d0ad49d37e5"
   },
   {
    "config": {
@@ -379,15 +391,19 @@
     "hairColor": "brown",
     "eyeColor": "green",
     "clothesColor": "blue",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "back",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 15,
    "height": 24,
-   "sha256": "3b282687ac9dc65c44b7367aa2a914f19c12a524f171a42c482203347ac60c84"
+   "sha256": "121c4763908e4f2b8e3982aa04a4c9bc404c5a387ab6ffcaa7b74080ebbd0507"
   },
   {
    "config": {
@@ -398,15 +414,19 @@
     "hairColor": "blonde",
     "eyeColor": "blue",
     "clothesColor": "blue",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "back",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 23,
    "height": 24,
-   "sha256": "53e369ec04ad96b0a7a7675a6030ff4f55b190a069972c6abb63aa13d1c5c50c"
+   "sha256": "561549accb5ad5179d537b5e87b435277d321bb9331148b1db1a9957901333fd"
   },
   {
    "config": {
@@ -417,15 +437,18 @@
     "hairColor": "black",
     "eyeColor": "green",
     "clothesColor": "red",
-    "topStyle": "dress",
+    "topStyle": "top",
     "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
    "width": 23,
    "height": 24,
-   "sha256": "855dce36567f9dcbca622c21cc1bf6f89515ed2a01e52deeaa81b41673256fac"
+   "sha256": "794ae168b8c672152767e6d8cc32ebe4ce6a9c07e58cd214759c2d19543fa184"
   },
   {
    "config": {
@@ -436,15 +459,18 @@
     "hairColor": "blonde",
     "eyeColor": "blue",
     "clothesColor": "red",
-    "topStyle": "dress",
+    "topStyle": "top",
     "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
    "width": 23,
    "height": 24,
-   "sha256": "afa5bb71bb208fe778ccd306c0b341cf68853e8170fb9686a14b5fd051c3f083"
+   "sha256": "9ce98600290755c0877c531f88ff41e4ba79f3fc523517d1e80c46de776e8d72"
   },
   {
    "config": {
@@ -474,15 +500,18 @@
     "hairColor": "blonde",
     "eyeColor": "blue",
     "clothesColor": "green",
-    "topStyle": "dress",
-    "bottomStyle": "none",
+    "topStyle": "top",
+    "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
-   "width": 18,
+   "width": 19,
    "height": 24,
-   "sha256": "45bfdc3a5da35d4c2a4e9c322e0b03738aaf485a787cfffd8dd3c0ee0249d4d3"
+   "sha256": "574bce3f6bba306ddf14b2b8fa2a8c50bad05d9a5d9de8342555ab08568dd278"
   },
   {
    "config": {
@@ -493,15 +522,18 @@
     "hairColor": "blonde",
     "eyeColor": "green",
     "clothesColor": "blue",
-    "topStyle": "dress",
+    "topStyle": "top",
     "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
    "width": 23,
    "height": 24,
-   "sha256": "d0ee0be7407437c8ff3fd0146a8c0db085c8f60d626524b51f7a3d2b71a07536"
+   "sha256": "b9a358b2371deac7b77082c2d561161b03b932235c375737ec868bfdb1202439"
   },
   {
    "config": {
@@ -550,15 +582,18 @@
     "hairColor": "brown",
     "eyeColor": "green",
     "clothesColor": "red",
-    "topStyle": "dress",
-    "bottomStyle": "shorts",
+    "topStyle": "top",
+    "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "back",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
-   "width": 19,
+   "width": 20,
    "height": 24,
-   "sha256": "082f09fcea8259ee1ae4f71d927dfa0b240dfa17a7d88d9293d014603b6ca5d1"
+   "sha256": "4405a761abce1c52241a550cb91b887419f3fa8212109947d7609ae4cc4a1acf"
   },
   {
    "config": {
@@ -569,15 +604,19 @@
     "hairColor": "blonde",
     "eyeColor": "blue",
     "clothesColor": "red",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "back",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 23,
    "height": 24,
-   "sha256": "364b7b51b9755c8498238caa42c054ae997a44bf57a5d0cd81c387321662107d"
+   "sha256": "856c0247c8c65b3d127e04a4c6fb39ed722faec6ef0a9ebf02c615b086ab4353"
   },
   {
    "config": {
@@ -588,15 +627,19 @@
     "hairColor": "black",
     "eyeColor": "green",
     "clothesColor": "blue",
-    "topStyle": "overalls",
-    "bottomStyle": "shorts",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "back",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 23,
    "height": 24,
-   "sha256": "6d5e918d05e4fdb6a02ac27c0f137444e1d1168dd21a3eb60ad0c661fc2de9b9"
+   "sha256": "23d2dd4ea7ab0fe769a7d52ef1f1064643a807c8687ba8624dd87400cfd6947d"
   },
   {
    "config": {
@@ -647,15 +690,19 @@
     "hairColor": "black",
     "eyeColor": "dark",
     "clothesColor": "red",
-    "topStyle": "overalls",
-    "bottomStyle": "none",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 15,
    "height": 24,
-   "sha256": "6780f213025ca68eb985d69d44dc59819c059719f1293b30a3b9e3143ef91aad"
+   "sha256": "1c4a0a30f671d3a47a0b0f38135999e288fce5ad9d8fa6e24c0457a0be47a133"
   },
   {
    "config": {
@@ -704,15 +751,18 @@
     "hairColor": "brown",
     "eyeColor": "blue",
     "clothesColor": "red",
-    "topStyle": "dress",
-    "bottomStyle": "none",
+    "topStyle": "top",
+    "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "back",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
-   "width": 18,
+   "width": 19,
    "height": 24,
-   "sha256": "616e7370897ebd9689cfa36f0f2e4cf81f82e1b0ecb4913c0ba09298d706a030"
+   "sha256": "88c3f162a9f58ccbcc8cb16d3b33210cd06fb23e258d84957f7a21e8cda91571"
   },
   {
    "config": {
@@ -723,15 +773,19 @@
     "hairColor": "blonde",
     "eyeColor": "green",
     "clothesColor": "green",
-    "topStyle": "overalls",
-    "bottomStyle": "shorts",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 23,
    "height": 24,
-   "sha256": "0d85b8d642263f82ac178cd1afe2e4ccea185a7cdfb5de52b96e936504a66c65"
+   "sha256": "ac9b3d3845072ee175fa72b329f1b2dd14e39066a9d7dce74316a745fb92e251"
   },
   {
    "config": {
@@ -780,15 +834,18 @@
     "hairColor": "black",
     "eyeColor": "dark",
     "clothesColor": "red",
-    "topStyle": "dress",
-    "bottomStyle": "shorts",
+    "topStyle": "top",
+    "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
-   "width": 18,
+   "width": 19,
    "height": 24,
-   "sha256": "a9f1450812c4736008d412ec17a3043651624317e69bbbe249b3d89064a94353"
+   "sha256": "b469ccb6e95f13e86d4af10d704db921fef7d50d174bf82401cb5631a42945d3"
   },
   {
    "config": {
@@ -818,15 +875,19 @@
     "hairColor": "blonde",
     "eyeColor": "green",
     "clothesColor": "blue",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 23,
    "height": 24,
-   "sha256": "b36d2225d0ddf9ee92b3c0f95605df392c4de512409c5956cd7076d813dd75cc"
+   "sha256": "75feaff9cea1b1bc80ea713200dbaab17c873e62800da57f6eaf8c37b71dc702"
   },
   {
    "config": {
@@ -837,15 +898,19 @@
     "hairColor": "black",
     "eyeColor": "green",
     "clothesColor": "green",
-    "topStyle": "overalls",
-    "bottomStyle": "shorts",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 19,
    "height": 24,
-   "sha256": "9af325069d25b3d9bad61e9d205c344650637de4e37b9de9e9ecb7a66d3fb791"
+   "sha256": "31cffd2309da615fd85d8d36e065b95599e115f868955ab51dedf7d83cb34ff6"
   },
   {
    "config": {
@@ -856,15 +921,19 @@
     "hairColor": "brown",
     "eyeColor": "dark",
     "clothesColor": "blue",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 23,
    "height": 24,
-   "sha256": "7acd3c1ae9e49268a2756b769f0c2f609701d3b5cf715a249fd2326fa2b766d0"
+   "sha256": "fa7ec79a0a392a1b01217048840cd7c9eaba8e5cea14200ffa4d819cca4b094e"
   },
   {
    "config": {
@@ -913,15 +982,19 @@
     "hairColor": "brown",
     "eyeColor": "dark",
     "clothesColor": "blue",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 19,
    "height": 24,
-   "sha256": "86ca2932efb4364a56c13b9f82292f42dda09407a3f71a6547639686b8172455"
+   "sha256": "8c6d0630ab91050221f1accc612dc796f866e3371ce7fb5909b402419575a170"
   },
   {
    "config": {
@@ -932,15 +1005,19 @@
     "hairColor": "brown",
     "eyeColor": "blue",
     "clothesColor": "green",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 19,
    "height": 24,
-   "sha256": "811318fb0113198998342084a4eb69e7d65a61ccc7084702bc46b75fa15ec3ae"
+   "sha256": "556d9dcfdf2c3c3ff368a88f6cadb754a9213e2cf13b866e167e950ecf3ea4fc"
   },
   {
    "config": {
@@ -951,15 +1028,18 @@
     "hairColor": "blonde",
     "eyeColor": "green",
     "clothesColor": "blue",
-    "topStyle": "dress",
-    "bottomStyle": "none",
+    "topStyle": "top",
+    "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
-   "width": 18,
+   "width": 19,
    "height": 24,
-   "sha256": "86bbafdcbe575f7e02d76915b0fb0bab449e927ea9cc53dc306643c95090411c"
+   "sha256": "7df34cdbcc1ce2c381d3e582c6c0e201e4ca138ad52c7ebce61d55a509f73a50"
   },
   {
    "config": {
@@ -970,15 +1050,18 @@
     "hairColor": "blonde",
     "eyeColor": "green",
     "clothesColor": "green",
-    "topStyle": "dress",
-    "bottomStyle": "none",
+    "topStyle": "top",
+    "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
    "width": 23,
    "height": 24,
-   "sha256": "620afec81d4d9dedee9037ebf8f0bbb8a3f6db52ba8a285ae3dff42ca7645f6e"
+   "sha256": "c5dc5ff0b80d92a42d78accbe902cbd23c0cf6be0075563be174a86db9e37ab7"
   },
   {
    "config": {
@@ -989,15 +1072,18 @@
     "hairColor": "brown",
     "eyeColor": "dark",
     "clothesColor": "green",
-    "topStyle": "dress",
+    "topStyle": "top",
     "bottomStyle": "skirt",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "knee"
    },
    "width": 23,
    "height": 24,
-   "sha256": "2ab5bf4f6aff21541e9f2d1510a3ce0cb4af4eb5ed5ef3ab2158626622e8929d"
+   "sha256": "9d19ca8c28ed4604ed8cb0e799a60333b6cc48758d9d2d5fc30337c21001b579"
   },
   {
    "config": {
@@ -1085,15 +1171,19 @@
     "hairColor": "blonde",
     "eyeColor": "dark",
     "clothesColor": "green",
-    "topStyle": "overalls",
-    "bottomStyle": "skirt",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "down",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 15,
    "height": 24,
-   "sha256": "ae24138227899e6c46b69be57aaeb3f54f9785aa0e6842e87a7def38c777e65e"
+   "sha256": "bf58141b0f69777ce0017014d03c2d447f6d0ea354bdbfd3e827f6d9247d64f1"
   },
   {
    "config": {
@@ -1104,15 +1194,19 @@
     "hairColor": "brown",
     "eyeColor": "dark",
     "clothesColor": "green",
-    "topStyle": "overalls",
-    "bottomStyle": "shorts",
+    "topStyle": "top",
+    "bottomStyle": "pants",
     "shoeStyle": "none",
     "armPose": "forward",
-    "legPose": "neutral"
+    "legPose": "neutral",
+    "topLength": "hip",
+    "tuck": "onePiece",
+    "bottomLength": "ankle",
+    "collar": "straps"
    },
    "width": 23,
    "height": 24,
-   "sha256": "a9f7032923649644f8198e63fc23d02b6de0c803366cc2a1f6a9e1079baa4a2e"
+   "sha256": "d7b620527ea4d6e972effca06e9172e4a76d9093604ab3ed6e3f3b30d8046f51"
   }
  ]
 }

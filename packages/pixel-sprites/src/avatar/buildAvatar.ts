@@ -20,9 +20,17 @@ import {
     bottomStyles,
     shoeStyles,
     bottomLengths,
+    collarHasSleeves,
+    collars,
     pantsStyles,
     skirtShapes,
     skirtStyles,
+    sleeveLengths,
+    tucks,
+    topLengths,
+    topMeetsBottom,
+    onePieceOf,
+    topOf,
     topStyles,
     type ArmPose,
     type BottomStyle,
@@ -31,8 +39,12 @@ import {
     type GarmentPlacement,
     type ShoeStyle,
     type BottomLength,
+    type Collar,
     type SkirtShape,
-    type TopStyle
+    type SleeveLength,
+    type TopLength,
+    type TopStyle,
+    type Tuck
 } from "./styles/clothesStyles";
 import {
     backHairStyles,
@@ -77,7 +89,20 @@ export interface AvatarConfig {
     /** The colour of the hair accessory. Left out, it follows `clothesColor`. */
     hairAccessoryColor?: ClothesColor;
     shoeColor?: ClothesColor;
+    /** `top` is a top with a length, sleeves and a collar, set by the three fields below. */
     topStyle?: TopStyle;
+    /** How far down a `top` goes, from `crop` to `long`. Only a `top` has one. */
+    topLength?: TopLength;
+    /** How far down the arm a `top`'s sleeves go, or `none`. Only a `top` with a collar that has sleeves has them. */
+    sleeveLength?: SleeveLength;
+    /** How a `top` is cut at the neck and shoulders, from `round` to `strapless`. Only a `top` has one. */
+    collar?: Collar;
+    /**
+     * How a `top` goes with the bottom: a `hip` or `tunic` top hangs over it (`untucked`, the default) or is under it (`tucked`),
+     * and as a `onePiece` the two are one garment with no seam, such as a dress or overalls, in the top colour. Only a top over
+     * a bottom has one, and only a top that reaches the bottom can be `tucked` or `untucked`.
+     */
+    tuck?: Tuck;
     bottomStyle?: BottomStyle;
     /** What kind of skirt a `skirt` bottom is. Only a skirt has one. */
     skirtShape?: SkirtShape;
@@ -107,7 +132,11 @@ export const defaultAvatarConfig: Readonly<Required<Omit<AvatarConfig, PieceColo
     hairColor: "brown",
     eyeColor: "dark",
     clothesColor: "blue",
-    topStyle: "shirt",
+    topStyle: "top",
+    topLength: "regular",
+    sleeveLength: "short",
+    collar: "round",
+    tuck: "untucked",
     bottomStyle: "pants",
     skirtShape: "flowing",
     bottomLength: "short",
@@ -131,6 +160,10 @@ const allowed: { [K in Exclude<keyof AvatarConfig, PieceColorField>]-?: object }
     eyeColor: eyePalettes,
     clothesColor: clothesPalettes,
     topStyle: topStyles,
+    topLength: topLengths,
+    sleeveLength: sleeveLengths,
+    collar: collars,
+    tuck: tucks,
     bottomStyle: bottomStyles,
     skirtShape: skirtShapes,
     bottomLength: bottomLengths,
@@ -170,11 +203,23 @@ export function resolveAvatarConfig(config: AvatarConfig = {}): ResolvedAvatarCo
     // Only tied hair has an accessory, and the colour of no accessory does not count.
     if (!hairAccessoryApplies(out.hairLength as HairLength, out.backHairStyle as BackHairStyle)) out.hairAccessory = "none";
     if (out.hairAccessory === "none") delete out.hairAccessoryColor;
-    // Only a skirt or pants that a dress or overalls does not cover have a length, only a skirt has a shape, and the one-row
-    // one-row skirt has no shape.
-    const covered = (topStyles[out.topStyle as keyof typeof topStyles] as GarmentDefinition).coversBottom === true;
-    if (covered || (out.bottomStyle !== "skirt" && out.bottomStyle !== "pants")) out.bottomLength = defaultAvatarConfig.bottomLength;
-    if (covered || out.bottomStyle !== "skirt" || out.bottomLength === "short") out.skirtShape = defaultAvatarConfig.skirtShape;
+    // Only a top has a length, sleeves and a collar, and a collar with no sleeves leaves the arms bare.
+    if (out.topStyle !== "top") {
+        out.topLength = defaultAvatarConfig.topLength;
+        out.sleeveLength = defaultAvatarConfig.sleeveLength;
+        out.collar = defaultAvatarConfig.collar;
+    } else if (!collarHasSleeves(out.collar as Collar)) out.sleeveLength = "none";
+    // Only a top over a bottom has a tuck. A top that does not reach the bottom can only be a one-piece or not, and a one-piece is
+    // as long as it takes to reach the bottom, in the top's colour alone, whatever the length of the top and the bottom's colour.
+    const reaches = topMeetsBottom(out.topLength as TopLength);
+    if (out.topStyle !== "top" || out.bottomStyle === "none" || (out.tuck !== "onePiece" && !reaches)) out.tuck = defaultAvatarConfig.tuck;
+    if (out.tuck === "onePiece") {
+        if (!reaches) out.topLength = defaultAvatarConfig.topLength;
+        delete out.bottomColor;
+    }
+    // Only a skirt or pants have a length, only a skirt has a shape, and the one-row skirt has no shape.
+    if (out.bottomStyle !== "skirt" && out.bottomStyle !== "pants") out.bottomLength = defaultAvatarConfig.bottomLength;
+    if (out.bottomStyle !== "skirt" || out.bottomLength === "short") out.skirtShape = defaultAvatarConfig.skirtShape;
     return out as ResolvedAvatarConfig;
 }
 
@@ -187,11 +232,16 @@ const shaded = new WeakMap<PixelMask, Sprite>();
 function shadedSprite(mask: PixelMask): Sprite {
     let sprite = shaded.get(mask);
     if (!sprite) {
-        // An "S" in a mask is a fold line: part of the shape, but drawn in the shadow colour (the sprite is padded one pixel).
-        sprite = shadeMask(mask.some((row) => row.includes("S")) ? mask.map((row) => row.replace(/S/g, "1")) : mask);
+        // Besides "0" and "1", a mask can hold marks that are part of the shape but drawn differently (the sprite is padded one
+        // pixel): "S" is a fold in the shadow colour, "D" a detail in the darkest tone, and "N" an opening, which is not part of
+        // the shape and has no outline of its own, so what is under it, bare skin, shows clean.
+        const marked = mask.some((row) => /[SDN]/.test(row));
+        const made = shadeMask(marked ? mask.map((row) => row.replace(/[SD]/g, "1").replace(/N/g, "0")) : mask);
+        const slots = { S: SLOT.shadow, D: SLOT.outline, N: 0 } as const;
         mask.forEach((row, y) => {
-            for (let x = 0; x < row.length; x += 1) if (row[x] === "S") (sprite as { px: Uint8Array }).px[(y + 1) * sprite!.width + x + 1] = SLOT.shadow;
+            for (let x = 0; x < row.length; x += 1) if (row[x] in slots) made.px[(y + 1) * made.width + x + 1] = slots[row[x] as keyof typeof slots];
         });
+        sprite = made;
         shaded.set(mask, sprite);
     }
     return sprite;
@@ -243,8 +293,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     // In a walking pose the lower hair swishes. The size covers both swings, so the avatar keeps it in every pose.
     const hairIn = (pose: LegPose) => hairLayers.map((h) => swingLayer(h, pose, o));
     const hairNow = hairIn(c.legPose);
-    // A one-piece top (a dress, overalls) covers the legs, so nothing is drawn for the bottom.
-    const coversBottom = (topStyles[c.topStyle] as GarmentDefinition).coversBottom === true;
+    const topDefinition = (c.topStyle === "top" ? topOf(c.topLength, c.sleeveLength, c.collar) : topStyles[c.topStyle]) as GarmentDefinition;
     const piece = (layers: readonly GarmentLayer[], color: ClothesColor | undefined) => {
         const slots = clothesSlots(color);
         return layers.map((l) => ({ ...l, slots }));
@@ -254,21 +303,28 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     const bottomDefinition = (c.bottomStyle === "skirt" ? skirtStyles[c.skirtShape][c.bottomLength] : c.bottomStyle === "pants" ? pantsStyles[c.bottomLength] : bottomStyles[c.bottomStyle]) as GarmentDefinition;
     // An ankle-length skirt stops just above the feet, so only the last row of the legs and shoes shows under it, and a
     // floor-length one covers them, so there are no shoes or legs to draw.
-    const coversFeet = !coversBottom && bottomDefinition.coversFeet === true;
-    const feetOnly = !coversBottom && bottomDefinition.showsOnlyFeet === true;
-    const underSkirt = !coversBottom && (bottomDefinition.hangsOverShoes === true || feetOnly);
+    const coversFeet = bottomDefinition.coversFeet === true;
+    const feetOnly = bottomDefinition.showsOnlyFeet === true;
+    const underSkirt = bottomDefinition.hangsOverShoes === true || feetOnly;
     const lastRow = (mask: PixelMask): PixelMask => mask.map((row, y) => (y === mask.length - 1 ? row : "0".repeat(row.length)));
     const shoes = (coversFeet ? [] : piece(garmentLayersFor(shoeStyles[c.shoeStyle], o), c.shoeColor)).map((g) => ({
         ...g,
         ...(underSkirt ? { placement: "overBody" as const } : {}),
         ...(feetOnly ? { mask: lastRow(g.poses?.[c.legPose] ?? g.mask), poses: undefined } : {})
     }));
-    const garmentsFor = (pose: LegPose) => [
-        ...piece(garmentLayersFor(topStyles[c.topStyle], o), c.topColor),
-        ...(underSkirt ? shoes : []),
-        ...(coversBottom ? [] : piece(garmentLayersFor(bottomDefinition, o).map((l) => swingLayer(l, pose, o)), c.bottomColor)),
-        ...(underSkirt ? [] : shoes)
-    ];
+    // The later a layer, the nearer the front. A top that reaches the bottom is over it unless it is tucked in. A shorter top is
+    // drawn before the bottom, as it always was: the two only meet in the row of outline between them, which the bottom's wins.
+    const topOverBottom = c.topStyle === "top" && topMeetsBottom(c.topLength) && c.tuck === "untucked";
+    const garmentsFor = (pose: LegPose) => {
+        // A one-piece is a single garment, shaded as one, so it has no outline where the top meets the bottom, in the top colour.
+        if (c.tuck === "onePiece") {
+            const whole = piece(garmentLayersFor(onePieceOf(topDefinition, bottomDefinition), o).map((l) => swingLayer(l, pose, o)), c.topColor);
+            return [...(underSkirt ? shoes : []), ...whole, ...(underSkirt ? [] : shoes)];
+        }
+        const top = piece(garmentLayersFor(topDefinition, o), c.topColor);
+        const bottom = piece(garmentLayersFor(bottomDefinition, o).map((l) => swingLayer(l, pose, o)), c.bottomColor);
+        return topOverBottom ? [...(underSkirt ? shoes : []), ...bottom, ...top, ...(underSkirt ? [] : shoes)] : [...top, ...(underSkirt ? shoes : []), ...bottom, ...(underSkirt ? [] : shoes)];
+    };
     const garments = garmentsFor(c.legPose);
 
     const garmentsAt = (placement: GarmentPlacement) =>

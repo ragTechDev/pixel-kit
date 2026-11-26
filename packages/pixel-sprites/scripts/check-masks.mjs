@@ -8,8 +8,16 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = join(root, "src");
 const TILE_SIZE = Number(/TILE_SIZE\s*=\s*(\d+)/.exec(readFileSync(join(src, "world/size.ts"), "utf8"))?.[1] ?? 16);
 // Masks are "0"/"1" rows. These are the only files that also use another key: H in the eyes (buildAvatar.ts maps it to the
-// highlight) and S in the pleated skirts (a fold line, drawn in the shadow colour).
-const extraCharsFor = (path) => (/^avatar\/masks\/eyes(Front|Side)\.mask\.ts$/.test(path) ? "H" : /^avatar\/masks\/clothes\/bottom\/skirtPleated(Front|Side)\.mask\.ts$/.test(path) ? "S" : "");
+// highlight), S in the pleated skirts (a fold, drawn in the shadow colour) and D in the collars (a flap, a placket or ribbing,
+// drawn in the darkest tone).
+const extraCharsFor = (path) =>
+  /^avatar\/masks\/eyes(Front|Side)\.mask\.ts$/.test(path)
+    ? "H"
+    : /^avatar\/masks\/clothes\/bottom\/skirtPleated(Front|Side)\.mask\.ts$/.test(path)
+      ? "S"
+      : /^avatar\/masks\/clothes\/top\/collar\//.test(path)
+        ? "D"
+        : "";
 const MAX_ICON_SIZE = 20; // every icon is centred on a square canvas this big (ICON_SIZE in src/icons/icons.ts)
 
 const args = process.argv.slice(2);

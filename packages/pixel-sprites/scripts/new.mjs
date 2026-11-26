@@ -349,7 +349,7 @@ async function tile() {
 
 const kinds = [
   { label: "Icon", value: icon, hint: "interface icon in a lucide-style category" },
-  { label: "Avatar garment", value: garment, hint: "top (including a dress or overalls), bottom or shoes" },
+  { label: "Avatar garment", value: garment, hint: "top, bottom or shoes" },
   { label: "Avatar hair", value: hair, hint: "front or back hair style" },
   { label: "World object", value: object, hint: "tree, door, rug and so on" },
   { label: "World tile", value: tile, hint: "a terrain material" }
