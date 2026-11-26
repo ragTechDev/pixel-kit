@@ -250,4 +250,4 @@ We'd love your help! Run `pnpm new` and a friendly wizard scaffolds a new icon, 
 
 Code is MIT. The pixel art is CC BY 4.0. Both belong to RAGTECH PTE. LTD., a company registered in Singapore (UEN 202602756N). See [LICENSE](LICENSE) and [LICENSE-ART.md](LICENSE-ART.md).
 
-If you use the art, please credit it: *Pixel art from pixel-mask-engine by RAGTECH PTE. LTD., licensed under CC BY 4.0.*
+If you use the art, please credit it: *Pixel art from pixel-sprites by RAGTECH PTE. LTD., licensed under CC BY 4.0.*
