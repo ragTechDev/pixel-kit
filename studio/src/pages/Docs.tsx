@@ -1,29 +1,12 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Avatar, Icon, Tile, WorldObject } from "@ragtechdev/pixel-sprites/react";
 import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, tileThemes, variantSizes } from "@ragtechdev/pixel-sprites";
 import { CodeBlock } from "../ui";
-
-/** The Docs subtopics, shown in the second-level menu. */
-export const docSections = [
-    ["start", "Getting started"],
-    ["icons", "Icons"],
-    ["avatars", "Avatars"],
-    ["worlds", "Tiles, objects and worlds"],
-    ["variants", "Sizes and colour depths"],
-    ["together", "Using assets together"],
-    ["colours", "Colours and palettes"],
-    ["outside-react", "CSS, SVG and canvas"],
-    ["engine", "Engine: quick start"],
-    ["engine-loop", "Engine: loop, input, camera"],
-    ["engine-world", "Engine: walking and doors"],
-    ["rules", "Design rules"]
-] as const;
+import { docGroups, docSections, docTitle, type DocId, type DocTopic } from "./docTopics";
 
 function Demo({ children }: { children: ReactNode }) {
     return <div className="demo">{children}</div>;
 }
-
-export type DocId = (typeof docSections)[number][0];
 
 /** One page per topic. */
 const pages: Record<DocId, () => ReactNode> = {
@@ -402,29 +385,76 @@ game.scenes.replace(nextScene);   // exit the top one, enter the next, same dept
 
 export function DocsPage({ topic }: { topic?: string }) {
     const id = (docSections.find(([known]) => known === topic)?.[0] ?? "start") as DocId;
-    const title = docSections.find(([known]) => known === id)?.[1];
     return (
-        <div className="docs">
-            <article className="prose">
-                <h1 className="h" style={{ fontSize: 22 }}>{title}</h1>
-                {pages[id]()}
-                <NextLink from={id} />
-            </article>
+        <div className="docs-layout">
+            <DocsNav current={id} />
+            <div className="docs">
+                <article className="prose">
+                    <h1 className="h" style={{ fontSize: 22 }}>{docTitle(id)}</h1>
+                    {pages[id]()}
+                    <PageLinks from={id} />
+                </article>
+            </div>
         </div>
     );
 }
 
-/** The link at the bottom of a page that goes to the next one (the last page leads on to the library). */
-function NextLink({ from }: { from: string }) {
-    const i = docSections.findIndex(([id]) => id === from);
-    const next = docSections[i + 1];
-    const href = next ? `#/docs/${next[0]}` : "#/icons";
-    const title = next ? next[1] : "Browse the library";
+/**
+ * The topics, grouped. Beside the page on a wide screen; on a narrow one a bar shows the current topic and opens the whole list,
+ * because a row of a dozen links does not fit a phone and is hard to scan on any screen.
+ */
+function DocsNav({ current }: { current: DocId }) {
+    const [open, setOpen] = useState(false);
+    const nav = useRef<HTMLElement>(null);
+    // Choosing a topic closes the list.
+    useEffect(() => setOpen(false), [current]);
+    // The list is as tall as the screen less the bar, so it only fits once the bar is at the top: bring it there as it opens.
+    const toggle = () => {
+        setOpen(!open);
+        if (!open) requestAnimationFrame(() => nav.current?.scrollIntoView({ block: "start" }));
+    };
     return (
-        <p className="next-link">
-            <a href={href}>
-                <span>{next ? "Next" : "Done reading?"}</span> {title} →
-            </a>
-        </p>
+        <nav ref={nav} className="docs-nav" aria-label="Docs topics" data-open={open || undefined} onKeyDown={(event) => event.key === "Escape" && setOpen(false)}>
+            <button type="button" className="docs-nav-toggle" aria-expanded={open} aria-controls="docs-topics" onClick={toggle}>
+                <span className="docs-nav-kicker">Topic</span>
+                <span className="docs-nav-current">{docTitle(current)}</span>
+                <span aria-hidden>{open ? "▲" : "▼"}</span>
+            </button>
+            <div id="docs-topics" className="docs-topics">
+                {docGroups.map((group) => (
+                    <div key={group.title} className="docs-group">
+                        <div className="docs-group-title">{group.title}</div>
+                        <ul>
+                            {(group.topics as readonly DocTopic[]).map(([id, label]) => (
+                                <li key={id}>
+                                    <a href={`#/docs/${id}`} aria-current={id === current ? "page" : undefined}>{label}</a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        </nav>
+    );
+}
+
+/** Previous and Next at the bottom of a page, so the topics can be read straight through. The last page leads on to the library. */
+function PageLinks({ from }: { from: DocId }) {
+    const i = docSections.findIndex(([id]) => id === from);
+    const prev = docSections[i - 1];
+    const next = docSections[i + 1];
+    return (
+        <div className="page-links">
+            {prev ? (
+                <p className="next-link prev-link">
+                    <a href={`#/docs/${prev[0]}`}><span>Previous</span> ← {docTitle(prev[0])}</a>
+                </p>
+            ) : <span />}
+            <p className="next-link">
+                <a href={next ? `#/docs/${next[0]}` : "#/icons"}>
+                    <span>{next ? "Next" : "Done reading?"}</span> {next ? docTitle(next[0]) : "Browse the library"} →
+                </a>
+            </p>
+        </div>
     );
 }
