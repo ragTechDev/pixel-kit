@@ -1,4 +1,4 @@
-import type { Raster } from "../../packages/pixel-sprites/src";
+import type { Raster } from "@ragtechdev/pixel-sprites";
 import { colorsOf, norm, type ColorMap } from "./recolor";
 
 /**

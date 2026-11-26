@@ -34,6 +34,7 @@ test("the direction pressed last wins, and releasing it returns to the one still
     assert.equal(input.heldDirection(), undefined);
     input.press("left");
     input.press("up");
+    input.endFrame(); // an update has run, so both are held, not taps
     assert.equal(input.heldDirection(), "up");
     input.release("up");
     assert.equal(input.heldDirection(), "left");
@@ -57,4 +58,49 @@ test("clear releases everything", () => {
     input.clear();
     assert.ok(!input.isDown("a") && !input.isDown("right") && !input.wasPressed("a"));
     assert.equal(input.heldDirection(), undefined);
+});
+
+test("a tap shorter than one update still counts for that update", () => {
+    const input = createInput();
+    input.press("left");
+    input.release("left"); // the key was up again before the game ran
+    assert.ok(input.wasPressed("left"));
+    assert.ok(input.isDown("left"), "still down for the update that has not run yet");
+    assert.equal(input.heldDirection(), "left");
+    input.endFrame();
+    assert.ok(!input.isDown("left") && !input.wasPressed("left"), "and gone after it");
+    assert.equal(input.heldDirection(), undefined);
+});
+
+test("a tap does not stick when the key is pressed again before the update", () => {
+    const input = createInput();
+    input.press("a");
+    input.release("a");
+    input.press("a"); // pressed again: it is held now
+    input.endFrame();
+    assert.ok(input.isDown("a"), "still held after the update");
+    input.release("a");
+    assert.ok(!input.isDown("a"));
+});
+
+test("a tap and a held direction resolve to the one pressed last, then fall back", () => {
+    const input = createInput();
+    input.press("left");
+    input.endFrame();
+    input.press("up");
+    input.release("up");
+    assert.equal(input.heldDirection(), "up", "the tap is the newest");
+    input.endFrame();
+    assert.equal(input.heldDirection(), "left", "and the held key is back after it");
+});
+
+test("clear drops a tap that has not been seen", () => {
+    const input = createInput();
+    input.press("left");
+    input.release("left");
+    input.clear();
+    assert.ok(!input.isDown("left") && !input.wasPressed("left"));
+    input.endFrame();
+    input.press("left"); // a fresh press after clear behaves normally
+    assert.ok(input.isDown("left"));
 });

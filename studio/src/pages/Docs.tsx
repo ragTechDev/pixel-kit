@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Avatar, Icon, Tile, WorldObject } from "../../../packages/pixel-sprites/src/react";
-import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, tileThemes, variantSizes } from "../../../packages/pixel-sprites/src";
+import { Avatar, Icon, Tile, WorldObject } from "@ragtechdev/pixel-sprites/react";
+import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, tileThemes, variantSizes } from "@ragtechdev/pixel-sprites";
 import { CodeBlock } from "../ui";
 
 /** The Docs subtopics, shown in the second-level menu. */

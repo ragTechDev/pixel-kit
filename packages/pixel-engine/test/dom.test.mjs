@@ -18,6 +18,7 @@ test("keys on the target drive the input, and mapped keys do not scroll the page
     target.dispatchEvent(down);
     assert.ok(input.isDown("left") && input.wasPressed("left"));
     assert.ok(down.defaultPrevented);
+    input.endFrame(); // an update has run while the key was held
     const up = key("keyup", "ArrowLeft");
     target.dispatchEvent(up);
     assert.ok(!input.isDown("left"));
