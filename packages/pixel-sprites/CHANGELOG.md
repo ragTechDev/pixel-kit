@@ -10,6 +10,16 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 
 <!-- next-release -->
 
+## [0.9.0] - 2026-11-26
+
+### Breaking changes
+- **The package is now `@ragtechdev/pixel-sprites`.** Up to 0.8.0 it was published as `@ragtechdev/pixel-mask-engine`. The API and the built output are unchanged; only the name differs. To migrate, install `@ragtechdev/pixel-sprites`, change every `@ragtechdev/pixel-mask-engine` import to `@ragtechdev/pixel-sprites` (the `/canvas` and `/react` entries keep their names), and remove the old package. The old package is deprecated with a pointer here and gets no further releases.
+- **The repository is now `ragTechDev/pixel-kit`, a pnpm workspace.** The library lives in `packages/pixel-sprites/`, and the studio is its own workspace package. For contributors, `src/`, `test/` and the library scripts moved there; the `pnpm` commands run from the repository root work as before.
+
+### Changed
+- **Releases are per package.** Tags are `<package>-v<version>` (this one is `pixel-sprites-v0.9.0`), each package keeps its own changelog, and the release workflow checks that the tag matches the package name and version before it publishes. `scripts/release.mjs` makes the version bump, commit and tag.
+- **Studio:** now called Pixel Kit Studio, with install and import snippets for the new package name. It is served from `https://ragtechdev.github.io/pixel-kit/`.
+
 ## [0.8.0] - 2026-11-09
 
 ### Breaking changes
