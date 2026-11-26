@@ -18,7 +18,7 @@ const pages: Record<DocId, () => ReactNode> = {
             </p>
             <CodeBlock code="npm install @ragtechdev/pixel-sprites" />
             <p>There are three entries. The core has no dependencies and no DOM. React is an optional peer.</p>
-            <p className="muted">Want the art to move? <a href="#/docs/engine">A small game engine</a> walks it around a world.</p>
+            <p className="muted">Want the art to move? <a href="#/docs/engine">A small game engine</a> walks it around a world, and <code>npm create @ragtechdev/pixel-game my-game</code> starts a whole game.</p>
             <table>
                 <tbody>
                     <tr><td><code>@ragtechdev/pixel-sprites</code></td><td>builders such as <code>buildIcon</code>, <code>toSvg</code>, <code>toVariant</code></td></tr>
@@ -176,6 +176,14 @@ drawRaster(ctx, buildIcon("heart"), 0, 0, 4);          // nearest-neighbour canv
                 The core has no framework and no DOM, so it runs the same in a browser, a test or on a server. A React component and a browser helper are separate entries.
             </p>
             <CodeBlock code="npm install @ragtechdev/pixel-engine @ragtechdev/pixel-sprites" />
+            <p>
+                Or start a whole game with one command. It writes a Vite and TypeScript project, with a town and a house to walk around, that already uses both packages and keeps the kit's supply-chain
+                settings. It only writes files; it never installs anything or runs a command for you.
+            </p>
+            <CodeBlock code={`npm create @ragtechdev/pixel-game my-game
+cd my-game
+pnpm install
+pnpm dev`} />
             <p>There are three entries, and the sprites package is a peer dependency:</p>
             <table>
                 <tbody>

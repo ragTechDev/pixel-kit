@@ -31,4 +31,4 @@ The repo-wide rules in the root `CLAUDE.md` (hard rules, supply chain, releases,
 1. `pnpm typecheck && pnpm test` from the repository root.
 2. `pnpm --filter ./packages/create-pixel-game verify`, which proves a new project installs from the registry under its own settings, type-checks and builds. Run the result too (`verify --keep` leaves it in place and prints where), and walk to the door.
 3. Release as in the root `CLAUDE.md` with `create-pixel-game` as the package. The first release needs the usual placeholder on npm, a trusted-publisher entry, and a **tag** rule (not a branch rule) for `create-pixel-game-v*` on the `npm-publish` environment.
-4. After the first release, announce it where people look: the root README, the Docs "Getting started" topic and the home page. Those mention `npm create` only once it works.
+4. The command is shown in the root README, the engine README, the Docs engine quick start (and a pointer from "Getting started") and the home page. `studio/test/docs.test.mjs` checks that every one of them spells it as the package's name implies, so renaming the package means updating them together.
