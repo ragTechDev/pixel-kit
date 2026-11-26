@@ -91,7 +91,7 @@ const retro = toVariant(buildTile("grass"), { size: 8, bits: 1 });`} />
     together: () => (
         <>
             <p>
-                Each kind comes on its own grid. Tiles are 16x16 (one world tile). Objects cover whole tiles: 16x16, 16x32, 32x16 or 32x32. An avatar is 16x24. Every icon is drawn on one 20x20 canvas.
+                Each kind comes on its own grid. Tiles are 16x16 (one world tile). Objects cover whole tiles: 16x16, 16x32, 32x16 or 32x32. An avatar is about 24 tall and 15 to 29 wide, wider with hair that swishes out when it walks. Every icon is drawn on one 20x20 canvas.
                 On one surface, show them at their original size with one shared <code>pixelSize</code>. Every art pixel is then the same physical size, so mixed assets look like they belong together.
             </p>
             <Demo>
