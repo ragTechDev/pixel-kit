@@ -1,27 +1,62 @@
 name: Release
 
-# Publishes to npm when a version tag is pushed. Uses npm trusted publishing
-# (short-lived OIDC credentials), so no npm token is stored in this repo.
-# One-time setup on npmjs.com: package settings -> Trusted Publisher -> GitHub
-# Actions -> repository ragTechDev/pixel-mask-engine, workflow release.yml,
+# Publishes one package to npm when its version tag is pushed. Tags are
+# <package>-v<version>, for example pixel-sprites-v0.9.0, and are made by
+# `pnpm release <package> <bump>`. Uses npm trusted publishing (short-lived OIDC
+# credentials), so no npm token is stored in this repo.
+#
+# One-time setup per package on npmjs.com: package settings -> Trusted Publisher ->
+# GitHub Actions -> repository ragTechDev/pixel-kit, workflow release.yml,
 # environment npm-publish. The GitHub environment of the same name must exist
-# (Settings -> Environments) with required reviewers, so every release needs
-# a manual approval. Release notes come from CHANGELOG.md: publishing is refused
-# when the version has no notes, and a second job then creates the GitHub release.
+# (Settings -> Environments) with required reviewers, so every release needs a
+# manual approval, and its deployment tag rules must allow each package's tag
+# pattern (for example pixel-sprites-v*).
+#
+# To add a package: add its tag pattern below, to the environment's tag rules,
+# and to the package's trusted-publisher entry on npm.
+#
+# Release notes come from the package's CHANGELOG.md: publishing is refused when
+# the version has no notes, and a second job then creates the GitHub release.
 on:
   push:
-    tags: ["v*"]
+    tags: ["pixel-sprites-v*"]
 
 permissions:
   contents: read
 
 jobs:
+  # Reads the package and version out of the tag. It has no checkout and no credentials.
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.parse.outputs.package }}
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - id: parse
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^([a-z][a-z0-9]*(-[a-z0-9]+)*)-v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "The tag $TAG is not <package>-v<major>.<minor>.<patch>." >&2
+            exit 1
+          fi
+          echo "package=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          echo "version=${BASH_REMATCH[3]}" >> "$GITHUB_OUTPUT"
+
   publish:
+    needs: prepare
     runs-on: ubuntu-latest
     environment: npm-publish # gated by required reviewers; must match the npm trusted-publisher setting
     permissions:
       contents: read
       id-token: write # required for trusted publishing and provenance
+    # Run steps happen inside the package being released.
+    defaults:
+      run:
+        working-directory: packages/${{ needs.prepare.outputs.package }}
+    env:
+      PACKAGE: ${{ needs.prepare.outputs.package }}
+      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -37,16 +72,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run typecheck
       - run: pnpm test
-      - name: Verify tag matches package version
-        run: test "v$(node -p 'require("./package.json").version')" = "${GITHUB_REF_NAME}"
+      - name: Verify the tag matches the package and its version
+        run: |
+          test "$(node -p 'require("./package.json").name.split("/").pop()')" = "$PACKAGE"
+          test "$(node -p 'require("./package.json").version')" = "$VERSION"
       - name: Verify CHANGELOG.md has notes for this version
-        run: node scripts/changelog.mjs --notes "${GITHUB_REF_NAME}" > /dev/null
+        run: node ../../scripts/changelog.mjs "$PACKAGE" --notes "$VERSION" > /dev/null
       - run: npm publish --provenance --access public
 
   # Separate job so that only this one can write to the repository, and it holds
   # no publish credentials. It runs only after the package is published.
   github-release:
-    needs: publish
+    needs: [prepare, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write # create the release
@@ -58,9 +95,12 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-      - name: Create the GitHub release from CHANGELOG.md
+      - name: Create the GitHub release from the package's CHANGELOG.md
         env:
           GH_TOKEN: ${{ github.token }}
+          PACKAGE: ${{ needs.prepare.outputs.package }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          TAG: ${{ github.ref_name }}
         run: |
-          node scripts/changelog.mjs --notes "${GITHUB_REF_NAME}" > release-notes.md
-          gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file release-notes.md --verify-tag
+          node scripts/changelog.mjs "$PACKAGE" --notes "$VERSION" > release-notes.md
+          gh release create "$TAG" --title "$PACKAGE $VERSION" --notes-file release-notes.md --verify-tag

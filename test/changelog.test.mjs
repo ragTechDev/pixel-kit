@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractNotes, MARKER, nextVersion, parseCommit, renderSection, suggestBump } from "../scripts/changelog.mjs";
+import { extractNotes, MARKER, nextVersion, PACKAGE_NAME, parseCommit, renderSection, suggestBump, tagFor, versionFromTag } from "../scripts/changelog.mjs";
 
 test("parseCommit reads type, scope, text and breaking markers", () => {
     assert.deepEqual(parseCommit("feat(world): add roofs"), { type: "feat", scope: "world", text: "add roofs", breaking: false });
@@ -54,4 +54,19 @@ test("extractNotes returns one version's body", () => {
     assert.equal(extractNotes(log, "v0.1.1"), "- b");
     assert.equal(extractNotes(log, "0.3.0"), null);
     assert.equal(extractNotes("## [0.2.0] - x\n\n## [0.1.1] - y\n- b\n", "0.2.0"), null, "an empty section counts as missing");
+});
+
+test("tags are <package>-v<version> and versionFromTag reads both the new and the old shape", () => {
+    assert.equal(tagFor("pixel-sprites", "0.9.0"), "pixel-sprites-v0.9.0");
+    assert.equal(versionFromTag("pixel-sprites-v0.9.0"), "0.9.0");
+    assert.equal(versionFromTag("pixel-engine-v1.2.3"), "1.2.3");
+    assert.equal(versionFromTag("v0.8.0"), "0.8.0", "tags from before the workspace");
+    assert.equal(versionFromTag("0.8.0"), "0.8.0");
+    assert.equal(versionFromTag("pixel-sprites-v0.9.0-beta.1"), "0.9.0-beta.1");
+    assert.equal(versionFromTag("nonsense"), "nonsense");
+});
+
+test("package names are lower-case folder names and nothing that could climb out of packages/", () => {
+    for (const ok of ["pixel-sprites", "pixel-engine", "a1"]) assert.ok(PACKAGE_NAME.test(ok), ok);
+    for (const bad of ["", "..", "../x", "a/b", "Pixel", "-a", "a-", "a--b", "a b", "1a"]) assert.ok(!PACKAGE_NAME.test(bad), bad);
 });

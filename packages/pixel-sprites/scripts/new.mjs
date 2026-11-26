@@ -356,7 +356,7 @@ const kinds = [
 ];
 
 try {
-  console.log(`pixel-mask-engine scaffolding wizard${dryRun ? " (dry run: no files will be written)" : ""}`);
+  console.log(`pixel-sprites scaffolding wizard${dryRun ? " (dry run: no files will be written)" : ""}`);
   const run = await select("What do you want to add?", kinds);
   await run();
 } finally {

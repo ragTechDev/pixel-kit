@@ -1,4 +1,4 @@
-# CLAUDE.md — pixel-mask-engine
+# CLAUDE.md — pixel-kit
 
 This repo will be **open source**. Write everything in it (code, comments, commit messages, docs, sample data) as if it is already public.
 
@@ -8,7 +8,7 @@ A TypeScript library that composes and renders pixel-art avatars (and, next, til
 
 ## Current state (core and Sprite refactor done)
 
-- Entries: `@ragtechdev/pixel-mask-engine` (pure core: `buildAvatar`, `buildTile`, `avatarKey`, `createCache`, `toSvg*`, style and palette tables), `@ragtechdev/pixel-mask-engine/canvas` (`paintRaster`, `drawRaster`) and `@ragtechdev/pixel-mask-engine/react` (`Avatar`, `Tile`, `Icon`, `WorldObject`, `World`, `PixelImage`). React is an optional peer.
+- Entries: `@ragtechdev/pixel-sprites` (pure core: `buildAvatar`, `buildTile`, `avatarKey`, `createCache`, `toSvg*`, style and palette tables), `@ragtechdev/pixel-sprites/canvas` (`paintRaster`, `drawRaster`) and `@ragtechdev/pixel-sprites/react` (`Avatar`, `Tile`, `Icon`, `WorldObject`, `World`, `PixelImage`). React is an optional peer.
 - `Sprite` (`src/core/sprite.ts`) is the single image primitive: palette-slot indices plus an origin. Avatar shape masks are still `"0"`/`"1"` strings, auto-shaded by `shadeMask` using `src/core/lighting.ts`. Tile masks are `"0"`/`"1"` layers painted in named colours, resolved through the fixed `tilePalettes`. `composeSprites` (internal) produces a colour-resolved `Raster`.
 - `resolveAvatarConfig` replaces any value that isn't in the fixed tables with its default.
 - Size baseline before the refactor: the whole bundle was about 3.3 KB gzipped. After it, an avatar-only import is about 3.28 KB, the full core entry is about 4.25 KB (it now includes tiles), and the react and canvas entries add about 0.46 KB and 0.45 KB.
@@ -26,7 +26,7 @@ Next: more objects and a pet on `Sprite`; more tile types and objects; a Web Wor
 
 ## Target design
 
-1. **Zero-dependency, tree-shakeable ESM core** (pure TypeScript, no React, no DOM types in the core entry). The React/Preact component is a separate optional entry point (for example `@ragtechdev/pixel-mask-engine/react`), with React as an optional peer dependency.
+1. **Zero-dependency, tree-shakeable ESM core** (pure TypeScript, no React, no DOM types in the core entry). The React/Preact component is a separate optional entry point (for example `@ragtechdev/pixel-sprites/react`), with React as an optional peer dependency.
 2. **One `Sprite` abstraction** shared by avatars, tiles, furniture, decor and a pet: a palette-indexed mask plus size and anchor. Replace the three mask formats with this one.
 3. **Render once, reuse.** Paint each unique config to an offscreen canvas or sprite sheet, cache by a hash of the config, and draw with `image-rendering: pixelated`. Keep a plain SVG path for non-canvas use if it is cheap. Move batch generation into a Web Worker with `OffscreenCanvas` only if it measurably blocks the main thread.
 4. **Framework-agnostic API.** The consumer app mounts a canvas module outside its UI framework, so the core must be callable without any framework.
@@ -59,6 +59,8 @@ pnpm size          # gzipped size per entry (scripts/size.mjs)
 pnpm new           # scaffolding wizard for new art (scripts/new.mjs)
 pnpm docs:images   # re-renders docs/images (banner, icons, avatars, tiles, objects, themes) from the built package (scripts/render-docs.mjs)
 pnpm stats         # rebuilds, re-renders the images, then updates the counts and bundled sizes in the README (scripts/stats.mjs); --check only verifies the counts
+pnpm changelog <package>      # suggested bump and a changelog draft from the commits that touched packages/<package> (scripts/changelog.mjs)
+pnpm release <package> <bump> # bump, commit and tag <package>-v<version>; pushing the tag starts the release (scripts/release.mjs)
 pnpm check:masks   # validate every mask: 0/1 only, rectangular, tile and icon size limits, naming, orphans (scripts/check-masks.mjs)
 ```
 
@@ -71,18 +73,18 @@ The package manager is pnpm (pinned in `packageManager`); do not use npm or comm
 - `minimumReleaseAge` delays brand-new versions by 3 days.
 - `trustPolicy: no-downgrade` rejects versions that lost provenance. Exceptions go in `trustPolicyExclude`, exact version only, with a comment saying why. Never add one without reviewing the package (maintainer, repo, publish history).
 - Always install with `--frozen-lockfile` in CI. Add a dependency only after checking its size and licence.
-- Publishing happens only from `.github/workflows/release.yml` via npm trusted publishing (OIDC, with provenance). No npm token is stored anywhere. The npm trusted-publisher entry needs the **npm publish** permission (not "stage publish"), and its owner, repo, workflow and environment must match GitHub's spelling exactly (`ragTechDev`, `pixel-mask-engine`, `release.yml`, `npm-publish`).
-- A release needs a manual approval: the `npm-publish` GitHub environment has a required reviewer and only allows `v*` tags.
+- Publishing happens only from `.github/workflows/release.yml` via npm trusted publishing (OIDC, with provenance). No npm token is stored anywhere. The npm trusted-publisher entry needs the **npm publish** permission (not "stage publish"), and its owner, repo, workflow and environment must match GitHub's spelling exactly (`ragTechDev`, `pixel-kit`, `release.yml`, `npm-publish`).
+- A release needs a manual approval: the `npm-publish` GitHub environment has a required reviewer and only allows the tag patterns of the published packages (`pixel-sprites-v*`, and one per package added later). Each published package needs its own trusted-publisher entry on npm.
 - GitHub Actions are pinned to commit SHAs. Repo policy (Settings -> Actions) requires SHA pinning and allows only GitHub-owned actions plus `pnpm/action-setup`. To use a new action, review it first, then add it to that allow-list.
 - Dependabot (`.github/dependabot.yml`) proposes weekly updates for Actions and dev dependencies, skipping versions younger than 3 days. Review each PR: check the changelog, and treat any new install-script warning or trust-policy failure as a stop sign, not something to exclude by reflex.
 
 ## Releases
 
-Versions follow semver (before 1.0, a breaking change bumps the minor). Release notes live in `CHANGELOG.md` (Keep a Changelog format) and are drafted from the commit history by `scripts/changelog.mjs`, which has no dependencies.
+Versions follow semver (before 1.0, a breaking change bumps the minor). Each package is versioned and released on its own, with its own `CHANGELOG.md` (Keep a Changelog format) and tags of the form `<package>-v<version>` (for example `pixel-sprites-v0.9.0`). Notes are drafted from the commits that touched that package's folder by `scripts/changelog.mjs`, and the version bump, commit and tag are made by `scripts/release.mjs`. Neither has dependencies. `pnpm version` is not used: it does not tag per package.
 
 - Commit messages use `type(scope): subject`. Mark a breaking change with `!` after the scope (`refactor(world)!: ...`) or a `BREAKING CHANGE:` footer, or the suggested bump will miss it. `feat`, `fix`, `perf`, `refactor` and `revert` reach the changelog; `chore`, `docs`, `test`, `ci` and `build` do not.
-- To release: run `pnpm changelog` for the suggested bump and a draft. Run `pnpm changelog:write` to insert the draft into `CHANGELOG.md`, then rewrite it for readers and add anything the script cannot see. Commit it, run `pnpm version <patch|minor|major>` (it bumps `package.json` and makes the commit and the `v*` tag), then push the commit and the tag.
-- The tag starts `.github/workflows/release.yml`. It refuses to publish when the version has no `CHANGELOG.md` section. After the approval-gated publish, a separate job creates the GitHub release from that section. Nothing automatic bumps versions or pushes tags, so no write token exists beyond that release job.
+- To release a package: run `pnpm changelog <package>` for the suggested bump and a draft, where `<package>` is its folder under `packages/`. Run `pnpm changelog <package> --write` to insert the draft into its `CHANGELOG.md`, then rewrite it for readers and add anything the script cannot see. Commit it, run `pnpm release <package> <patch|minor|major>` (it refuses without a changelog section, bumps `package.json`, and makes the commit and the `<package>-v<version>` tag; add `--dry-run` to preview), then push the commit and the tag as it prints. The first release of `pixel-sprites` reads the old plain `v*` tags to find where the last release ended; that fallback lives in `scripts/changelog.mjs` and goes away once a `pixel-sprites-v*` tag exists.
+- The tag starts `.github/workflows/release.yml`, which reads the package and version from the tag and runs from that package's folder. It refuses to publish when the tag does not match the package's name and version, or when the version has no `CHANGELOG.md` section. After the approval-gated publish, a separate job creates the GitHub release from that section. Nothing automatic bumps versions or pushes tags, so no write token exists beyond that release job.
 
 ## Measuring size
 

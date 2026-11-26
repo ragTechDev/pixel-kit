@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Avatar, Icon, Tile, WorldObject } from "../../../src/react";
-import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, tileThemes, variantSizes } from "../../../src";
+import { Avatar, Icon, Tile, WorldObject } from "../../../packages/pixel-sprites/src/react";
+import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, tileThemes, variantSizes } from "../../../packages/pixel-sprites/src";
 import { CodeBlock } from "../ui";
 
 /** The Docs subtopics, shown in the second-level menu. */
@@ -30,11 +30,11 @@ const pages: Record<DocId, () => ReactNode> = {
                 Art is drawn as small text masks, shading is worked out by code, and colours come from fixed palettes. Everything you build is a <code>Raster</code>:
                 a small grid of pixels you can show as a React component, an inline SVG, a CSS background or a canvas.
             </p>
-            <CodeBlock code="npm install @ragtechdev/pixel-mask-engine" />
+            <CodeBlock code="npm install @ragtechdev/pixel-sprites" />
             <p>There are three entries. The core has no dependencies and no DOM. React is an optional peer.</p>
             <table>
                 <tbody>
-                    <tr><td><code>@ragtechdev/pixel-mask-engine</code></td><td>builders such as <code>buildIcon</code>, <code>toSvg</code>, <code>toVariant</code></td></tr>
+                    <tr><td><code>@ragtechdev/pixel-sprites</code></td><td>builders such as <code>buildIcon</code>, <code>toSvg</code>, <code>toVariant</code></td></tr>
                     <tr><td><code>…/react</code></td><td><code>Icon</code>, <code>Avatar</code>, <code>Tile</code>, <code>WorldObject</code>, <code>World</code>, <code>PixelImage</code></td></tr>
                     <tr><td><code>…/canvas</code></td><td><code>paintRaster</code>, <code>drawRaster</code></td></tr>
                 </tbody>
@@ -45,7 +45,7 @@ const pages: Record<DocId, () => ReactNode> = {
         <>
             <p>Pick an id from <code>iconIds</code> (the Icons page lists them with their categories). <code>pixelSize</code> is how many screen pixels each icon pixel takes.</p>
             <Demo><Icon id="heart" pixelSize={4} title="Like" /><Icon id="heart_empty" pixelSize={4} /><Icon id="cottage" pixelSize={4} /></Demo>
-            <CodeBlock code={`import { Icon } from "@ragtechdev/pixel-mask-engine/react";
+            <CodeBlock code={`import { Icon } from "@ragtechdev/pixel-sprites/react";
 
 <Icon id="heart" pixelSize={4} title="Like" />`} />
             <p>
@@ -69,7 +69,7 @@ buildIcon("cottage", { idle: true });`} />
         <>
             <p>Tiles recolour with a palette (<code>spring</code>, <code>summer</code> as the default, <code>autumn</code>, <code>winter</code>). Objects stand on terrain, and trees and flowers change with the palette too. A map is one character per block of terrain plus placed objects.</p>
             <Demo>{tileThemes.map((t) => <Tile key={t} id="grass" theme={t} pixelSize={4} />)}</Demo>
-            <CodeBlock code={`import { World, Tile, WorldObject } from "@ragtechdev/pixel-mask-engine/react";
+            <CodeBlock code={`import { World, Tile, WorldObject } from "@ragtechdev/pixel-sprites/react";
 
 <Tile id="grass" theme="autumn" />
 <WorldObject id="tree" />
@@ -96,7 +96,7 @@ buildIcon("cottage", { idle: true });`} />
                 <li><code>palette</code> swaps in one of six fixed four-colour palettes ({paletteNames.join(", ")}) by brightness: each colour takes the palette tone for its own brightness, so an idle icon stays faded. It is applied after <code>bits</code>, for example <code>{'<Icon id="heart" bits={2} palette="game-boy" />'}</code> or <code>toVariant(raster, {"{ palette: \"sepia\" }"})</code>.</li>
                 <li>Any other value is ignored and gives you the original, which keeps its own grid and its full colours. Every icon is drawn on the same 20x20 canvas, so icons share one default size.</li>
             </ul>
-            <CodeBlock code={`import { buildTile, toVariant } from "@ragtechdev/pixel-mask-engine";
+            <CodeBlock code={`import { buildTile, toVariant } from "@ragtechdev/pixel-sprites";
 
 const retro = toVariant(buildTile("grass"), { size: 8, bits: 1 });`} />
         </>
@@ -173,8 +173,8 @@ buildMap(map, "summer", { water: "#2a6f97" });   // groups: grass, water, path, 
     ),
     "outside-react": () => (
         <>
-            <CodeBlock code={`import { buildIcon, toSvg, toSvgDataUrl } from "@ragtechdev/pixel-mask-engine";
-import { drawRaster } from "@ragtechdev/pixel-mask-engine/canvas";
+            <CodeBlock code={`import { buildIcon, toSvg, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
+import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 
 img.src = toSvgDataUrl(buildIcon("heart"), 4);        // 4 screen pixels per icon pixel
 el.style.backgroundImage = \`url("\${toSvgDataUrl(buildIcon("heart"), 2)}")\`;
@@ -190,7 +190,7 @@ drawRaster(ctx, buildIcon("heart"), 0, 0, 4);          // nearest-neighbour canv
                 <li><strong>Made in code.</strong> No generated images or video: everything renders from code at a fraction of the resources.</li>
                 <li><strong>Licences.</strong> Code is MIT. Art is CC BY 4.0.</li>
             </ul>
-            <p className="muted">The full reference is in the <a href="https://github.com/ragTechDev/pixel-mask-engine#readme">README on GitHub</a>.</p>
+            <p className="muted">The full reference is in the <a href="https://github.com/ragTechDev/pixel-kit/tree/main/packages/pixel-sprites#readme">README on GitHub</a>.</p>
         </>
     )
 };

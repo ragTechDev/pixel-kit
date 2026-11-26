@@ -1,3 +1,7 @@
+packages:
+  - packages/*
+  - studio
+
 # Supply-chain hardening (see CLAUDE.md "Supply chain").
 
 # Never run dependency install scripts unless a package is listed here.

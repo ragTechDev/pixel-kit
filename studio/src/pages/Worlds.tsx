@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { PixelImage } from "../../../src/react";
-import { TILE_SIZE, defaultTileTheme, buildMap, mapTileSize, toMapVariant } from "../../../src";
+import { PixelImage } from "../../../packages/pixel-sprites/src/react";
+import { TILE_SIZE, defaultTileTheme, buildMap, mapTileSize, toMapVariant } from "../../../packages/pixel-sprites/src";
 import { useWidth } from "../hooks";
 import { themeOf, tileColorsOf, variantOf, type Route } from "../router";
 import { CustomColours } from "../CustomColours";
@@ -69,8 +69,8 @@ export function WorldsPage({ route }: { route: Route }) {
             </div>
             <div className="panel stack">
                 <span className="h">Code</span>
-                <CodeBlock code={`import { World } from "@ragtechdev/pixel-mask-engine/react";
-import { defineMap, townTileset } from "@ragtechdev/pixel-mask-engine";
+                <CodeBlock code={`import { World } from "@ragtechdev/pixel-sprites/react";
+import { defineMap, townTileset } from "@ragtechdev/pixel-sprites";
 
 const map = defineMap(townTileset, ["ggg", "gpg"], [{ id: "tree", x: 0, y: 0 }]);
 

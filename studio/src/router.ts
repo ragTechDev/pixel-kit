@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { colorDepths, paletteNames, variantSizes, type ColorDepth, type PalettePreset, type VariantOptions, type VariantSize } from "../../src";
-import { colorRamps, defaultTileTheme, parseHex, tileColorGroups, tileThemes, type ColorName, type HexColor, type TileColorGroup, type TileColors, type TileTheme } from "../../src";
+import { colorDepths, paletteNames, variantSizes, type ColorDepth, type PalettePreset, type VariantOptions, type VariantSize } from "../../packages/pixel-sprites/src";
+import { colorRamps, defaultTileTheme, parseHex, tileColorGroups, tileThemes, type ColorName, type HexColor, type TileColorGroup, type TileColors, type TileTheme } from "../../packages/pixel-sprites/src";
 
 export interface Route {
     /** Path segments, e.g. ["icons", "heart"]. */

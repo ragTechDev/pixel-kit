@@ -2,7 +2,7 @@
   <img src="docs/images/banner.png" alt="Pixel avatars walking through a small village: cottages, a pond, trees and a path" width="100%">
 </p>
 
-# ragTech's Pixel Mask Library
+# ragTech's Pixel Sprites
 
 Hi, we're **ragTech**: three engineers who care about humane, responsible technology. We're building [Willage](https://ragtechdev.com/willage), a safety-first creator platform for iOS, Android and the web, and this library is the pixel art that grows out of it.
 
@@ -50,7 +50,7 @@ It is published to GitHub Pages by `.github/workflows/studio.yml`.
 ## Install
 
 ```sh
-npm install @ragtechdev/pixel-mask-engine
+npm install @ragtechdev/pixel-sprites
 ```
 
 ## Use it
@@ -64,7 +64,7 @@ Everything you build is a `Raster`: a small grid of pixels you can show as an `<
 **As an image**
 
 ```ts
-import { buildIcon, toSvgDataUrl } from "@ragtechdev/pixel-mask-engine";
+import { buildIcon, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
 
 img.src = toSvgDataUrl(buildIcon("heart"), 4); // 4 screen pixels per icon pixel
 ```
@@ -72,7 +72,7 @@ img.src = toSvgDataUrl(buildIcon("heart"), 4); // 4 screen pixels per icon pixel
 **In React**
 
 ```tsx
-import { Icon } from "@ragtechdev/pixel-mask-engine/react";
+import { Icon } from "@ragtechdev/pixel-sprites/react";
 
 <Icon id="heart" pixelSize={4} title="Like" />
 ```
@@ -84,7 +84,7 @@ Some icons (`idleIconIds` lists them) have a faded look for something that is of
 **In CSS**
 
 ```ts
-import { buildIcon, toSvgDataUrl } from "@ragtechdev/pixel-mask-engine";
+import { buildIcon, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
 
 document.documentElement.style.setProperty("--icon-heart", `url("${toSvgDataUrl(buildIcon("heart"), 2)}")`);
 ```
@@ -103,7 +103,7 @@ document.documentElement.style.setProperty("--icon-heart", `url("${toSvgDataUrl(
 **Inline, next to text**
 
 ```ts
-import { buildIcon, toSvg } from "@ragtechdev/pixel-mask-engine";
+import { buildIcon, toSvg } from "@ragtechdev/pixel-sprites";
 
 button.innerHTML = `${toSvg(buildIcon("heart"), 2)} Like`; // an <svg> in the page, no extra request
 ```
@@ -121,7 +121,7 @@ button.innerHTML = `${toSvg(buildIcon("heart"), 2)} Like`; // an <svg> in the pa
 **In React**
 
 ```tsx
-import { Avatar } from "@ragtechdev/pixel-mask-engine/react";
+import { Avatar } from "@ragtechdev/pixel-sprites/react";
 
 <Avatar skinTone="medium" hairColor="black" topStyle="shirt" pixelSize={4} />
 ```
@@ -129,7 +129,7 @@ import { Avatar } from "@ragtechdev/pixel-mask-engine/react";
 **In CSS**
 
 ```ts
-import { buildAvatar, toSvgDataUrl } from "@ragtechdev/pixel-mask-engine";
+import { buildAvatar, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
 
 const avatar = buildAvatar({ skinTone: "medium", hairColor: "black", topStyle: "shirt" });
 profile.style.backgroundImage = `url("${toSvgDataUrl(avatar, 4)}")`;
@@ -150,8 +150,8 @@ profile.style.backgroundImage = `url("${toSvgDataUrl(avatar, 4)}")`;
 **On a canvas**
 
 ```ts
-import { buildMap, defineMap, townTileset } from "@ragtechdev/pixel-mask-engine";
-import { drawRaster } from "@ragtechdev/pixel-mask-engine/canvas";
+import { buildMap, defineMap, townTileset } from "@ragtechdev/pixel-sprites";
+import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 
 const map = defineMap(townTileset, ["gggg", "gwwg", "pppp"], [{ id: "tree", x: 0, y: 0 }]);
 drawRaster(ctx, buildMap(map, "autumn"), 0, 0, 2); // themes: spring, summer (the default), autumn, winter. Trees and flowers change with it.
@@ -160,8 +160,8 @@ drawRaster(ctx, buildMap(map, "autumn"), 0, 0, 2); // themes: spring, summer (th
 **In React**
 
 ```tsx
-import { defineMap, townTileset } from "@ragtechdev/pixel-mask-engine";
-import { World, WorldObject } from "@ragtechdev/pixel-mask-engine/react";
+import { defineMap, townTileset } from "@ragtechdev/pixel-sprites";
+import { World, WorldObject } from "@ragtechdev/pixel-sprites/react";
 
 const map = defineMap(townTileset, ["gggg", "gwwg", "pppp"], [{ id: "tree", x: 0, y: 0 }]);
 
@@ -172,7 +172,7 @@ const map = defineMap(townTileset, ["gggg", "gwwg", "pppp"], [{ id: "tree", x: 0
 **In CSS**
 
 ```ts
-import { buildMap, toSvgDataUrl } from "@ragtechdev/pixel-mask-engine";
+import { buildMap, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
 
 hero.style.backgroundImage = `url("${toSvgDataUrl(buildMap(map, "autumn"), 2)}")`;
 ```
@@ -198,7 +198,7 @@ Every icon, tile, object, avatar and world can also be shown on an 8x8 or 16x16 
 ```
 
 ```ts
-import { buildTile, toVariant } from "@ragtechdev/pixel-mask-engine";
+import { buildTile, toVariant } from "@ragtechdev/pixel-sprites";
 
 const retro = toVariant(buildTile("grass"), { size: 8, bits: 1 });
 ```
@@ -240,7 +240,7 @@ const PX = 4; // one value for the whole surface
 
 ## For coding agents
 
-Tell your agent to use `@ragtechdev/pixel-mask-engine` for pixel art instead of generating images. It can list what exists with `iconIds`, `tileIds` and `objectIds`, and everything renders from code.
+Tell your agent to use `@ragtechdev/pixel-sprites` for pixel art instead of generating images. It can list what exists with `iconIds`, `tileIds` and `objectIds`, and everything renders from code.
 
 ## Contributing
 
@@ -250,4 +250,4 @@ We'd love your help! Run `pnpm new` and a friendly wizard scaffolds a new icon, 
 
 Code is MIT. The pixel art is CC BY 4.0. Both belong to RAGTECH PTE. LTD., a company registered in Singapore (UEN 202602756N). See [LICENSE](LICENSE) and [LICENSE-ART.md](LICENSE-ART.md).
 
-If you use the art, please credit it: *Pixel art from pixel-mask-engine by RAGTECH PTE. LTD., licensed under CC BY 4.0.*
+If you use the art, please credit it: *Pixel art from pixel-sprites by RAGTECH PTE. LTD., licensed under CC BY 4.0.*

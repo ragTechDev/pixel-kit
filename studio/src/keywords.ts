@@ -1,4 +1,4 @@
-import type { IconId, ObjectId, TileId } from "../../src";
+import type { IconId, ObjectId, TileId } from "../../packages/pixel-sprites/src";
 
 /** Words people might search for, per item. Typed as a full record so a new icon or object has to get some. */
 export const iconKeywords: Record<IconId, string> = {

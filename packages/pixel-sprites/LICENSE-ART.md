@@ -18,7 +18,7 @@ Everything else, including the palette tables, style tables, rendering code, bui
 
 If you redistribute the art or anything rendered from it, credit it like this:
 
-> Pixel art from pixel-mask-engine by RAGTECH PTE. LTD., licensed under CC BY 4.0.
+> Pixel art from pixel-sprites by RAGTECH PTE. LTD., licensed under CC BY 4.0.
 
 ## Origin
 

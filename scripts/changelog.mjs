@@ -1,22 +1,40 @@
 #!/usr/bin/env node
-// Zero-dependency release helper. Reads the conventional commits since the last
-// version tag and drafts the next CHANGELOG.md section and version bump.
+// Zero-dependency release helper. Reads the conventional commits that touched one
+// package since its last version tag and drafts the next CHANGELOG.md section and
+// version bump. Run it from anywhere; the package is named on the command line.
 //
-//   node scripts/changelog.mjs                 print the suggested bump and a draft section
-//   node scripts/changelog.mjs --write         insert the draft section into CHANGELOG.md
-//   node scripts/changelog.mjs --notes 0.2.0   print one version's notes (used by the release workflow)
+//   node scripts/changelog.mjs <package>                  print the suggested bump and a draft section
+//   node scripts/changelog.mjs <package> --write          insert the draft section into the package's CHANGELOG.md
+//   node scripts/changelog.mjs <package> --notes <ref>    print one version's notes; <ref> is a version or a tag
+//                                                         (used by the release workflow)
+//
+// <package> is a folder name under packages/, for example `pixel-sprites`. Its tags
+// look like `pixel-sprites-v0.9.0`.
 //
 // Commit format: `type(scope): subject`. A breaking change is marked with `!`
 // after the scope (`refactor(world)!: ...`) or a `BREAKING CHANGE:` footer.
 
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Commit types that reach the changelog, and the section each belongs to. */
 const SECTIONS = { feat: "Added", fix: "Fixed", perf: "Changed", refactor: "Changed", revert: "Changed" };
 const ORDER = ["Breaking changes", "Added", "Changed", "Fixed"];
 export const MARKER = "<!-- next-release -->";
+
+/** Folder names under packages/ that a command line may name. */
+export const PACKAGE_NAME = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+
+/**
+ * Before the repository became a workspace, tags were a plain `v<version>`. A package
+ * with no tag of its own yet falls back to them. Remove an entry once that package has
+ * a release tagged `<package>-v<version>`.
+ */
+const LEGACY_TAG_PREFIX = { "pixel-sprites": "v" };
 
 export function parseCommit(subject, body = "") {
     const match = /^(\w+)(?:\(([^)]+)\))?(!)?: (.+)$/.exec(subject);
@@ -40,6 +58,15 @@ export function nextVersion(version, bump) {
     if (bump === "major") return `${major + 1}.0.0`;
     if (bump === "minor") return `${major}.${minor + 1}.0`;
     return `${major}.${minor}.${patch + 1}`;
+}
+
+/** The tag a package's release carries: `pixel-sprites` and `0.9.0` give `pixel-sprites-v0.9.0`. */
+export const tagFor = (name, version) => `${name}-v${version}`;
+
+/** The version inside a tag (`pixel-sprites-v0.9.0` or the old `v0.8.0`), or the input when it has none. */
+export function versionFromTag(tag) {
+    const match = /^(?:.*-)?v?(\d+\.\d+\.\d+.*)$/.exec(tag);
+    return match ? match[1] : tag;
 }
 
 export function renderSection(version, date, commits) {
@@ -66,20 +93,26 @@ export function extractNotes(changelog, version) {
 }
 
 function git(...args) {
-    return execFileSync("git", args, { encoding: "utf8" }).trim();
+    return execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 }
 
-function lastTag() {
-    try {
-        return git("describe", "--tags", "--abbrev=0", "--match", "v[0-9]*");
-    } catch {
-        return null;
-    }
+function lastTag(name) {
+    const describe = (match) => {
+        try {
+            return git("describe", "--tags", "--abbrev=0", "--match", match);
+        } catch {
+            return null;
+        }
+    };
+    const own = describe(`${name}-v[0-9]*`);
+    if (own) return own;
+    return LEGACY_TAG_PREFIX[name] ? describe(`${LEGACY_TAG_PREFIX[name]}[0-9]*`) : null;
 }
 
-function readCommits(tag) {
+/** Conventional commits since `tag` that changed a file under `dir`. */
+function readCommits(tag, dir) {
     const range = tag ? [`${tag}..HEAD`] : [];
-    const raw = execFileSync("git", ["log", ...range, "--format=%h%x1f%s%x1f%b%x1e"], { encoding: "utf8" });
+    const raw = git("log", ...range, "--format=%h%x1f%s%x1f%b%x1e", "--", dir);
     return raw
         .split("\x1e")
         .map((entry) => entry.trim())
@@ -93,38 +126,45 @@ function readCommits(tag) {
 }
 
 function main(args) {
-    const changelog = readFileSync("CHANGELOG.md", "utf8");
+    const [name, flag, value] = args;
+    if (!name || !PACKAGE_NAME.test(name)) {
+        throw new Error("Usage: node scripts/changelog.mjs <package> [--write | --notes <version or tag>]");
+    }
+    const dir = `packages/${name}`;
+    const changelogPath = join(root, dir, "CHANGELOG.md");
+    if (!existsSync(changelogPath)) throw new Error(`${dir}/CHANGELOG.md does not exist.`);
+    const changelog = readFileSync(changelogPath, "utf8");
 
-    if (args[0] === "--notes") {
-        const notes = args[1] && extractNotes(changelog, args[1]);
+    if (flag === "--notes") {
+        const notes = value && extractNotes(changelog, versionFromTag(value));
         if (!notes) {
-            console.error(`CHANGELOG.md has no notes for version ${args[1] ?? "(none given)"}.`);
+            console.error(`${dir}/CHANGELOG.md has no notes for version ${value ?? "(none given)"}.`);
             process.exit(1);
         }
         console.log(notes);
         return;
     }
 
-    const { version } = JSON.parse(readFileSync("package.json", "utf8"));
-    const tag = lastTag();
-    const commits = readCommits(tag);
+    const { version } = JSON.parse(readFileSync(join(root, dir, "package.json"), "utf8"));
+    const tag = lastTag(name);
+    const commits = readCommits(tag, dir);
     const bump = suggestBump(commits, version);
     if (!bump) {
-        console.error(`No releasable commits (feat, fix, perf, refactor, revert or breaking) since ${tag ?? "the start"}.`);
+        console.error(`No releasable commits (feat, fix, perf, refactor, revert or breaking) in ${dir} since ${tag ?? "the start"}.`);
         process.exit(1);
     }
     const next = nextVersion(version, bump);
     const section = renderSection(next, new Date().toLocaleDateString("en-CA"), commits);
 
-    if (args[0] === "--write") {
-        if (!changelog.includes(MARKER)) throw new Error(`CHANGELOG.md has no ${MARKER} marker.`);
-        if (changelog.includes(`## [${next}]`)) throw new Error(`CHANGELOG.md already has a ${next} section.`);
-        writeFileSync("CHANGELOG.md", changelog.replace(MARKER, `${MARKER}\n\n${section}`));
-        console.error(`Wrote the ${next} section to CHANGELOG.md. Edit it, commit it, then run: pnpm version ${bump}`);
+    if (flag === "--write") {
+        if (!changelog.includes(MARKER)) throw new Error(`${dir}/CHANGELOG.md has no ${MARKER} marker.`);
+        if (changelog.includes(`## [${next}]`)) throw new Error(`${dir}/CHANGELOG.md already has a ${next} section.`);
+        writeFileSync(changelogPath, changelog.replace(MARKER, `${MARKER}\n\n${section}`));
+        console.error(`Wrote the ${next} section to ${dir}/CHANGELOG.md. Edit it, commit it, then run: pnpm release ${name} ${bump}`);
         return;
     }
 
-    console.log(`Last tag: ${tag ?? "(none)"}  |  ${commits.length} conventional commits`);
+    console.log(`Last tag: ${tag ?? "(none)"}  |  ${commits.length} conventional commits in ${dir}`);
     console.log(`Suggested bump: ${bump} -> ${next}\n`);
     console.log(section);
 }

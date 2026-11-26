@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PixelImage } from "../../../src/react";
+import { PixelImage } from "../../../packages/pixel-sprites/src/react";
 import {
     avatarKey,
     backHairStyles,
@@ -31,7 +31,7 @@ import {
     type AvatarConfig,
     type Raster,
     type ResolvedAvatarConfig
-} from "../../../src";
+} from "../../../packages/pixel-sprites/src";
 import { useMediaQuery } from "../hooks";
 import { CustomColours } from "../CustomColours";
 import { colorRows, isolate, norm, rampFromBase, recolor, type ColorMap } from "../recolor";
@@ -114,8 +114,8 @@ const NAMES: Partial<Record<Field, Record<string, string>>> = { hairColor: { bro
 /** Turning goes round in this order. */
 const FACING = ["front", "right", "back", "left"] as const;
 
-const STORAGE_KEY = "pixel-mask-studio:avatar";
-const CUSTOM_KEY = "pixel-mask-studio:avatar-custom";
+const STORAGE_KEY = "pixel-kit-studio:avatar";
+const CUSTOM_KEY = "pixel-kit-studio:avatar-custom";
 
 /** camelCase and snake_case ids as plain words. */
 const words = (id: string) => id.replace(/([A-Z])/g, " $1").replace(/_/g, " ").toLowerCase();
@@ -506,7 +506,7 @@ export function AvatarsPage({ route }: { route: Route }) {
             </div>
             <div className="panel stack">
                 <span className="h">Code</span>
-                <CodeBlock code={`import { Avatar } from "@ragtechdev/pixel-mask-engine/react";\n\n${jsx}`} />
+                <CodeBlock code={`import { Avatar } from "@ragtechdev/pixel-sprites/react";\n\n${jsx}`} />
                 {hasCustom && <p className="muted">You used custom colours. They are in the preview and in Save PNG, but not in this code: the library only uses its fixed colours.</p>}
             </div>
             <div className="panel stack">
