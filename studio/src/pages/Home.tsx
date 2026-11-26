@@ -1,10 +1,11 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useRef, type ReactNode } from "react";
 import { Avatar, Icon, Tile, World, WorldObject } from "@ragtechdev/pixel-sprites/react";
-import { buildMap, buildTile, iconIds, objectIds, tileIds, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
+import { buildMap, buildTile, defaultTileTheme, iconIds, objectIds, tileIds, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
 import { createPlay, DESKTOP_VIEW } from "../play/game";
+import { ConsoleDeck } from "../play/Handheld";
 import { PlayCanvas } from "../play/PlayCanvas";
 import { useMediaQuery, useWidth } from "../hooks";
-import { href, themeOf, type Route } from "../router";
+import { href, setQuery, themeOf, type Route } from "../router";
 import { CodeBlock } from "../ui";
 import { miniTown } from "../worlds";
 
@@ -52,16 +53,25 @@ start(game, canvas, { width: 240, height: 144, scale: 3 });`;
 export function HomePage({ route }: { route: Route }) {
     const theme = themeOf(route);
     const mobile = useMediaQuery("(max-width: 720px)");
-    const touch = useMediaQuery("(pointer: coarse)");
+    // On its side a phone is too short for the screen and the controls together, so the Play page's console, which puts them side by side, is the better place to play.
+    const sideways = useMediaQuery("(max-width: 720px) and (orientation: landscape)");
     // The demo's own width, not the window's: it changes when a scrollbar appears, and the window's size does not.
     const [demo, measured] = useWidth<HTMLDivElement>();
     const width = measured || document.documentElement.clientWidth;
     // On a phone the world spans the screen. The zoom is a whole number that keeps the view inside the map (at most 240 px
-    // wide), and the view is just wide enough to fill the width at that zoom. Turning the phone makes a new world.
-    const scale = width > 480 ? 3 : 2;
-    const view = mobile ? { width: Math.floor(width / scale), height: DESKTOP_VIEW.height } : DESKTOP_VIEW;
+    // wide), and the view is just wide enough to fill the width at that zoom. Sideways it is a 2x screen that fits the height.
+    // Turning the phone makes a new world.
+    const scale = sideways || width <= 480 ? 2 : 3;
+    const view = mobile ? { width: Math.min(Math.floor(width / scale), DESKTOP_VIEW.width), height: DESKTOP_VIEW.height } : DESKTOP_VIEW;
+    // START changes the season from inside the world. The address holds it, like the season chips on the Play page, so tell the page;
+    // otherwise the next render would put the old season back. The route is read through a ref because the callback outlives this render.
+    const current = useRef(route);
+    current.current = route;
     // The theme only seeds the first world; the line below keeps it in step afterwards.
-    const play = useMemo(() => createPlay({ theme }, view), [view.width]);
+    const play = useMemo(
+        () => createPlay({ theme, onTheme: (next) => setQuery(current.current, { theme: next === defaultTileTheme ? undefined : next }) }, view),
+        [view.width]
+    );
     play.options.theme = theme;
     const toAssets = () => {
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -82,10 +92,14 @@ export function HomePage({ route }: { route: Route }) {
                     <p className="muted">Built from fixed masks and fixed palettes, so it stays small and consistent. Code MIT, art CC BY 4.0.</p>
                 </div>
                 <div className="hero-play" ref={demo}>
-                    <PlayCanvas play={play} maxScale={3} scale={mobile ? scale : undefined} fill={mobile} />
+                    <PlayCanvas play={play} maxScale={3} scale={mobile ? scale : undefined} fill={mobile} pad={!mobile} />
+                    {mobile && !sideways && <ConsoleDeck input={play.game.input} />}
                     <div className="hero-play-foot">
-                        <p className="muted">{touch ? "Use the pad to walk. Try the door." : "Click the world, then walk with the arrow keys or WASD. Try the door."}</p>
-                        <a className="btn primary" href={href(["play"], route)}>{mobile ? "Play full screen" : "Open the Play page"}</a>
+                        {!mobile && <p className="muted">Click the world, then walk with the arrow keys or WASD. Try the door.</p>}
+                        {/* Upright, the demo above is already the whole game, so the Play page only adds the code. */}
+                        {mobile && !sideways && <a className="btn" href={href(["play", "code"], route)}>See the code</a>}
+                        {sideways && <a className="btn primary" href={href(["play"], route)}>Play full screen</a>}
+                        {!mobile && <a className="btn primary" href={href(["play"], route)}>Open the Play page</a>}
                     </div>
                 </div>
             </section>

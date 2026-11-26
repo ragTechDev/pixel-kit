@@ -107,6 +107,39 @@ function Key({ input, action, className, label, caption }: { input: Input; actio
 }
 
 /**
+ * The pad, START, A and B, a hint and the speaker grille: the lower half of the console. Put it in a grid that names the
+ * areas cross, center, buttons, hint and speaker.
+ */
+function Controls({ input }: { input: Input }) {
+    return (
+        <>
+            <Cross input={input} />
+            <div className="gb-center">
+                <Key input={input} action="start" className="gb-pill" label="Start: change the season" caption="Start" />
+            </div>
+            <div className="gb-buttons">
+                <Key input={input} action="b" className="gb-round" label="B: hold to run" caption="B" />
+                <Key input={input} action="a" className="gb-round" label="A: speak to the character in front" caption="A" />
+            </div>
+            <p className="gb-hint">A speak · B hold to run · Start season</p>
+            <div className="gb-speaker" aria-hidden>
+                <span /><span /><span />
+            </div>
+        </>
+    );
+}
+
+/** The lower half of the console on its own, to sit under a screen that spans the page. */
+export function ConsoleDeck({ input }: { input: Input }) {
+    return (
+        <div className="gb gb-deck">
+            <div className="gb-strip" aria-hidden>ragTech Pixel Kit</div>
+            <Controls input={input} />
+        </div>
+    );
+}
+
+/**
  * The world as a handheld console, for a phone: the screen in a bezel, a cross pad under the left thumb, A and B under
  * the right, and START in the middle. Held upright the screen is on top; on its side the pad and buttons move to the
  * sides. The picture stays at a whole-number zoom, so every game pixel is the same size.
@@ -132,18 +165,7 @@ export function Handheld({ play, exitHref }: { play: Play; exitHref: string }) {
                 <PlayCanvas play={play} scale={scale} pad={false} />
                 <span className="gb-label" aria-hidden>ragTech Pixel Kit</span>
             </div>
-            <Cross input={input} />
-            <div className="gb-center">
-                <Key input={input} action="start" className="gb-pill" label="Start: change the season" caption="Start" />
-            </div>
-            <div className="gb-buttons">
-                <Key input={input} action="b" className="gb-round" label="B: hold to run" caption="B" />
-                <Key input={input} action="a" className="gb-round" label="A: speak to the character in front" caption="A" />
-            </div>
-            <p className="gb-hint">A speak · B hold to run · Start season</p>
-            <div className="gb-speaker" aria-hidden>
-                <span /><span /><span />
-            </div>
+            <Controls input={input} />
         </div>
     );
 }

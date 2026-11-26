@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { defaultTileTheme, tileThemes } from "@ragtechdev/pixel-sprites";
 import gameSource from "../play/game.ts?raw";
 import { createPlay, DESKTOP_VIEW, HANDHELD_VIEW } from "../play/game";
@@ -12,7 +12,7 @@ const ENGINE = "https://github.com/ragTechDev/pixel-kit/tree/main/packages/pixel
 
 function About() {
     return (
-        <section className="panel stack">
+        <section id="how" className="panel stack">
             <h2>How it is made</h2>
             <p>
                 The sprites package draws the map and the avatars and knows which tiles block. The engine runs the fixed-step loop, reads the keys, moves the hero a tile at a time, follows
@@ -46,6 +46,13 @@ export function PlayPage({ route }: { route: Route }) {
     );
     // The game reads this on every frame, so changing the season needs no restart.
     play.options.theme = theme;
+    // #/play/code is a link straight to the code, for a phone where the demo on the home page is already the whole game.
+    const toCode = route.path[1] === "code";
+    useEffect(() => {
+        if (!toCode) return;
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.getElementById("how")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+    }, [toCode]);
 
     if (handheld) {
         return (
