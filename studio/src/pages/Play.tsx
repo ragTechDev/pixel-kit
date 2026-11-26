@@ -1,18 +1,60 @@
-import { useState } from "react";
+import { useMemo, useRef } from "react";
 import { defaultTileTheme, tileThemes } from "@ragtechdev/pixel-sprites";
 import gameSource from "../play/game.ts?raw";
-import { createPlay } from "../play/game";
+import { createPlay, DESKTOP_VIEW, HANDHELD_VIEW } from "../play/game";
+import { Handheld } from "../play/Handheld";
 import { PlayCanvas } from "../play/PlayCanvas";
-import { setQuery, themeOf, type Route } from "../router";
+import { useHandheld } from "../hooks";
+import { href, setQuery, themeOf, type Route } from "../router";
 import { Chips, CodeBlock } from "../ui";
 
 const ENGINE = "https://github.com/ragTechDev/pixel-kit/tree/main/packages/pixel-engine";
 
+function About() {
+    return (
+        <section className="panel stack">
+            <h2>How it is made</h2>
+            <p>
+                The sprites package draws the map and the avatars and knows which tiles block. The engine runs the fixed-step loop, reads the keys, moves the hero a tile at a time, follows
+                them with the camera, and switches scenes at a door. This is the whole world: no framework, no image files.
+            </p>
+            <details>
+                <summary>Show the code</summary>
+                <CodeBlock code={gameSource} />
+            </details>
+            <div className="row">
+                <a className="btn" href={ENGINE}>Engine on GitHub ↗</a>
+            </div>
+        </section>
+    );
+}
+
 export function PlayPage({ route }: { route: Route }) {
     const theme = themeOf(route);
-    const [play] = useState(() => createPlay({ theme }));
+    const handheld = useHandheld();
+    // The page's current route, for the callback below: it runs long after the render that made it.
+    const current = useRef(route);
+    current.current = route;
+    // A phone gets the handheld's 160 by 144 screen, a page gets a wider one. Changing between them starts the world again.
+    const play = useMemo(
+        () => createPlay(
+            { theme, onTheme: (next) => setQuery(current.current, { theme: next === defaultTileTheme ? undefined : next }) },
+            handheld ? HANDHELD_VIEW : DESKTOP_VIEW
+        ),
+        // The theme only seeds the first world; the line below keeps it in step afterwards.
+        [handheld]
+    );
     // The game reads this on every frame, so changing the season needs no restart.
     play.options.theme = theme;
+
+    if (handheld) {
+        return (
+            <div className="stack" style={{ gap: 0 }}>
+                <Handheld play={play} exitHref={href([], route)} />
+                <div className="gb-about"><About /></div>
+            </div>
+        );
+    }
     return (
         <div className="stack" style={{ gap: 24 }}>
             <section className="panel stack">
@@ -30,24 +72,12 @@ export function PlayPage({ route }: { route: Route }) {
                     onPick={(next) => next && setQuery(route, { theme: next === defaultTileTheme ? undefined : next })}
                 />
                 <p className="muted">
+                    Keys: arrows or WASD walk, Z or Space is A (speak to the character in front, and they turn to face you), hold X for B (run), and Enter is START (change the season).
                     Water, trees, walls and the other characters stop you, because collision reads the same tile and object data that drew the map.
-                    The season recolours the whole world from one fixed palette.
                 </p>
+                <p className="muted">On a phone this page becomes a handheld console, with a pad and A, B and START buttons on screen.</p>
             </section>
-            <section className="panel stack">
-                <h2>How it is made</h2>
-                <p>
-                    The sprites package draws the map and the avatars and knows which tiles block. The engine runs the fixed-step loop, reads the keys, moves the hero a tile at a time, follows
-                    them with the camera, and switches scenes at a door. This is the whole world: no framework, no image files.
-                </p>
-                <details>
-                    <summary>Show the code</summary>
-                    <CodeBlock code={gameSource} />
-                </details>
-                <div className="row">
-                    <a className="btn" href={ENGINE}>Engine on GitHub ↗</a>
-                </div>
-            </section>
+            <About />
         </div>
     );
 }
