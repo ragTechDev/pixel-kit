@@ -1,4 +1,4 @@
-// Keeps the documentation honest. Code in the docs and on the home page imports names from the packages; if an export is
+// Keeps the documentation and the starter honest. Code in the docs, on the home page and in the generated starter imports names from the packages; if an export is
 // renamed or removed, a snippet would quietly stop working. This checks every imported name is a real export, and that the
 // Docs quick start is exactly the README's, which the engine's own tests run.
 import assert from "node:assert/strict";
@@ -48,9 +48,11 @@ function importsIn(source) {
     return found;
 }
 
-const pages = ["studio/src/pages/Docs.tsx", "studio/src/pages/Home.tsx", "studio/src/pages/Play.tsx"];
+// The starter that `npm create @ragtechdev/pixel-game` writes is code a stranger will run, so it gets the same check as the docs.
+const starter = ["main", "game", "maps"].map((name) => `packages/create-pixel-game/template/src/${name}.ts`);
+const pages = ["studio/src/pages/Docs.tsx", "studio/src/pages/Home.tsx", "studio/src/pages/Play.tsx", ...starter];
 
-test("every name the docs, the home page and the Play page import from our packages is a real export", async () => {
+test("every name the docs, the home page, the Play page and the generated starter import from our packages is a real export", async () => {
     const exported = {};
     for (const [specifier, file] of Object.entries(entries)) exported[specifier] = await exportsOf(file);
     let checked = 0;

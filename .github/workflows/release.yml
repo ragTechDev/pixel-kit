@@ -19,7 +19,7 @@ name: Release
 # the version has no notes, and a second job then creates the GitHub release.
 on:
   push:
-    tags: ["pixel-sprites-v*", "pixel-engine-v*"]
+    tags: ["pixel-sprites-v*", "pixel-engine-v*", "create-pixel-game-v*"]
 
 permissions:
   contents: read
