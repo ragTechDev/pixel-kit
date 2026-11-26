@@ -1,0 +1,79 @@
+{
+  "name": "@ragtechdev/pixel-engine",
+  "version": "0.1.0",
+  "description": "A small, framework-agnostic game runtime for pixel-art worlds: fixed-step loop, input, camera, tile movement and scenes.",
+  "author": "RAGTECH PTE. LTD.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ragTechDev/pixel-kit.git",
+    "directory": "packages/pixel-engine"
+  },
+  "bugs": {
+    "url": "https://github.com/ragTechDev/pixel-kit/issues"
+  },
+  "homepage": "https://github.com/ragTechDev/pixel-kit/tree/main/packages/pixel-engine#readme",
+  "keywords": [
+    "pixel-art",
+    "game-engine",
+    "game-loop",
+    "tilemap",
+    "canvas"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./dom": {
+      "types": "./dist/dom.d.ts",
+      "import": "./dist/dom.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    }
+  },
+  "scripts": {
+    "build:deps": "pnpm --filter \"@ragtechdev/pixel-engine^...\" build",
+    "build": "pnpm run build:deps && tsup",
+    "typecheck": "pnpm run build:deps && tsc --noEmit && tsc -p tsconfig.core.json",
+    "test": "pnpm run build:deps && tsup && node --test test/*.test.mjs",
+    "size": "node scripts/size.mjs",
+    "prepublishOnly": "pnpm run typecheck && pnpm test"
+  },
+  "peerDependencies": {
+    "@ragtechdev/pixel-sprites": ">=0.9.0 <1.0.0",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@ragtechdev/pixel-sprites": "workspace:*",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
