@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Avatar, Icon, Tile, WorldObject } from "@ragtechdev/pixel-sprites/react";
-import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, tileThemes, variantSizes } from "@ragtechdev/pixel-sprites";
+import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, skirtLengths, skirtShapes, tileThemes, variantSizes } from "@ragtechdev/pixel-sprites";
 import { CodeBlock } from "../ui";
 import { docGroups, docSections, docTitle, type DocId, type DocTopic } from "./docTopics";
 
@@ -120,7 +120,7 @@ const retro = toVariant(buildTile("grass"), { size: 8, bits: 1 });`} />
                 Every colour the library draws comes from a fixed table, so what you build is always one of the named looks below. Pick by name; there is no way to pass a colour of your own to the library.
             </p>
             <h3>Avatars</h3>
-            <p>Each part has its own list. Skin: {Object.keys(skinPalettes).join(", ")}. Hair: {Object.keys(hairPalettes).join(", ")} (<code>brown</code> is brunette). Eyes: {Object.keys(eyePalettes).join(", ")}. Clothes: {Object.keys(clothesPalettes).join(", ")}. <code>clothesColor</code> colours every piece; <code>topColor</code>, <code>bottomColor</code> and <code>shoeColor</code> give one piece a colour of its own. A dress or overalls is a top (<code>topStyle="dress"</code>) that covers the bottom.</p>
+            <p>Each part has its own list. Skin: {Object.keys(skinPalettes).join(", ")}. Hair: {Object.keys(hairPalettes).join(", ")} (<code>brown</code> is brunette). Eyes: {Object.keys(eyePalettes).join(", ")}. Clothes: {Object.keys(clothesPalettes).join(", ")}. <code>clothesColor</code> colours every piece; <code>topColor</code>, <code>bottomColor</code> and <code>shoeColor</code> give one piece a colour of its own. A dress or overalls is a top (<code>topStyle="dress"</code>) that covers the bottom. A skirt is <code>bottomStyle="skirt"</code> with a <code>skirtShape</code> ({Object.keys(skirtShapes).join(", ")}) and a <code>skirtLength</code> ({Object.keys(skirtLengths).join(", ")}, where <code>floor</code> covers the feet); flowing and pleated skirts sway when walking, and a pencil skirt does not.</p>
             <Demo>{(["blonde", "brown", "red", "auburn", "grey", "pink"] as const).map((hairColor) => <Avatar key={hairColor} hairColor={hairColor} pixelSize={3} />)}</Demo>
             <CodeBlock code={`<Avatar skinTone="tan" hairColor="auburn" eyeColor="hazel" clothesColor="teal" />
 

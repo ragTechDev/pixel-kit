@@ -24,6 +24,8 @@ import {
     resolveAvatarConfig,
     shoeStyles,
     skinPalettes,
+    skirtLengths,
+    skirtShapes,
     tilePalettes,
     toSvg,
     toVariant,
@@ -90,6 +92,8 @@ const TABS: Tab[] = [
     ] },
     { id: "bottom", label: "Bottom", crop: "body", sections: [
         { field: "bottomStyle", title: "Bottom", options: keys(bottomStyles), crop: "body" },
+        { field: "skirtShape", title: "Skirt", hint: "Flowing and pleated skirts flare and sway when walking; a pencil skirt hugs your legs.", options: keys(skirtShapes), crop: "body" },
+        { field: "skirtLength", title: "Skirt length", hint: "From a mini skirt to the floor. An ankle-length skirt shows just your toes, and a floor-length one covers your feet.", options: keys(skirtLengths), crop: "body", slider: true },
         { field: "bottomColor", title: "Bottom colour", options: keys(clothesPalettes), crop: "body", colors: clothesPalettes }
     ] },
     { id: "shoes", label: "Shoes", crop: "feet", sections: [
@@ -297,6 +301,7 @@ const ELEMENT_OF: Partial<Record<Field, Element>> = {
     backHairStyle: "hair",
     topStyle: "top",
     bottomStyle: "bottom",
+    skirtShape: "bottom",
     shoeStyle: "shoes"
 };
 
@@ -333,8 +338,10 @@ function OptionGrid({ section, look, current, bottomCovered, choose }: {
               section.field === "hairDrape" && !isLooseHair(look.backHairStyle)
               ? section.options.filter((id) => id !== "overAndBehindShoulder")
               : section.options;
+    // A mini skirt has no shape, so the cards show each shape at knee length until a longer skirt is picked.
+    const shown = section.field === "skirtShape" && look.skirtLength === "mini" ? { skirtLength: "knee" as const } : {};
     const arts = options.map((id) =>
-        element && id !== "none" ? elementArt(resolveAvatarConfig({ ...look, [section.field]: id }), element) : null
+        element && id !== "none" ? elementArt(resolveAvatarConfig({ ...look, ...shown, [section.field]: id }), element) : null
     );
     // One pixel size for the whole row, so a short style does not look bigger than a long one.
     const biggest = arts.reduce((m, a) => ({ w: Math.max(m.w, a?.width ?? 0), h: Math.max(m.h, a?.height ?? 0) }), { w: 1, h: 1 });
@@ -414,7 +421,9 @@ export function AvatarsPage({ route }: { route: Route }) {
             const next: AvatarConfig = {
                 ...prev,
                 [field]: value,
-                ...(field === "bottomStyle" && coversBottom(prev.topStyle) ? { topStyle: ORDINARY_TOP as AvatarConfig["topStyle"] } : {})
+                ...(field === "bottomStyle" && coversBottom(prev.topStyle) ? { topStyle: ORDINARY_TOP as AvatarConfig["topStyle"] } : {}),
+                // A mini skirt has no shape, so picking one lengthens the skirt to show it.
+                ...(field === "skirtShape" && resolveAvatarConfig(prev).skirtLength === "mini" ? { skirtLength: "knee" as const } : {})
             };
             return next;
         });
@@ -469,7 +478,7 @@ export function AvatarsPage({ route }: { route: Route }) {
                             </button>
                         ))}
                     </div>
-                    {tab.sections.filter((section) => !(look.hairLength === "bald" && (section.field === "frontHairStyle" || section.field === "backHairStyle" || section.field === "hairTexture")) && !(section.field === "hairDrape" && (!hairDrapeApplies(look.hairLength) || isMiddlePonytail(look.backHairStyle))) && !((section.field === "hairAccessory" || section.field === "hairAccessoryColor") && (!hairAccessoryApplies(look.hairLength, look.backHairStyle) || (section.field === "hairAccessoryColor" && look.hairAccessory === "none")))).map((section) => {
+                    {tab.sections.filter((section) => !(look.hairLength === "bald" && (section.field === "frontHairStyle" || section.field === "backHairStyle" || section.field === "hairTexture")) && !(section.field === "hairDrape" && (!hairDrapeApplies(look.hairLength) || isMiddlePonytail(look.backHairStyle))) && !((section.field === "hairAccessory" || section.field === "hairAccessoryColor") && (!hairAccessoryApplies(look.hairLength, look.backHairStyle) || (section.field === "hairAccessoryColor" && look.hairAccessory === "none"))) && !((section.field === "skirtShape" || section.field === "skirtLength") && (look.bottomStyle !== "skirt" || coversBottom(look.topStyle)))).map((section) => {
                         // A piece without a colour of its own shows the clothes colour.
                         const current = (look[section.field] ?? (isPieceColour(section.field) ? look.clothesColor : undefined)) as string;
                         const bottomCovered = (section.field === "bottomStyle" || section.field === "bottomColor") && coversBottom(look.topStyle);
