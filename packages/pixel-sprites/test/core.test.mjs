@@ -400,7 +400,7 @@ test("walk cycle: from the front and back the two legs never merge into one", ()
     // The gap between the legs is outlined, so it is the outline colour where the legs are apart and skin where they have merged.
     const outline = skinPalettes.light.outline;
     for (const headOrientation of ["front", "back"]) {
-        const base = { headOrientation, skinTone: "light", shoeStyle: "none", bottomStyle: "shorts", hairLength: "bald" };
+        const base = { headOrientation, skinTone: "light", shoeStyle: "none", bottomStyle: "pants", hairLength: "bald" };
         const stand = buildAvatar(base);
         const first = stand.height - 4;
         const filled = [...Array(stand.width).keys()].filter((x) => stand.px[first * stand.width + x]);
@@ -480,7 +480,7 @@ test("walk cycle: from the front and back the hair swings toward the planted foo
     ];
     for (const look of looks) {
         for (const headOrientation of ["front", "back"]) {
-            const base = { ...look, headOrientation, hairColor: "red", skinTone: "light", clothesColor: "blue", topStyle: "shirt", bottomStyle: "shorts", shoeStyle: "none", hairAccessory: "none" };
+            const base = { ...look, headOrientation, hairColor: "red", skinTone: "light", clothesColor: "blue", topStyle: "shirt", bottomStyle: "pants", shoeStyle: "none", hairAccessory: "none" };
             const standing = buildAvatar(base);
             for (const legPose of ["contactLeft", "contactRight"]) {
                 const stepping = buildAvatar({ ...base, legPose });
@@ -517,16 +517,16 @@ test("walk cycle: an accessory tied at the root of a tuft stays put while the fr
 
 test("a skirt has a shape and a length, and nothing else does", () => {
     const skirt = { bottomStyle: "skirt", topStyle: "shirt" };
-    assert.equal(resolveAvatarConfig({ ...skirt, skirtShape: "pleated", skirtLength: "knee" }).skirtShape, "pleated");
-    assert.equal(resolveAvatarConfig({ ...skirt, skirtShape: "pencil", skirtLength: "floor" }).skirtLength, "floor");
+    assert.equal(resolveAvatarConfig({ ...skirt, skirtShape: "pleated", bottomLength: "knee" }).skirtShape, "pleated");
+    assert.equal(resolveAvatarConfig({ ...skirt, skirtShape: "pencil", bottomLength: "floor" }).bottomLength, "floor");
     // Anything unknown falls back, and what does not apply is dropped so equivalent looks share a key.
-    assert.equal(resolveAvatarConfig({ ...skirt, skirtLength: "midi" }).skirtLength, "mini");
-    assert.equal(avatarKey({ ...skirt, skirtShape: "pleated", skirtLength: "mini" }), avatarKey({ ...skirt }), "a mini skirt has no shape");
-    assert.equal(avatarKey({ bottomStyle: "shorts", skirtShape: "pencil", skirtLength: "floor" }), avatarKey({ bottomStyle: "shorts" }), "shorts have neither");
-    assert.equal(avatarKey({ ...skirt, topStyle: "dress", skirtShape: "pencil", skirtLength: "floor" }), avatarKey({ ...skirt, topStyle: "dress" }), "a dress covers the skirt");
-    assert.deepEqual(buildAvatar({ ...skirt, topStyle: "dress", skirtLength: "floor" }), buildAvatar({ topStyle: "dress", bottomStyle: "none" }));
-    // The plain skirt is the mini skirt, as it always was.
-    assert.deepEqual(buildAvatar({ bottomStyle: "skirt" }), buildAvatar({ bottomStyle: "skirt", skirtShape: "flowing", skirtLength: "mini" }));
+    assert.equal(resolveAvatarConfig({ ...skirt, bottomLength: "maxi" }).bottomLength, "short");
+    assert.equal(avatarKey({ ...skirt, skirtShape: "pleated", bottomLength: "short" }), avatarKey({ ...skirt }), "a one-row skirt has no shape");
+    assert.equal(avatarKey({ bottomStyle: "none", skirtShape: "pencil", bottomLength: "floor" }), avatarKey({ bottomStyle: "none" }), "no bottom has neither");
+    assert.equal(avatarKey({ ...skirt, topStyle: "dress", skirtShape: "pencil", bottomLength: "floor" }), avatarKey({ ...skirt, topStyle: "dress" }), "a dress covers the skirt");
+    assert.deepEqual(buildAvatar({ ...skirt, topStyle: "dress", bottomLength: "floor" }), buildAvatar({ topStyle: "dress", bottomStyle: "none" }));
+    // The plain skirt is the one-row skirt, as it always was.
+    assert.deepEqual(buildAvatar({ bottomStyle: "skirt" }), buildAvatar({ bottomStyle: "skirt", skirtShape: "flowing", bottomLength: "short" }));
 });
 
 test("skirts get longer with the length, in every shape", () => {
@@ -536,7 +536,7 @@ test("skirts get longer with the length, in every shape", () => {
         return [...r.px].filter((p) => red.has(r.colors[p])).length;
     };
     for (const skirtShape of ["flowing", "pleated", "pencil"]) {
-        const counts = ["mini", "short", "knee", "ankle", "floor"].map((skirtLength) => skirtPixels({ skirtShape, skirtLength }));
+        const counts = ["short", "knee", "calf", "ankle", "floor"].map((bottomLength) => skirtPixels({ skirtShape, bottomLength }));
         for (let i = 1; i < counts.length; i += 1) assert.ok(counts[i] > counts[i - 1], `${skirtShape}: longer skirts have more skirt (${counts})`);
     }
 });
@@ -549,17 +549,17 @@ test("flowing and pleated skirts sway like hair when walking, a pencil skirt doe
         const last = Math.floor(at[at.length - 1] / f.width) - 1;
         return at.filter((i) => Math.floor(i / f.width) >= last).join();
     };
-    const swaying = { flowing: ["short", "knee", "ankle", "floor"], pleated: ["knee", "ankle", "floor"], pencil: [] };
+    const swaying = { flowing: ["knee", "calf", "ankle", "floor"], pleated: ["calf", "ankle", "floor"], pencil: [] };
     for (const headOrientation of ["front", "back", "left", "right"]) {
         for (const skirtShape of ["flowing", "pleated", "pencil"]) {
-            for (const skirtLength of ["short", "knee", "ankle", "floor"]) {
+            for (const bottomLength of ["knee", "calf", "ankle", "floor"]) {
                 const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) =>
-                    buildAvatar({ headOrientation, legPose, bottomStyle: "skirt", skirtShape, skirtLength, bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald" })
+                    buildAvatar({ headOrientation, legPose, bottomStyle: "skirt", skirtShape, bottomLength, bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald" })
                 );
-                const label = `${headOrientation} ${skirtShape} ${skirtLength}`;
+                const label = `${headOrientation} ${skirtShape} ${bottomLength}`;
                 for (const f of frames) assert.deepEqual([f.width, f.height], [frames[0].width, frames[0].height], `${label}: one size in every pose`);
                 const moves = hem(frames[1]) !== hem(frames[0]) && hem(frames[2]) !== hem(frames[0]);
-                assert.equal(moves, swaying[skirtShape].includes(skirtLength), `${label}: ${moves ? "sways" : "stays"}`);
+                assert.equal(moves, swaying[skirtShape].includes(bottomLength), `${label}: ${moves ? "sways" : "stays"}`);
             }
         }
     }
@@ -572,8 +572,8 @@ test("an ankle-length skirt shows only the last row of the feet, and a floor-len
             for (const shoeStyle of ["boots", "shoes", "sandals"]) {
                 for (const legPose of ["neutral", "contactLeft", "contactRight"]) {
                     const look = { headOrientation, legPose, bottomStyle: "skirt", skirtShape, bottomColor: "red", shoeStyle, shoeColor: "yellow", clothesColor: "blue", topStyle: "shirt", hairLength: "bald" };
-                    const ankle = buildAvatar({ ...look, skirtLength: "ankle" });
-                    const floor = buildAvatar({ ...look, skirtLength: "floor" });
+                    const ankle = buildAvatar({ ...look, bottomLength: "ankle" });
+                    const floor = buildAvatar({ ...look, bottomLength: "floor" });
                     const onlySkirt = (f, rows) => {
                         for (const y of rows) for (let x = 0; x < f.width; x += 1) assert.ok(!f.colors[f.px[y * f.width + x]] || red.has(f.colors[f.px[y * f.width + x]]), `${skirtShape} ${headOrientation} ${shoeStyle} ${legPose}: only skirt at row ${y}`);
                     };
@@ -589,10 +589,62 @@ test("an ankle-length skirt shows only the last row of the feet, and a floor-len
 test("a pleated skirt has fold lines in the shadow colour, and a flowing or pencil one has none", () => {
     const ramp = clothesPalettes.red;
     const folds = (look) => {
-        const r = buildAvatar({ bottomStyle: "skirt", bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald", skirtLength: "floor", ...look });
+        const r = buildAvatar({ bottomStyle: "skirt", bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald", bottomLength: "floor", ...look });
         return [...r.px].filter((p) => r.colors[p] === ramp.shadow).length;
     };
     const flowing = folds({ skirtShape: "flowing" });
     assert.ok(folds({ skirtShape: "pleated" }) > flowing + 4, "pleats add fold lines");
     assert.ok(folds({ skirtShape: "pleated", headOrientation: "right" }) > folds({ skirtShape: "flowing", headOrientation: "right" }), "and so do they in profile");
+});
+
+test("pants have a length and no shape, and the shortest pants are what an avatar wears by default", () => {
+    assert.equal(resolveAvatarConfig({ bottomStyle: "pants", bottomLength: "ankle" }).bottomLength, "ankle");
+    assert.equal(avatarKey({ bottomStyle: "pants", skirtShape: "pencil", bottomLength: "ankle" }), avatarKey({ bottomStyle: "pants", bottomLength: "ankle" }), "pants have no shape");
+    assert.equal(avatarKey({ bottomStyle: "pants", topStyle: "dress", bottomLength: "floor" }), avatarKey({ bottomStyle: "pants", topStyle: "dress" }), "a dress covers pants");
+    assert.deepEqual(buildAvatar({ bottomStyle: "pants", topStyle: "overalls", bottomLength: "floor" }), buildAvatar({ topStyle: "overalls", bottomStyle: "none" }));
+    // The default look is the shortest pants, and the old "shorts" is not a bottom any more, so it falls back to them.
+    assert.equal(defaultAvatarConfig.bottomStyle, "pants");
+    assert.equal(defaultAvatarConfig.bottomLength, "short");
+    assert.equal(resolveAvatarConfig({ bottomStyle: "shorts" }).bottomStyle, "pants");
+    for (const headOrientation of ["front", "left", "right", "back"]) {
+        for (const legPose of ["neutral", "contactLeft", "contactRight"]) {
+            assert.deepEqual(buildAvatar({ headOrientation, legPose, bottomStyle: "pants", bottomLength: "short" }), buildAvatar({ headOrientation, legPose }), `${headOrientation} ${legPose}`);
+        }
+    }
+});
+
+test("pants get longer with the length, and step with the legs", () => {
+    const red = new Set(Object.values(clothesPalettes.red));
+    const pantsAt = (f) => [...f.px].map((p, i) => (red.has(f.colors[p]) ? i : -1)).filter((i) => i >= 0);
+    const look = { bottomStyle: "pants", bottomColor: "red", clothesColor: "blue", shoeStyle: "none", hairLength: "bald" };
+    const counts = ["short", "knee", "calf", "ankle", "floor"].map((bottomLength) => pantsAt(buildAvatar({ ...look, bottomLength })).length);
+    for (let i = 1; i < counts.length; i += 1) assert.ok(counts[i] > counts[i - 1], `longer pants have more cloth (${counts})`);
+    for (const headOrientation of ["front", "back", "left", "right"]) {
+        for (const bottomLength of ["calf", "ankle", "floor"]) {
+            const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) => buildAvatar({ ...look, headOrientation, bottomLength, legPose }));
+            for (const f of frames) assert.deepEqual([f.width, f.height], [frames[0].width, frames[0].height], `${headOrientation} ${bottomLength}: one size in every pose`);
+            // Below the hands, the lowest rows of cloth: the legs step, so the pants do.
+            const low = (f) => pantsAt(f).filter((i) => Math.floor(i / f.width) >= f.height - 5).join();
+            assert.notEqual(low(frames[1]), low(frames[0]), `${headOrientation} ${bottomLength}: the pants step`);
+            assert.notEqual(low(frames[2]), low(frames[0]), `${headOrientation} ${bottomLength}: and step the other way`);
+        }
+    }
+});
+
+test("ankle-length pants show only the last row of the feet, and floor-length pants cover them", () => {
+    const red = new Set(Object.values(clothesPalettes.red));
+    for (const headOrientation of ["front", "back", "left", "right"]) {
+        for (const shoeStyle of ["boots", "shoes", "sandals"]) {
+            for (const legPose of ["neutral", "contactLeft", "contactRight"]) {
+                const look = { headOrientation, legPose, bottomStyle: "pants", bottomColor: "red", shoeStyle, shoeColor: "yellow", clothesColor: "blue", topStyle: "shirt", hairLength: "bald" };
+                const onlyPants = (f, rows, label) => {
+                    for (const y of rows) for (let x = 0; x < f.width; x += 1) assert.ok(!f.colors[f.px[y * f.width + x]] || red.has(f.colors[f.px[y * f.width + x]]), `${label} ${headOrientation} ${shoeStyle} ${legPose}: only pants at row ${y}, column ${x}`);
+                };
+                const ankle = buildAvatar({ ...look, bottomLength: "ankle" });
+                const floor = buildAvatar({ ...look, bottomLength: "floor" });
+                onlyPants(ankle, [ankle.height - 4], "ankle");
+                onlyPants(floor, [floor.height - 4, floor.height - 3, floor.height - 2], "floor");
+            }
+        }
+    }
 });

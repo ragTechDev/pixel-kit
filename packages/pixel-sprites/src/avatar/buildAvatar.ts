@@ -19,7 +19,8 @@ import { headOrientations, maskForView, type HeadOrientation } from "./orientati
 import {
     bottomStyles,
     shoeStyles,
-    skirtLengths,
+    bottomLengths,
+    pantsStyles,
     skirtShapes,
     skirtStyles,
     topStyles,
@@ -29,7 +30,7 @@ import {
     type GarmentLayer,
     type GarmentPlacement,
     type ShoeStyle,
-    type SkirtLength,
+    type BottomLength,
     type SkirtShape,
     type TopStyle
 } from "./styles/clothesStyles";
@@ -80,8 +81,8 @@ export interface AvatarConfig {
     bottomStyle?: BottomStyle;
     /** What kind of skirt a `skirt` bottom is. Only a skirt has one. */
     skirtShape?: SkirtShape;
-    /** How far down a `skirt` bottom goes, from the one-row `mini` to `floor`, which covers the feet. Only a skirt has one. */
-    skirtLength?: SkirtLength;
+    /** How far down a `skirt` or `pants` bottom goes, from `short` (one row at the hips) to `floor`, which covers the feet. Only a skirt or pants have one. */
+    bottomLength?: BottomLength;
     shoeStyle?: ShoeStyle;
     armPose?: ArmPose;
     legPose?: LegPose;
@@ -107,9 +108,9 @@ export const defaultAvatarConfig: Readonly<Required<Omit<AvatarConfig, PieceColo
     eyeColor: "dark",
     clothesColor: "blue",
     topStyle: "shirt",
-    bottomStyle: "shorts",
+    bottomStyle: "pants",
     skirtShape: "flowing",
-    skirtLength: "mini",
+    bottomLength: "short",
     shoeStyle: "boots",
     armPose: "down",
     legPose: "neutral"
@@ -132,7 +133,7 @@ const allowed: { [K in Exclude<keyof AvatarConfig, PieceColorField>]-?: object }
     topStyle: topStyles,
     bottomStyle: bottomStyles,
     skirtShape: skirtShapes,
-    skirtLength: skirtLengths,
+    bottomLength: bottomLengths,
     shoeStyle: shoeStyles,
     armPose: ARM_POSES,
     legPose: legPoses
@@ -169,12 +170,11 @@ export function resolveAvatarConfig(config: AvatarConfig = {}): ResolvedAvatarCo
     // Only tied hair has an accessory, and the colour of no accessory does not count.
     if (!hairAccessoryApplies(out.hairLength as HairLength, out.backHairStyle as BackHairStyle)) out.hairAccessory = "none";
     if (out.hairAccessory === "none") delete out.hairAccessoryColor;
-    // Only a skirt that is not covered by a dress or overalls has a shape and a length, and the one-row mini skirt has no shape.
-    if (out.bottomStyle !== "skirt" || (topStyles[out.topStyle as keyof typeof topStyles] as GarmentDefinition).coversBottom === true) {
-        out.skirtShape = defaultAvatarConfig.skirtShape;
-        out.skirtLength = defaultAvatarConfig.skirtLength;
-    }
-    if (out.skirtLength === "mini") out.skirtShape = defaultAvatarConfig.skirtShape;
+    // Only a skirt or pants that a dress or overalls does not cover have a length, only a skirt has a shape, and the one-row
+    // one-row skirt has no shape.
+    const covered = (topStyles[out.topStyle as keyof typeof topStyles] as GarmentDefinition).coversBottom === true;
+    if (covered || (out.bottomStyle !== "skirt" && out.bottomStyle !== "pants")) out.bottomLength = defaultAvatarConfig.bottomLength;
+    if (covered || out.bottomStyle !== "skirt" || out.bottomLength === "short") out.skirtShape = defaultAvatarConfig.skirtShape;
     return out as ResolvedAvatarConfig;
 }
 
@@ -251,7 +251,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     };
     // A long skirt hangs over the tops of the shoes, so then the shoes are drawn before it, with the clothes on the body.
     // A flowing or pleated skirt sways in a walking pose.
-    const bottomDefinition = (c.bottomStyle === "skirt" ? skirtStyles[c.skirtShape][c.skirtLength] : bottomStyles[c.bottomStyle]) as GarmentDefinition;
+    const bottomDefinition = (c.bottomStyle === "skirt" ? skirtStyles[c.skirtShape][c.bottomLength] : c.bottomStyle === "pants" ? pantsStyles[c.bottomLength] : bottomStyles[c.bottomStyle]) as GarmentDefinition;
     // An ankle-length skirt stops just above the feet, so only the last row of the legs and shoes shows under it, and a
     // floor-length one covers them, so there are no shoes or legs to draw.
     const coversFeet = !coversBottom && bottomDefinition.coversFeet === true;
