@@ -13,13 +13,13 @@ export const LEG_ROWS = 4;
 /**
  * Every pose of a pair of legs, from the neutral masks and the left-foot contact. The right-foot contact is the left
  * one flipped. Seen from behind, the left foot is on the viewer's left, so the back view is the front flipped again.
- * A side view cannot show which foot leads, so both feet share it.
+ * A side view cannot show which foot leads, so both feet share it unless `sideRight` gives the right-foot frame its own.
  */
-export function legFrames(neutral: ViewMasks, contact: ViewMasks): Record<LegPose, ViewMasks> {
+export function legFrames(neutral: ViewMasks, contact: ViewMasks, sideRight: PixelMask = contact.side): Record<LegPose, ViewMasks> {
     return {
         neutral,
         contactLeft: { front: contact.front, side: contact.side, back: mirrorMask(contact.front) },
-        contactRight: { front: mirrorMask(contact.front), side: contact.side, back: contact.front }
+        contactRight: { front: mirrorMask(contact.front), side: sideRight, back: contact.front }
     };
 }
 
@@ -50,11 +50,12 @@ export function swingArms(mask: PixelMask, left: "forward" | "back", right: "for
 }
 
 /**
- * Every pose of a pair of arms, or of sleeves worn on them. They swing against the legs: the arm on the side of the
- * lifted leg swings forward and the other swings back. A side view keeps the arm as it is.
+ * Every pose of a pair of arms, or of sleeves worn on them. They swing against the legs: from the front the arm on the
+ * side of the lifted leg swings forward and the other back, and in profile the arm swings forward on a left-foot step
+ * and back on a right-foot one. `swing` gives the two profile arms; without it a side view keeps the arm as it is.
  */
-export function armFrames(front: PixelMask, side: PixelMask): Record<LegPose, ViewMasks> {
-    return legFrames({ front, side }, { front: swingArms(front, "forward", "back"), side });
+export function armFrames(front: PixelMask, side: PixelMask, swing?: { forward: PixelMask; back: PixelMask }): Record<LegPose, ViewMasks> {
+    return legFrames({ front, side }, { front: swingArms(front, "forward", "back"), side: swing?.forward ?? side }, swing?.back ?? side);
 }
 
 /**

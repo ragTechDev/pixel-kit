@@ -379,8 +379,8 @@ test("walk cycle: the frames differ from standing and from each other", () => {
     assert.deepEqual(walkCycle, ["contactLeft", "neutral", "contactRight", "neutral"]);
     for (const headOrientation of ["front", "back", "right"]) {
         const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) => [...buildAvatar({ headOrientation, legPose }).px].join());
-        // Standing and each foot are different in front and back. A side view shows the same legs whichever foot leads.
-        assert.equal(new Set(frames).size, headOrientation === "right" ? 2 : 3, headOrientation);
+        // Standing and each step are different in every view. A side view shows the same legs whichever foot leads, but the arm swings the other way.
+        assert.equal(new Set(frames).size, 3, headOrientation);
     }
 });
 

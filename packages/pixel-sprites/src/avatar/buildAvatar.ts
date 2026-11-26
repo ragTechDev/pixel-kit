@@ -5,6 +5,8 @@ import { clothesPalettes, eyePalettes, hairPalettes, skinPalettes } from "../cor
 import { defineSprite, rampSlots, shadeMask, SLOT, type Sprite } from "../core/sprite";
 import { armsFrontMask } from "./masks/armsFront.mask";
 import { armsSideMask } from "./masks/armsSide.mask";
+import { armsSideBackMask } from "./masks/armsSideBack.mask";
+import { armsSideForwardMask } from "./masks/armsSideForward.mask";
 import { eyesFrontMask } from "./masks/eyesFront.mask";
 import { eyesSideMask } from "./masks/eyesSide.mask";
 import { headFrontMask } from "./masks/headFront.mask";
@@ -193,7 +195,7 @@ function flatSprite(mask: PixelMask, outlined: boolean): Sprite {
     return sprite;
 }
 
-const armsFrames = armFrames(armsFrontMask, armsSideMask);
+const armsFrames = armFrames(armsFrontMask, armsSideMask, { forward: armsSideForwardMask, back: armsSideBackMask });
 const headMasks = { front: headFrontMask, side: headSideMask };
 const legsFrames = legFrames(
     { front: legsFrontMask, side: legsSideMask },

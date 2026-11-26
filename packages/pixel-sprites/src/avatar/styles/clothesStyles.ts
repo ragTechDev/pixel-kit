@@ -11,6 +11,8 @@ import { overallsTorsoFrontMask } from "../masks/clothes/full/overallsTorsoFront
 import { overallsTorsoSideMask } from "../masks/clothes/full/overallsTorsoSide.mask";
 import { bootsFrontMask } from "../masks/clothes/shoes/bootsFront.mask";
 import { bootsSideMask } from "../masks/clothes/shoes/bootsSide.mask";
+import { armsSideBackMask } from "../masks/armsSideBack.mask";
+import { armsSideForwardMask } from "../masks/armsSideForward.mask";
 import { bootsSideContactMask } from "../masks/clothes/shoes/bootsSideContact.mask";
 import { sandalsFrontMask } from "../masks/clothes/shoes/sandalsFront.mask";
 import { sandalsSideMask } from "../masks/clothes/shoes/sandalsSide.mask";
@@ -67,6 +69,10 @@ function viewed(slot: GarmentSlot, layers: readonly ViewedLayer[], extra: { cove
     return { slot, ...extra, byOrientation, fallback: forView("front") };
 }
 
+/** Sleeves swing with the arms: in profile they are the top rows of the swung arm. */
+const sleeveFrames = (front: PixelMask, side: PixelMask) =>
+    armFrames(front, side, { forward: armsSideForwardMask.slice(0, side.length), back: armsSideBackMask.slice(0, side.length) });
+
 export type TopStyle = "none" | "spaghetti" | "shirt" | "longSleeve" | "overalls" | "dress";
 export type BottomStyle = "none" | "shorts" | "skirt";
 export type ShoeStyle = "none" | "boots" | "sandals" | "shoes";
@@ -76,11 +82,11 @@ export const topStyles = {
     spaghetti: viewed("top", [{ masks: { front: spaghettiTopTorsoFrontMask, side: spaghettiTopTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" }]),
     shirt: viewed("top", [
         { masks: { front: shirtTorsoFrontMask, side: shirtTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" },
-        { masks: { front: shirtSleevesFrontMask, side: shirtSleevesSideMask }, poses: armFrames(shirtSleevesFrontMask, shirtSleevesSideMask), offsetX: 0, offsetY: 6, placement: "overArms", armPoses: ["down"] }
+        { masks: { front: shirtSleevesFrontMask, side: shirtSleevesSideMask }, poses: sleeveFrames(shirtSleevesFrontMask, shirtSleevesSideMask), offsetX: 0, offsetY: 6, placement: "overArms", armPoses: ["down"] }
     ]),
     longSleeve: viewed("top", [
         { masks: { front: longSleeveTorsoFrontMask, side: longSleeveTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" },
-        { masks: { front: longSleevesFrontMask, side: longSleevesSideMask }, poses: armFrames(longSleevesFrontMask, longSleevesSideMask), offsetX: 0, offsetY: 6, placement: "overArms", armPoses: ["down"] }
+        { masks: { front: longSleevesFrontMask, side: longSleevesSideMask }, poses: sleeveFrames(longSleevesFrontMask, longSleevesSideMask), offsetX: 0, offsetY: 6, placement: "overArms", armPoses: ["down"] }
     ]),
     overalls: viewed("top", [{ masks: { front: overallsTorsoFrontMask, side: overallsTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" }], { coversBottom: true }),
     dress: viewed("top", [{ masks: { front: dressTorsoFrontMask, side: dressTorsoSideMask }, offsetX: 2, offsetY: 6, placement: "overBody" }], { coversBottom: true })
