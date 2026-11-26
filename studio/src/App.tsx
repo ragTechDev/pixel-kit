@@ -1,5 +1,5 @@
 import { useEffect, type CSSProperties } from "react";
-import { useHeight } from "./hooks";
+import { useHandheld, useHeight } from "./hooks";
 import { href, useRoute } from "./router";
 import { AvatarsPage } from "./pages/Avatars";
 import { BrowsePage } from "./pages/Browse";
@@ -27,6 +27,9 @@ export default function App() {
     const inLibrary = library.some(([id]) => id === section);
     const inDocs = section === "docs";
     const inPlay = section === "play";
+    // On a phone, Play is a handheld console that fills the screen, so the site header and footer step aside.
+    const handheld = useHandheld();
+    const handheldPlay = inPlay && handheld;
     // Each Docs topic is its own page; /docs on its own is the first one.
     const docId = route.path[1] ?? docSections[0][0];
     const title = inDocs
@@ -58,7 +61,7 @@ export default function App() {
     })();
 
     return (
-        <div className={`app${inDocs ? " in-docs" : ""}`} style={{ "--main-h": `${headerHeight}px` } as CSSProperties}>
+        <div className={`app${inDocs ? " in-docs" : ""}${handheldPlay ? " play-handheld" : ""}`} style={{ "--main-h": `${headerHeight}px` } as CSSProperties}>
             <header ref={header} className={`top${inLibrary || inDocs ? "" : " top-solo"}`}>
                 <div className="top-main">
                     <a className="brand" href={href([], route)}>

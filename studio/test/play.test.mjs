@@ -232,3 +232,87 @@ test("a tap shorter than one update still takes one step", () => {
     assert.deepEqual(at(p), [7, 9], "one tile down the path");
     assert.equal(p.hero.facing, "down");
 });
+
+test("A makes the character in front turn to face the hero", () => {
+    const p = play();
+    const npc = maps.places.town.npcs[0];
+    assert.equal(p.facing(npc), "down", "characters start facing down");
+    p.hero.teleport(npc.x - 1, npc.y, "right"); // to the left of them, looking at them
+    p.game.input.press("a");
+    p.game.advance(frame);
+    p.game.input.release("a");
+    assert.equal(p.facing(npc), "left", "they turn toward the hero");
+    p.hero.teleport(npc.x + 1, npc.y, "left");
+    p.game.input.press("a");
+    p.game.advance(frame);
+    p.game.input.release("a");
+    p.game.advance(frame);
+    assert.equal(p.facing(npc), "right", "and again from the other side");
+});
+
+test("A does nothing when nobody is in front", () => {
+    const p = play();
+    const npc = maps.places.town.npcs[0];
+    p.hero.teleport(npc.x - 1, npc.y, "left"); // looking away from them
+    p.game.input.press("a");
+    p.game.advance(frame);
+    p.game.input.release("a");
+    assert.equal(p.facing(npc), "down");
+});
+
+test("holding B runs: a step takes about half as long", () => {
+    const framesToStep = (running) => {
+        const p = play();
+        p.hero.teleport(3, 1, "right");
+        if (running) p.game.input.press("b");
+        p.game.input.press("right");
+        let frames = 0;
+        while (p.hero.tx === 3 && frames < 60) {
+            p.game.advance(frame);
+            frames += 1;
+        }
+        return frames;
+    };
+    const walking = framesToStep(false);
+    const running = framesToStep(true);
+    assert.equal(walking, 15, "a quarter of a second at four tiles a second");
+    assert.ok(running <= 8 && running >= 7, `running took ${running} frames`);
+});
+
+test("START changes the season in order, wraps round, and tells the page", () => {
+    const told = [];
+    const p = play({ theme: "winter", onTheme: (theme) => told.push(theme) });
+    const press = () => {
+        p.game.input.press("start");
+        p.game.advance(frame);
+        p.game.input.release("start");
+        p.game.advance(frame);
+    };
+    press();
+    assert.equal(p.options.theme, "spring", "winter wraps to spring");
+    press();
+    press();
+    assert.equal(p.options.theme, "autumn");
+    assert.deepEqual(told, ["spring", "summer", "autumn"]);
+    const q = play({ theme: "summer" });
+    q.game.input.press("start");
+    q.game.advance(frame);
+    assert.equal(q.options.theme, "autumn", "no callback is needed");
+});
+
+test("the handheld view is 160 by 144, a classic handheld's screen, and the world still fits it", () => {
+    assert.deepEqual({ ...maps.HANDHELD_VIEW }, { width: 160, height: 144 });
+    assert.deepEqual({ ...maps.DESKTOP_VIEW }, { width: 240, height: 144 });
+    const p = play({ theme: "summer" }, maps.HANDHELD_VIEW);
+    assert.deepEqual({ ...p.view }, { width: 160, height: 144 });
+    assert.equal(p.camera.width, 160);
+    for (const [x, y] of [[0, 0], [19, 17], [10, 9]]) {
+        p.hero.teleport(x, y, "down");
+        p.game.advance(frame);
+        assert.ok(p.camera.x >= 0 && p.camera.x <= 320 - 160, `x at ${x},${y}: ${p.camera.x}`);
+        assert.ok(p.camera.y >= 0 && p.camera.y <= 288 - 144, `y at ${x},${y}: ${p.camera.y}`);
+    }
+    const ctx = fakeContext();
+    p.game.render(ctx);
+    assert.equal(ctx.draws.length, 3, "the same map, character and hero");
+});

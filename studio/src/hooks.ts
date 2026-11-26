@@ -56,3 +56,29 @@ export function useInView<T extends HTMLElement>() {
     }, []);
     return [ref, visible] as const;
 }
+
+/**
+ * The layouts that become a handheld console: a phone held upright, or on its side. A wide window with a mouse
+ * stays a normal page, however short it is.
+ */
+export const HANDHELD_QUERY = "(max-width: 720px), (max-height: 520px) and (pointer: coarse)";
+
+export function useHandheld(): boolean {
+    return useMediaQuery(HANDHELD_QUERY);
+}
+
+/** The visible size of the window in CSS pixels, kept current on resize and rotation. */
+export function useViewport() {
+    const read = () => ({ width: window.innerWidth, height: window.innerHeight });
+    const [size, setSize] = useState(read);
+    useEffect(() => {
+        const update = () => setSize(read());
+        window.addEventListener("resize", update);
+        window.addEventListener("orientationchange", update);
+        return () => {
+            window.removeEventListener("resize", update);
+            window.removeEventListener("orientationchange", update);
+        };
+    }, []);
+    return size;
+}
