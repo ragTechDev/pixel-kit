@@ -171,6 +171,9 @@ img.src = toSvgDataUrl(buildMap(map, "autumn"), 2); // map: from defineMap`}
                     The engine adds what a tile-based game needs and nothing else: a fixed-step loop, keys, a camera, movement a tile at a time, doors and scenes. Collision comes from the same map data that drew the world.
                     It has no framework dependency and a couple of kilobytes of code, with a React component if you want one.
                 </p>
+                <p>Start your own with one command. It writes a small project with a town and a door to walk through, ready to run and change:</p>
+                <CodeBlock code="npm create @ragtechdev/pixel-game my-game" />
+                <p>Or add the engine to a project you already have:</p>
                 <CodeBlock code={engineSketch} />
                 <div className="row">
                     <a className="btn primary" href={href(["play"], route)}>Open the playground</a>

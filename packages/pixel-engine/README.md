@@ -16,6 +16,8 @@ npm install @ragtechdev/pixel-engine @ragtechdev/pixel-sprites
 
 `react` is an optional peer, needed only for the `/react` entry.
 
+Starting from scratch? `npm create @ragtechdev/pixel-game my-game` writes a project that already uses the engine and the sprites, with a town and a door to walk through. See [`@ragtechdev/create-pixel-game`](../create-pixel-game).
+
 ## Quick start
 
 A hero walks around a small map. Water and tree trunks block the way, because collision reads the same tile and object data that drew the map.

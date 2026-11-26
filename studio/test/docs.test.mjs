@@ -110,3 +110,25 @@ test("the Docs quick start is the README's quick start, which the engine's tests
     assert.ok(readme, "the quick start is in the engine README");
     assert.equal(docs, readme);
 });
+
+test("the command shown in the docs and READMEs is the one that runs the generator", () => {
+    const name = JSON.parse(read("packages/create-pixel-game/package.json")).name;
+    // npm and pnpm turn `create @scope/thing` into the package @scope/create-thing.
+    const [scope, unscoped] = name.split("/");
+    assert.ok(unscoped.startsWith("create-"), `${name} is named for npm create`);
+    const command = `npm create ${scope}/${unscoped.replace(/^create-/, "")}`;
+    const shownIn = [
+        "README.md",
+        "packages/pixel-engine/README.md",
+        "packages/create-pixel-game/README.md",
+        "studio/src/pages/Docs.tsx",
+        "studio/src/pages/Home.tsx"
+    ];
+    for (const file of shownIn) {
+        const text = read(file);
+        assert.ok(text.includes(command), `${file} shows "${command}"`);
+        for (const [spelling] of text.matchAll(/npm create @ragtechdev\/[a-z-]+/g)) {
+            assert.equal(spelling, command, `${file} spells the command ${spelling}, not ${command}`);
+        }
+    }
+});
