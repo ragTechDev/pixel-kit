@@ -1,0 +1,17 @@
+# Supply-chain settings, copied from ragTech Pixel Kit. Keep them (see CLAUDE.md).
+
+# Never run a dependency's install script unless it is listed here.
+onlyBuiltDependencies: []
+# Do not install a version published in the last 3 days (minutes)...
+minimumReleaseAge: 4320
+# ...except our own packages, or a fresh kit release could not be installed for three days.
+minimumReleaseAgeExclude:
+  - '@ragtechdev/*'
+# Refuse a package whose publish trust level dropped against its earlier versions.
+trustPolicy: no-downgrade
+
+# While you change the kit and this game together, point at a local checkout of ragTech Pixel Kit
+# (build it there first with `pnpm build`). Never commit this block uncommented: CI has no sibling checkout.
+# overrides:
+#   '@ragtechdev/pixel-sprites': link:../pixel-kit/packages/pixel-sprites
+#   '@ragtechdev/pixel-engine': link:../pixel-kit/packages/pixel-engine

@@ -11,6 +11,8 @@ importers:
 
   .: {}
 
+  packages/create-pixel-game: {}
+
   packages/pixel-engine:
     devDependencies:
       '@ragtechdev/pixel-sprites':

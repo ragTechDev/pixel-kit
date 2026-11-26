@@ -1,0 +1,45 @@
+{
+  "name": "@ragtechdev/create-pixel-game",
+  "version": "0.0.0",
+  "description": "Scaffold a pixel-art game on ragTech Pixel Kit: npm create @ragtechdev/pixel-game my-game",
+  "author": "RAGTECH PTE. LTD.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ragTechDev/pixel-kit.git",
+    "directory": "packages/create-pixel-game"
+  },
+  "bugs": {
+    "url": "https://github.com/ragTechDev/pixel-kit/issues"
+  },
+  "homepage": "https://github.com/ragTechDev/pixel-kit/tree/main/packages/create-pixel-game#readme",
+  "keywords": [
+    "pixel-art",
+    "game",
+    "scaffold",
+    "create",
+    "starter"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "bin": {
+    "create-pixel-game": "bin/create-pixel-game.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "template",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "node --check bin/create-pixel-game.mjs && node --check src/index.mjs && node --check scripts/verify.mjs",
+    "test": "node --test test/*.test.mjs",
+    "verify": "node scripts/verify.mjs",
+    "prepublishOnly": "pnpm run typecheck && pnpm test"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -10,11 +10,12 @@ A pnpm workspace of small, composable pieces for building pixel-art games and ap
 |---|---|---|
 | `packages/pixel-sprites` | `@ragtechdev/pixel-sprites` | Avatars, tiles, objects, icons and small worlds, composed from string masks and fixed palettes. Code MIT, art CC BY 4.0. |
 | `packages/pixel-engine` | `@ragtechdev/pixel-engine` | A framework-agnostic game runtime: fixed-step loop, input, camera, tile movement and scenes. Depends on `pixel-sprites` as a peer. Code MIT. |
+| `packages/create-pixel-game` | `@ragtechdev/create-pixel-game` | `npm create @ragtechdev/pixel-game my-game`: a zero-dependency script that copies a starter project (Vite, TypeScript, a playable town and house on the two packages above, the kit's supply-chain settings and an agent `CLAUDE.md`) into a new folder. It only writes files. Code MIT. |
 | `studio/` | `pixel-kit-studio` (private) | A Vite + React app: the site's front page (a live demo and ways to use the art), a playable world, and the library browser and docs. Not published. |
 
-Package-specific guidance lives next to each package: `packages/pixel-sprites/CLAUDE.md` (masks, worlds, adding art) and `packages/pixel-engine/CLAUDE.md` (the runtime's rules). Read the one for the package you are changing. This file holds what applies everywhere.
+Package-specific guidance lives next to each package: `packages/pixel-sprites/CLAUDE.md` (masks, worlds, adding art), `packages/pixel-engine/CLAUDE.md` (the runtime's rules) and `packages/create-pixel-game/CLAUDE.md` (the generator). Read the one for the package you are changing. This file holds what applies everywhere.
 
-The kit is built to be used by games that live in their own repositories. `docs/templates/game-repo/CLAUDE.md` is a starting point for such a repository.
+The kit is built to be used by games that live in their own repositories. `npm create @ragtechdev/pixel-game` starts one, and `packages/create-pixel-game/template/CLAUDE.md` is the guidance file such a repository begins with.
 
 ## Where things go
 
@@ -79,7 +80,7 @@ Versions follow semver (before 1.0, a breaking change bumps the minor). Each pac
 
 ## Adding a package
 
-1. Create `packages/<name>` with its own `package.json`, `CHANGELOG.md` (with the `<!-- next-release -->` marker), `LICENSE`, `tsup.config.ts` and a `CLAUDE.md` for what is specific to it. Depend on a sibling with a real semver range under `peerDependencies` and `workspace:*` under `devDependencies`, never `workspace:` in a published field.
+1. Create `packages/<name>` with its own `package.json` (with `typecheck` and `test` scripts, which the release workflow runs), `CHANGELOG.md` (with the `<!-- next-release -->` marker), `LICENSE`, a `tsup.config.ts` if it builds, and a `CLAUDE.md` for what is specific to it. Depend on a sibling with a real semver range under `peerDependencies` and `workspace:*` under `devDependencies`, never `workspace:` in a published field.
 2. Make `typecheck`, `test` and `size` work on a fresh checkout (see `packages/pixel-engine/package.json` for how a package builds its workspace dependencies first).
 3. To publish it: add its `<name>-v*` pattern to `.github/workflows/release.yml`, publish a placeholder to create the package on npm, add its trusted-publisher entry, and add the pattern to the `npm-publish` environment as a tag rule (the rule type is easy to get wrong; it must say tag). Before the first release, check that `npm view <package>` finds the placeholder and that `gh api repos/ragTechDev/pixel-kit/environments/npm-publish/deployment-branch-policies` lists the pattern with type `tag`.
 

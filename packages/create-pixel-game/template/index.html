@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{title}}</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #1e1e2e; color: #c9bfe0; font: 14px/1.5 system-ui, sans-serif; }
+      main { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 12px; box-sizing: border-box; }
+      canvas { display: block; image-rendering: pixelated; border: 2px solid #3b3b4f; }
+      canvas:focus-visible { outline: 3px solid #c9bfe0; outline-offset: 3px; }
+      p { margin: 0; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <canvas id="game" role="img" aria-label="{{title}}. Click it, then walk with the arrow keys or WASD."></canvas>
+      <p>Click the game, then walk with the arrow keys or WASD. Try the door.</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

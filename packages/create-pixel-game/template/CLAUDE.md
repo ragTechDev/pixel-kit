@@ -1,12 +1,16 @@
-# CLAUDE.md — <game name>
-
-> A starting point for a game that is built on pixel-kit and lives in its own repository. Copy this file to the root of the game repo, then replace everything in `<angle brackets>`. Delete this note.
-
-This repo is <public | private>. <If public: write everything in it as if it is already public.>
+# CLAUDE.md — {{title}}
 
 ## What this is
 
-<One or two sentences about the game.> It is built on two packages from [pixel-kit](https://github.com/ragTechDev/pixel-kit), which lives in a separate repository: `@ragtechdev/pixel-sprites` (the art) and `@ragtechdev/pixel-engine` (the runtime).
+TODO: describe {{title}} in a sentence or two. (Everything else in this file is already filled in.)
+
+It is a pixel-art game built on two packages from [ragTech Pixel Kit](https://github.com/ragTechDev/pixel-kit), which lives in a separate repository: `@ragtechdev/pixel-sprites` (the art: maps, tiles, objects, avatars) and `@ragtechdev/pixel-engine` (the runtime: loop, input, camera, walking, doors, scenes). Guides for both are at https://ragtechdev.github.io/pixel-kit/#/docs/start.
+
+## Layout
+
+- `src/maps.ts`: the maps. Terrain is one character per 2x2-tile block, and objects are placed in tile coordinates on top.
+- `src/game.ts`: the world: places, doors, the hero, the camera, and what is drawn each frame.
+- `src/main.ts`: puts the game on the canvas in `index.html` and connects the keyboard.
 
 ## Where things go
 
@@ -17,24 +21,16 @@ This repo is <public | private>. <If public: write everything in it as if it is 
 
 1. Clone pixel-kit next to this repo (`../pixel-kit`) and build it there with `pnpm install --frozen-lockfile && pnpm build`. The game imports the packages' built output, so rebuild after you change the kit.
 2. Start the agent from this repo with `claude --add-dir ../pixel-kit`, so one session can edit both.
-3. Point the game at the local kit while you work. In `pnpm-workspace.yaml`:
-
-   ```yaml
-   overrides:
-     '@ragtechdev/pixel-sprites': link:../pixel-kit/packages/pixel-sprites
-     '@ragtechdev/pixel-engine': link:../pixel-kit/packages/pixel-engine
-   ```
-
-   **Never commit these `link:` overrides.** CI and other contributors have no sibling checkout. Remove them before you commit, or add a CI step that fails when `pnpm-workspace.yaml` contains `link:`.
-4. Release in batches, not per asset: when a set of kit changes is stable, release the kit package (see its `CLAUDE.md`), then drop the overrides and depend on the released version here.
+3. Point the game at the local kit while you work: uncomment the `overrides` block at the bottom of `pnpm-workspace.yaml`, then `pnpm install`. **Never commit it uncommented.** CI and other contributors have no sibling checkout. Add a CI step that fails when `pnpm-workspace.yaml` contains an uncommented `link:`.
+4. Release in batches, not per asset: when a set of kit changes is stable, release the kit package (see its `CLAUDE.md`), then comment the overrides out again and depend on the released version here.
 
 ## Supply chain
 
-Copy these settings from pixel-kit's `pnpm-workspace.yaml` and keep them:
+`pnpm-workspace.yaml` holds the settings, copied from pixel-kit. Keep them:
 
 - Use pnpm, pinned in `packageManager`, and install with `--frozen-lockfile` in CI. Do not use npm or commit `package-lock.json`.
 - `onlyBuiltDependencies: []`: dependency install scripts never run. Review any new warning; do not allow one by reflex.
-- `minimumReleaseAge: 4320` (3 days) and `trustPolicy: no-downgrade`.
+- `minimumReleaseAge: 4320` (3 days) and `trustPolicy: no-downgrade`. Exceptions go in `trustPolicyExclude`, exact version only, with a comment saying why, and never without reviewing the package.
 - **One exception, for our own scope:** `minimumReleaseAgeExclude: ['@ragtechdev/*']`. Without it, a fresh kit release cannot be installed for three days, and pnpm refuses it with `ERR_PNPM_NO_MATCHING_VERSION`.
 - Add a dependency only after checking its size and licence.
 
@@ -47,7 +43,13 @@ Copy these settings from pixel-kit's `pnpm-workspace.yaml` and keep them:
 
 ## Commands
 
-<Fill in: install, dev, build, typecheck, test, and how to run the game.>
+```sh
+pnpm install --frozen-lockfile   # or `pnpm install` the first time, to create the lockfile
+pnpm dev         # run the game with live reload
+pnpm build       # type-check, then build into dist/ (a relative base, so it runs from any folder or address)
+pnpm preview     # serve the built game
+pnpm typecheck   # type-check only
+```
 
 ## Working agreement
 
@@ -55,4 +57,4 @@ Start by proposing a short plan (steps and what changes) and wait for approval b
 
 ## Definition of done
 
-Typecheck and tests pass, the game builds and runs, and the README matches how the game actually works.
+Typecheck passes, the game builds and runs, and the README matches how the game actually works.
