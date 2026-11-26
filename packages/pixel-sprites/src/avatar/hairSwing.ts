@@ -35,15 +35,25 @@ export function swingHair(layer: HairLayer, pose: LegPose, view: HeadOrientation
     swung.set(layer, cache);
     let out = cache.get(key);
     if (!out) {
-        const depth = layer.offsetY + layer.mask.length - 1 - swing.pivot;
-        const shifts = layer.mask.map((_, r) => {
-            const below = layer.offsetY + r - swing.pivot;
-            return depth > 0 && below > 0 ? Math.round((amount * below) / depth) : 0;
-        });
+        const top = layer.offsetY;
+        const bottom = layer.offsetY + layer.mask.length - 1;
+        // A lock that points up from its root (a tuft) moves the rows above the pivot. A hanging one moves the rows below it,
+        // and a short one swings from its second-to-last row up: a chin-length tail is tied on its last row and slopes along
+        // its whole length.
+        const up = swing.up === true;
+        const pivot = up ? swing.pivot : Math.min(swing.pivot, bottom - 2);
+        const depth = up ? pivot - top : bottom - pivot;
+        const shiftAt = (y: number) => {
+            const away = up ? pivot - y : y - pivot;
+            return depth > 0 && away > 0 ? Math.round((amount * away) / depth) : 0;
+        };
+        const shifts = layer.mask.map((_, r) => shiftAt(layer.offsetY + r));
         const left = Math.max(0, -Math.min(...shifts));
         const right = Math.max(0, ...shifts);
         const mask = layer.mask.map((row, r) => "0".repeat(left + shifts[r]) + row + "0".repeat(right - shifts[r]));
-        out = { ...layer, mask, offsetX: layer.offsetX - left };
+        // What is tied on the lock goes with it.
+        const tie = layer.tie && { ...layer.tie, x: layer.tie.x + shiftAt(layer.tie.y) };
+        out = { ...layer, mask, offsetX: layer.offsetX - left, ...(tie ? { tie } : {}) };
         cache.set(key, out);
     }
     return out;

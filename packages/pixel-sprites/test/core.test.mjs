@@ -434,7 +434,9 @@ test("walk cycle: hair swishes with the steps and the avatar keeps its size", ()
         { backHairStyle: "lowPonytailRight", hairLength: "armpit" },
         { backHairStyle: "highPigtails", hairLength: "shoulder" },
         { backHairStyle: "looseBlunt", hairLength: "midBack", hairDrape: "behindShoulder" },
-        { backHairStyle: "looseBlunt", hairLength: "chin" }
+        { backHairStyle: "looseBlunt", hairLength: "chin" },
+        { backHairStyle: "lowPonytailRight", hairLength: "chin" },
+        { backHairStyle: "highPigtails", hairLength: "chin" }
     ];
     for (const look of looks) {
         for (const headOrientation of ["front", "back", "left", "right"]) {
@@ -472,7 +474,9 @@ test("walk cycle: from the front and back the hair swings toward the planted foo
         { backHairStyle: "looseBlunt", hairLength: "midBack", hairDrape: "behindShoulder" },
         { backHairStyle: "lowPonytailMiddle", hairLength: "armpit" },
         { backHairStyle: "highPigtails", hairLength: "shoulder" },
-        { backHairStyle: "looseBlunt", hairLength: "chin" }
+        { backHairStyle: "looseBlunt", hairLength: "chin" },
+        { backHairStyle: "lowPonytailRight", hairLength: "chin" },
+        { backHairStyle: "highPigtails", hairLength: "chin" }
     ];
     for (const look of looks) {
         for (const headOrientation of ["front", "back"]) {
@@ -486,5 +490,27 @@ test("walk cycle: from the front and back the hair swings toward the planted foo
                 assert.equal(swung, planted, `${look.backHairStyle} ${headOrientation} ${legPose}`);
             }
         }
+    }
+});
+
+test("walk cycle: an accessory tied at the root of a tuft stays put while the fronds swing", () => {
+    // The bow is the only red, so where the picture's red pixels are is where the bow is.
+    const bow = new Set(Object.values(clothesPalettes.red));
+    const hair = new Set(Object.values(hairPalettes.brown));
+    for (const headOrientation of ["front", "back", "left", "right"]) {
+        const look = { headOrientation, hairLength: "chin", backHairStyle: "highPonytailMiddle", hairAccessory: "bow", hairAccessoryColor: "red", clothesColor: "blue", hairColor: "brown" };
+        const where = (f, colours) => [...f.px].map((p, i) => (colours.has(f.colors[p]) ? i : -1)).filter((i) => i >= 0).join();
+        // From behind the bow is under the tuft, so the leaning fronds cover a pixel or two of its edge; its middle stays.
+        const middle = (f) => {
+            const at = [...f.px].map((p, i) => (bow.has(f.colors[p]) ? [i % f.width, Math.floor(i / f.width)] : null)).filter(Boolean);
+            return [at.reduce((s, [x]) => s + x, 0) / at.length, at.reduce((s, [, y]) => s + y, 0) / at.length];
+        };
+        const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) => buildAvatar({ ...look, legPose }));
+        for (const step of [frames[1], frames[2]]) {
+            const [x, y] = middle(step);
+            const [x0, y0] = middle(frames[0]);
+            assert.ok(Math.abs(x - x0) < 0.75 && Math.abs(y - y0) < 0.75, `${headOrientation}: the bow stays`);
+        }
+        assert.notEqual(where(frames[1], hair), where(frames[0], hair), `${headOrientation}: the tuft swings`);
     }
 });

@@ -54,8 +54,8 @@ export type HairLayer = {
     blends?: true;
     /** Where the tail is tied, as the picture column of its middle and the row. An accessory goes here. */
     tie?: { x: number; y: number; tilt?: "slash" | "backslash"; under?: true };
-    /** A lock that swings when walking. Its rows below this picture row move, further the lower they are; the rows above stay. `reach` is how far the end moves, where it is not the usual amount. */
-    swing?: { pivot: number; reach?: number };
+    /** A lock that swings when walking. Its rows below this picture row move, further the lower they are; the rows above stay. `reach` is how far the end moves, where it is not the usual amount. `up` is for a lock that points up from its root, like a tuft: the rows above the pivot move. */
+    swing?: { pivot: number; reach?: number; up?: true };
 };
 
 type HairFamilyDefinition = {
@@ -141,6 +141,16 @@ const tiedAt = (l: HairLayer, x: number, y: number, tilt?: "slash" | "backslash"
     tie: { x, y, ...(tilt ? { tilt } : {}), ...(under ? { under: true as const } : {}) }
 });
 
+/**
+ * Ties a tail at its root: the top row, in the middle of the hair there. A chin-length tail is only three rows, so tying it
+ * on the third row, as the longer ones are, puts the accessory on its tip. The x and y are ignored; the mask says where the root is.
+ * Tied at the root, the accessory is always over the tail: a longer tail falls over its tie, which is why it can be under.
+ */
+const tiedAtRoot = (l: HairLayer, _x: number, _y: number, tilt?: "slash" | "backslash"): HairLayer => {
+    const row = l.mask[0];
+    return tiedAt(l, l.offsetX + ((row.indexOf("1") + row.lastIndexOf("1")) >> 1), l.offsetY, tilt);
+};
+
 // The tail masks slope down to the right, so in the front and back views a band across one slants like "/", and across a
 // flipped tail like "\". In profile the band lies along the back of the head where the tail meets it: the head slopes down
 // and away from the face there, so it is "/" facing right and "\" facing left.
@@ -161,6 +171,12 @@ function at(hang: Hang, view: HeadOrientation, mask: PixelMask, x: number, y: nu
 
 /** A tail has no hair left to hang behind, so having some of each means it falls over the shoulder. */
 const hangOf = (drape: HairDrape): Hang => (drape === "behindShoulder" ? "behind" : "over");
+
+/**
+ * A chin-length tail does not reach the shoulders, so it has no body to fall over or hang behind. It is tied on the back
+ * of the head, so from behind it lies over the head, with its root on the hair, instead of starting at the head's outline.
+ */
+const tailHang = (length: TiedLength, drape: HairDrape): Hang => (length === "chin" ? "behind" : hangOf(drape));
 
 type TailPosition = "right" | "left" | "middle";
 
@@ -187,7 +203,10 @@ function ponytail(length: TiedLength, height: TailHeight, drape: HairDrape, posi
             const tuft = (view: HeadOrientation, x: number) => {
                 // Like the longer middle tails it hangs behind the head from the front and in profile, and is on top from behind.
                 const mask = view === "back" ? layer(tailPalmMask, x, -7, "top") : layer(tailPalmMask, x, -7, "behindBody");
-                return [tiedAt(mask, x + 8, view === "front" ? -7 : view === "back" ? -4 : -5, view === "right" ? slash : view === "left" ? backslash : undefined, view === "back")];
+                // The fronds swing from the knot, so the accessory tied on it stays still. Its pivot is the tie row, which from the
+                // front is the lowest row of fronds that shows.
+                const tied = tiedAt(mask, x + 8, view === "front" ? -6 : view === "back" ? -4 : -5, view === "right" ? slash : view === "left" ? backslash : undefined, view === "back");
+                return [{ ...tied, swing: { ...tied.swing!, up: true as const } }];
             };
             return { byOrientation: { front: tuft("front", -2), back: tuft("back", -2), right: tuft("right", -7), left: tuft("left", 3) }, fallback: tuft("front", -2) };
         }
@@ -211,6 +230,7 @@ function ponytail(length: TiedLength, height: TailHeight, drape: HairDrape, posi
         };
     }
     const mask = tailMasks[length];
+    const tied = length === "chin" ? tiedAtRoot : tiedAt;
     const y = height === "high" ? -3 : 0;
     const x = height === "high" ? 4 : 3;
     const onRight = position === "right";
@@ -218,13 +238,13 @@ function ponytail(length: TiedLength, height: TailHeight, drape: HairDrape, posi
     // The tail is tied on its third row, where it comes out from behind the head. On a flipped mask that row is columns 0 and 1,
     // so its tie is the right one of the pair.
     const tieY = y + 2;
-    const front = [tiedAt(at(hangOf(drape), "front", onRight ? mask : mirrorMask(mask), onRight ? x : 2 - x, y), onRight ? x + 9 : 3 - x, tieY, onRight ? slash : backslash)];
+    const front = [tied(at(tailHang(length, drape), "front", onRight ? mask : mirrorMask(mask), onRight ? x : 2 - x, y), onRight ? x + 9 : 3 - x, tieY, onRight ? slash : backslash)];
     return {
         byOrientation: {
             front,
-            back: [tiedAt(at(hangOf(drape), "back", onRight ? mirrorMask(mask) : mask, onRight ? 2 - x : x, y), onRight ? 3 - x : x + 9, tieY, onRight ? backslash : slash, height === "high")],
-            right: [tiedAt(at(hangOf(drape), "right", mirrorMask(mask), -2, y), 0, y + 1, slash)],
-            left: [tiedAt(at(hangOf(drape), "left", mask, 4, y), 12, y + 1, backslash)]
+            back: [tied(at(tailHang(length, drape), "back", onRight ? mirrorMask(mask) : mask, onRight ? 2 - x : x, y), onRight ? 3 - x : x + 9, tieY, onRight ? backslash : slash, height === "high")],
+            right: [tied(at(tailHang(length, drape), "right", mirrorMask(mask), -2, y), 0, y + 1, slash)],
+            left: [tied(at(tailHang(length, drape), "left", mask, 4, y), 12, y + 1, backslash)]
         },
         fallback: front
     };
@@ -233,19 +253,20 @@ function ponytail(length: TiedLength, height: TailHeight, drape: HairDrape, posi
 /** Two tails, one each side of the head. In profile only the one on the back of the head shows. */
 function pigtails(length: TiedLength, height: TailHeight, drape: HairDrape): HairFamilyDefinition {
     const mask = tailMasks[length];
+    const tied = length === "chin" ? tiedAtRoot : tiedAt;
     const y = height === "high" ? -5 : 0;
     const both = (view: HeadOrientation) => {
         return [
-            tiedAt(at(hangOf(drape), view, mirrorMask(mask), -2, y), -1, y + 2, backslash),
-            tiedAt(at(hangOf(drape), view, mask, 4, y), 13, y + 2, slash)
+            tied(at(tailHang(length, drape), view, mirrorMask(mask), -2, y), -1, y + 2, backslash),
+            tied(at(tailHang(length, drape), view, mask, 4, y), 13, y + 2, slash)
         ];
     };
     return {
         byOrientation: {
             front: both("front"),
             back: both("back"),
-            right: [tiedAt(at(hangOf(drape), "right", mirrorMask(mask), -2, y), 0, y + 1, slash)],
-            left: [tiedAt(at(hangOf(drape), "left", mask, 4, y), 12, y + 1, backslash)]
+            right: [tied(at(tailHang(length, drape), "right", mirrorMask(mask), -2, y), 0, y + 1, slash)],
+            left: [tied(at(tailHang(length, drape), "left", mask, 4, y), 12, y + 1, backslash)]
         },
         fallback: both("front")
     };
