@@ -47,7 +47,7 @@ button, input, select { font: inherit; color: inherit; }
 .top-note:hover { color: var(--text); }
 .btn:active, .chip:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
 
-.page { flex: 1; width: 100%; max-width: 1500px; margin: 0 auto; padding: 16px; }
+.page { --page-pad: 16px; flex: 1; width: 100%; max-width: 1500px; margin: 0 auto; padding: var(--page-pad); }
 .panel { background: var(--panel); border: 2px solid var(--border); box-shadow: 4px 4px 0 var(--ink); padding: 16px; }
 .h { font-size: 13px; color: var(--active); letter-spacing: 0.25em; text-transform: uppercase; font-weight: 700; }
 .muted { color: var(--muted); font-size: 12px; }
@@ -201,7 +201,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .subnav { position: static; }
   .in-docs .subnav { position: sticky; top: 0; }
   .in-docs { --head: 48px; }
-  .page { padding: 12px; }
+  .page { --page-pad: 12px; }
   .panel { padding: 12px; }
   .world-stage { padding: 2px; }
   .browse { grid-template-columns: minmax(0, 1fr); }
@@ -350,4 +350,17 @@ html:has(.play-handheld) { overscroll-behavior-y: none; }
 @media (max-width: 340px) {
   .gb { --cross: 98px; --round-size: 44px; --pill: 46px; }
   .gb-buttons { gap: 10px; }
+}
+
+/* The demo under the hero: a line of help and a way to open the Play page. */
+.hero-play-foot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.hero-play-foot p { margin: 0; }
+.play-fill { display: flex; justify-content: center; background: #1e1e2e; }
+
+/* On a phone the demo comes first and spans the screen, edge to edge, with the words below it. */
+@media (max-width: 720px) {
+  .hero.panel { background: none; border: 0; box-shadow: none; padding: 0; gap: 16px; }
+  .hero-play { order: -1; margin: calc(-1 * var(--page-pad)) calc(-1 * var(--page-pad)) 0; }
+  .hero-play .play-screen { border-left: 0; border-right: 0; box-shadow: none; }
+  .hero-play-foot { padding: 0 var(--page-pad); }
 }
