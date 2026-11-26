@@ -364,3 +364,16 @@ html:has(.play-handheld) { overscroll-behavior-y: none; }
   .hero-play .play-screen { border-left: 0; border-right: 0; box-shadow: none; }
   .hero-play-foot { padding: 0 var(--page-pad); }
 }
+
+/* The lower half of the console under a screen that spans the page (the home page on a phone): the controls on the shell,
+   under a strip of bezel with the name. It keeps one layout whichever way the phone is held. */
+.gb.gb-deck { min-height: 0; padding: 0 12px 16px; gap: 12px 8px; grid-template-rows: auto; grid-template-areas: "strip strip strip" "cross center buttons" "hint hint speaker"; align-content: start; }
+.hero-play .gb-deck { align-self: stretch; }
+.gb-strip { grid-area: strip; justify-self: stretch; margin: 0 -12px; padding: 5px 12px; background: var(--bezel); color: #c9bfe0; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; text-align: center; box-shadow: 0 3px 0 var(--shell-edge); }
+@media (orientation: landscape) {
+  .gb.gb-deck { position: static; grid-template-rows: auto; grid-template-areas: "strip strip strip" "cross center buttons" "hint hint speaker"; padding: 0 12px 16px; align-items: start; }
+  .gb-deck .gb-hint { display: block; justify-self: start; }
+  .gb-deck .gb-speaker { display: flex; }
+  .gb-deck .gb-center { margin: 0 0 14px; align-self: end; }
+  .gb-deck .gb-buttons { align-self: start; margin-top: 14px; }
+}
