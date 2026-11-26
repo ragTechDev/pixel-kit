@@ -28,6 +28,7 @@ import {
     toSvg,
     toVariant,
     topStyles,
+    walkCycle,
     type AvatarConfig,
     type Raster,
     type ResolvedAvatarConfig
@@ -113,6 +114,9 @@ const NAMES: Partial<Record<Field, Record<string, string>>> = { hairColor: { bro
 
 /** Turning goes round in this order. */
 const FACING = ["front", "right", "back", "left"] as const;
+
+/** How long each frame of the walk shows, in milliseconds. */
+const WALK_FRAME_MS = 170;
 
 const STORAGE_KEY = "pixel-kit-studio:avatar";
 const CUSTOM_KEY = "pixel-kit-studio:avatar-custom";
@@ -360,6 +364,15 @@ export function AvatarsPage({ route }: { route: Route }) {
     const [custom, setCustom] = useState<Custom>(loadCustom);
     const [userMap, setUserMap] = useState<ColorMap>({});
     const phone = useMediaQuery("(max-width: 720px)");
+    // The walk is only for looking: it is not saved with the look or put in the copied code.
+    const [walking, setWalking] = useState(false);
+    const [frame, setFrame] = useState(0);
+
+    useEffect(() => {
+        if (!walking) return;
+        const timer = setInterval(() => setFrame((f) => (f + 1) % walkCycle.length), WALK_FRAME_MS);
+        return () => clearInterval(timer);
+    }, [walking]);
 
     useEffect(() => {
         try {
@@ -380,9 +393,11 @@ export function AvatarsPage({ route }: { route: Route }) {
     const tab = TABS.find((t) => t.id === tabId) ?? TABS[0];
     const look = resolveAvatarConfig(cfg);
     const variant = variantOf(route);
-    const full = buildAvatar(look);
+    const legPose = walking ? walkCycle[frame] : look.legPose;
+    const posed: ResolvedAvatarConfig = { ...look, legPose };
+    const full = buildAvatar(posed);
     // Custom colours are studio-only: picked per part, then any colour tweaks or palette on top.
-    const prepared = prepare(look, custom);
+    const prepared = prepare(posed, custom);
     const parted = recolor(Object.keys(custom).length ? buildAvatar(prepared.render) : full, prepared.map);
     const shown = toVariant(recolor(parted, userMap), variant);
     const hasCustom = Object.keys(custom).length > 0 || Object.keys(userMap).length > 0;
@@ -431,11 +446,12 @@ export function AvatarsPage({ route }: { route: Route }) {
                             <div className="scene-shadow" />
                             <button className="btn turn turn-left" onClick={() => turn(-1)} aria-label="Turn left">◀</button>
                             <button className="btn turn turn-right" onClick={() => turn(1)} aria-label="Turn right">▶</button>
-                            <span className="scene-label">Facing {look.headOrientation}</span>
+                            <span className="scene-label">Facing {look.headOrientation}{walking ? `, ${words(legPose)}` : ""}</span>
                         </div>
                     </section>
                     <div className="stage-actions">
                         <button className="btn primary" onClick={() => { setCfg((prev) => shuffled(prev)); setCustom({}); setUserMap({}); }}>Random</button>
+                        <button className="btn" aria-pressed={walking} onClick={() => { setFrame(0); setWalking((w) => !w); }}>{walking ? "Stop walking" : "Walk"}</button>
                         <button className="btn" onClick={() => { setCfg({ ...defaultAvatarConfig }); setCustom({}); setUserMap({}); }}>Reset</button>
                         <SaveMenu onPng={() => downloadPng("avatar", shown, 10)} onSvg={() => downloadSvg("avatar", shown, 10)} />
                         <button className="btn" onClick={() => copy(toSvg(shown, 10)).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1200); })}>

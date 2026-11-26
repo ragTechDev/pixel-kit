@@ -1,4 +1,4 @@
-import { buildMap, queryCell, mapTileSize, tileThemes, TILE_SIZE } from "@ragtechdev/pixel-sprites";
+import { buildMap, queryCell, mapTileSize, tileThemes, walkCycle, TILE_SIZE } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 import { createCamera, createGame, createWalker, isWalkable, neighbor, type Camera, type Direction, type Game, type Scene, type Walker } from "@ragtechdev/pixel-engine";
 import { heroLook, places, start, type Npc, type Place, type PlaceId, type Spawn } from "./maps";
@@ -104,10 +104,12 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
                 drawRaster(ctx, buildMap(place.map, options.theme), -camera.x, -camera.y);
 
                 // Draw whoever is further down the screen last, so a character in front covers one behind.
-                const stepping = hero.moving && (hero.x + hero.y) % TILE_SIZE < TILE_SIZE / 2;
+                // A frame every half tile, so two tiles are one full stride. Walking left or up the position counts down, so the cycle runs backwards.
+                const travelled = hero.facing === "left" || hero.facing === "up" ? -(hero.x + hero.y) : hero.x + hero.y;
+                const legPose = hero.moving ? walkCycle[Math.floor((((travelled % (2 * TILE_SIZE)) + 2 * TILE_SIZE) % (2 * TILE_SIZE)) / ((2 * TILE_SIZE) / walkCycle.length))] : "neutral";
                 const actors = [
                     ...place.npcs.map((npc) => ({ y: npc.y * TILE_SIZE, x: npc.x * TILE_SIZE, raster: avatarFrame(npc.look, facing(npc)) })),
-                    { y: hero.y, x: hero.x, raster: avatarFrame(heroLook, hero.facing, stepping) }
+                    { y: hero.y, x: hero.x, raster: avatarFrame(heroLook, hero.facing, legPose) }
                 ].sort((a, b) => a.y - b.y);
                 // Rasters are cropped to their content (hair and a side view change the width), so centre each on its tile.
                 for (const actor of actors) {
