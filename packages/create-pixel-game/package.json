@@ -1,6 +1,6 @@
 {
   "name": "@ragtechdev/create-pixel-game",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Scaffold a pixel-art game on ragTech Pixel Kit: npm create @ragtechdev/pixel-game my-game",
   "author": "RAGTECH PTE. LTD.",
   "license": "MIT",
