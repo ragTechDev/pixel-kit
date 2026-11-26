@@ -31,19 +31,30 @@ export function liftFoot(mask: PixelMask, half: "left" | "right", rows: number):
     return mask.map((row, y) => (half === "left" ? from(y).slice(0, n) + row.slice(n) : row.slice(0, width - n) + from(y).slice(width - n)));
 }
 
-/** Moves the left or right arm's half of a front mask one column toward the middle. */
-export function tuckArm(mask: PixelMask, half: "left" | "right"): PixelMask {
+/** Rows in a front arm once it has swung forward: one more than standing, where the hand is lowest. */
+const ARM_ROWS = 7;
+
+/**
+ * Swings the two arms of a front mask in depth, the shoulders staying put. An arm swung back is foreshortened: two
+ * rows shorter, ending in the shape of the hand. An arm swung forward comes toward the viewer: a row longer.
+ */
+export function swingArms(mask: PixelMask, left: "forward" | "back", right: "forward" | "back"): PixelMask {
     const width = mask[0].length;
     const n = (width - 1) >> 1;
-    return mask.map((row) => (half === "left" ? "0" + row.slice(0, n - 1) + row.slice(n) : row.slice(0, width - n) + row.slice(width - n + 1) + "0"));
+    const rows = [...mask, ...Array(ARM_ROWS - mask.length).fill("0".repeat(width))];
+    const swing = (half: string[], dir: "forward" | "back") =>
+        half.map((row, y) => (dir === "back" ? (y === 3 ? half[5] : y > 3 ? "0".repeat(n) : row) : y === 5 ? half[4] : y === 6 ? half[5] : row));
+    const l = swing(rows.map((row) => row.slice(0, n)), left);
+    const r = swing(rows.map((row) => row.slice(width - n)), right);
+    return rows.map((row, y) => l[y] + row.slice(n, width - n) + r[y]);
 }
 
 /**
- * Every pose of a pair of arms, or of sleeves worn on them. They swing against the legs: the arm opposite the lifted
- * leg tucks in against the body and the one on the same side stays out. A side view keeps the arm as it is.
+ * Every pose of a pair of arms, or of sleeves worn on them. They swing against the legs: the arm on the side of the
+ * lifted leg swings forward and the other swings back. A side view keeps the arm as it is.
  */
 export function armFrames(front: PixelMask, side: PixelMask): Record<LegPose, ViewMasks> {
-    return legFrames({ front, side }, { front: tuckArm(front, "right"), side });
+    return legFrames({ front, side }, { front: swingArms(front, "forward", "back"), side });
 }
 
 /**
