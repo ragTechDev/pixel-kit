@@ -1,3 +1,3 @@
 export const shoesSideMask = [
-    "001101110"
+    "000111100"
 ];

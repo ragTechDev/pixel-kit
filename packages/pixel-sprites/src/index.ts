@@ -1,5 +1,6 @@
 // Core entry: pure TypeScript, no React, no DOM.
 export * from "./avatar/styles";
+export { legPoses, walkCycle } from "./avatar/legPoses";
 export * from "./core/palette";
 export {
     buildAvatar,

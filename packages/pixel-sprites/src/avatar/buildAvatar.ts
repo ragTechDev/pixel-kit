@@ -11,6 +11,8 @@ import { headFrontMask } from "./masks/headFront.mask";
 import { headSideMask } from "./masks/headSide.mask";
 import { legsFrontMask } from "./masks/legsFront.mask";
 import { legsSideMask } from "./masks/legsSide.mask";
+import { legsFrontContactMask, legsSideContactMask } from "./masks/legs/legsContact.mask";
+import { armFrames, legFrames, legPoses, type LegPose } from "./legPoses";
 import { torsoFrontMask } from "./masks/torsoFront.mask";
 import { torsoSideMask } from "./masks/torsoSide.mask";
 import { accessoryParts, hairAccessories, type HairAccessory } from "./styles/hairAccessories";
@@ -25,7 +27,6 @@ import {
     type GarmentDefinition,
     type GarmentLayer,
     type GarmentPlacement,
-    type LegPose,
     type ShoeStyle,
     type TopStyle
 } from "./styles/clothesStyles";
@@ -106,7 +107,6 @@ export const defaultAvatarConfig: Readonly<Required<Omit<AvatarConfig, PieceColo
 };
 
 const ARM_POSES = { down: 1, forward: 1, back: 1 };
-const LEG_POSES = { neutral: 1, step: 1 };
 
 const allowed: { [K in Exclude<keyof AvatarConfig, PieceColorField>]-?: object } = {
     headOrientation: headOrientations,
@@ -124,7 +124,7 @@ const allowed: { [K in Exclude<keyof AvatarConfig, PieceColorField>]-?: object }
     bottomStyle: bottomStyles,
     shoeStyle: shoeStyles,
     armPose: ARM_POSES,
-    legPose: LEG_POSES
+    legPose: legPoses
 };
 
 /**
@@ -193,9 +193,12 @@ function flatSprite(mask: PixelMask, outlined: boolean): Sprite {
     return sprite;
 }
 
-const armsMasks = { front: armsFrontMask, side: armsSideMask };
+const armsFrames = armFrames(armsFrontMask, armsSideMask);
 const headMasks = { front: headFrontMask, side: headSideMask };
-const legsMasks = { front: legsFrontMask, side: legsSideMask };
+const legsFrames = legFrames(
+    { front: legsFrontMask, side: legsSideMask },
+    { front: legsFrontContactMask, side: legsSideContactMask }
+);
 const torsoMasks = { front: torsoFrontMask, side: torsoSideMask };
 const eyesLegend = { "1": SLOT.base, H: SLOT.highlight };
 const eyesSprites = { front: defineSprite(eyesFrontMask, eyesLegend), side: defineSprite(eyesSideMask, eyesLegend) };
@@ -235,13 +238,8 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
 
     const garmentsAt = (placement: GarmentPlacement) =>
         garments
-            .filter(
-                (g) =>
-                    g.placement === placement &&
-                    (!g.armPoses || g.armPoses.includes(c.armPose)) &&
-                    (!g.legPoses || g.legPoses.includes(c.legPose))
-            )
-            .map((g) => layer(g.mask, g.slots, g.offsetX, g.offsetY));
+            .filter((g) => g.placement === placement && (!g.armPoses || g.armPoses.includes(c.armPose)))
+            .map((g) => layer(g.poses?.[c.legPose] ?? g.mask, g.slots, g.offsetX, g.offsetY));
     const hairBody = [hair[SLOT.base], hair[SLOT.shadow], hair[SLOT.highlight]];
     // A texture widens the mask on both sides, so the layer moves left by the same amount to stay in place.
     const hairLayer = (h: HairLayer): Layer => ({
@@ -268,9 +266,9 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     const withAccessory = (h: HairLayer): Layer[] => (h.tie?.under ? [...accessoryLayers(h), hairLayer(h)] : [hairLayer(h), ...accessoryLayers(h)]);
     const hairAt = (placement: HairLayer["placement"]) => hairLayers.filter((h) => h.placement === placement).flatMap(withAccessory);
 
-    const legs = layer(maskForView(legsMasks, o), skin, 2, 13);
+    const legs = layer(maskForView(legsFrames[c.legPose], o), skin, 2, 13);
     const torso = layer(maskForView(torsoMasks, o), skin, 2, 6);
-    const arms = layer(maskForView(armsMasks, o), skin, 0, 6);
+    const arms = layer(maskForView(armsFrames[c.legPose], o), skin, 0, 6);
     // Loose hair frames the face, so the head has no outline where it sits against that hair.
     const head: Layer = {
         ...layer(maskForView(headMasks, o), skin, 1, -5),
@@ -306,9 +304,9 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     // Bounds include every candidate layer (even pose-hidden ones) and the front-view body, so the
     // avatar keeps the same size and alignment across poses and when it turns.
     const bounds = layerBounds([
-        layer(maskForView(legsMasks, "front"), skin, 2, 13),
+        layer(maskForView(legsFrames.neutral, "front"), skin, 2, 13),
         layer(maskForView(torsoMasks, "front"), skin, 2, 6),
-        layer(maskForView(armsMasks, "front"), skin, 0, 6),
+        layer(maskForView(armsFrames.neutral, "front"), skin, 0, 6),
         layer(maskForView(headMasks, "front"), skin, 1, -5),
         legs,
         torso,

@@ -10,6 +10,14 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 
 <!-- next-release -->
 
+## Unreleased
+
+### Breaking changes
+- **`legPose: "step"` is replaced by the four frames of a walk.** `LegPose` is now `neutral`, `contactLeft` or `contactRight`, in front, back and side views, and `walkCycle` plays them as left, standing, right, standing. Replace `"step"` with a frame of `walkCycle`, which is also new. An unknown value, such as the old `"step"`, falls back to `neutral`.
+
+### Added
+- Walk-cycle legs, footwear (boots, shoes, sandals) and, from the front and back, arms and sleeves that swing against the legs, for every view. The right-foot frame is the left-foot one flipped, and the back view is the front flipped. A side view cannot show which foot leads, so both feet share its stride.
+
 ## [0.9.0] - 2026-11-26
 
 ### Breaking changes

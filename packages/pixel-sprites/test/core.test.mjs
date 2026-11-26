@@ -15,9 +15,11 @@ import {
     hairDrapes,
     hairPalettes,
     hairTextures,
+    legPoses,
     resolveAvatarConfig,
     skinPalettes,
     tileIds,
+    walkCycle,
     tilePalettes,
     toSvgPaths
 } from "../dist/index.js";
@@ -73,7 +75,7 @@ test("buildAvatar only uses fixed palette colours and keeps colour", () => {
 test("buildAvatar is deterministic and size is stable across poses", () => {
     const a = buildAvatar({ armPose: "down" });
     const b = buildAvatar({ armPose: "down" });
-    const c = buildAvatar({ armPose: "forward", legPose: "step" });
+    const c = buildAvatar({ armPose: "forward", legPose: "contactLeft" });
     assert.deepEqual(a.px, b.px);
     assert.deepEqual([a.width, a.height], [c.width, c.height]);
 });
@@ -350,4 +352,63 @@ test("only tied hair has an accessory, and with none its colour does not count",
     assert.notEqual(avatarKey({ ...tied, hairAccessory: "bow", hairAccessoryColor: "red" }), avatarKey({ ...tied, hairAccessory: "bow" }));
     // The accessory follows the clothes colour until it has a colour of its own.
     assert.equal(avatarKey({ ...tied, hairAccessory: "bow", hairAccessoryColor: "blue" }), avatarKey({ ...tied, hairAccessory: "bow", clothesColor: "blue" }));
+});
+
+test("walk cycle: every pose, view and shoe keeps the avatar's size in its view, and each right-foot frame is the left one flipped", () => {
+    const size = (r) => [r.width, r.height];
+    for (const shoeStyle of ["boots", "sandals", "shoes"]) {
+        for (const legPose of Object.keys(legPoses)) {
+            for (const headOrientation of ["front", "back", "left", "right"]) {
+                assert.deepEqual(size(buildAvatar({ shoeStyle, legPose, headOrientation })), size(buildAvatar({ shoeStyle, headOrientation })), `${shoeStyle} ${legPose} ${headOrientation}`);
+            }
+        }
+        // Facing front the legs are symmetric about the middle, so each right-foot row is the left-foot row mirrored about it.
+        const stand = buildAvatar({ shoeStyle, hairLength: "bald" });
+        const rowSet = (r, y) => new Set([...Array(r.width).keys()].filter((x) => r.px[y * r.width + x]));
+        const first = stand.height - 4;
+        const axis = Math.min(...rowSet(stand, first)) + Math.max(...rowSet(stand, first));
+        const left = buildAvatar({ shoeStyle, hairLength: "bald", legPose: "contactLeft" });
+        const right = buildAvatar({ shoeStyle, hairLength: "bald", legPose: "contactRight" });
+        for (let y = first; y < stand.height; y += 1) {
+            assert.deepEqual([...rowSet(right, y)].sort((m, n) => m - n), [...rowSet(left, y)].map((x) => axis - x).sort((m, n) => m - n), `${shoeStyle} row ${y}`);
+        }
+    }
+});
+
+test("walk cycle: the frames differ from standing and from each other", () => {
+    assert.deepEqual(walkCycle, ["contactLeft", "neutral", "contactRight", "neutral"]);
+    for (const headOrientation of ["front", "back", "right"]) {
+        const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) => [...buildAvatar({ headOrientation, legPose }).px].join());
+        // Standing and each foot are different in front and back. A side view shows the same legs whichever foot leads.
+        assert.equal(new Set(frames).size, headOrientation === "right" ? 2 : 3, headOrientation);
+    }
+});
+
+test("walk cycle: boots cover the whole shin in every frame, so no skin shows below the knee", () => {
+    const skin = new Set(Object.values(skinPalettes.light));
+    for (const headOrientation of ["front", "back", "left", "right"]) {
+        for (const legPose of Object.keys(legPoses)) {
+            const r = buildAvatar({ headOrientation, legPose, shoeStyle: "boots", skinTone: "light", hairLength: "bald" });
+            for (let y = r.height - 3; y < r.height; y += 1) {
+                for (let x = 0; x < r.width; x += 1) assert.ok(!skin.has(r.colors[r.px[y * r.width + x]]), `${headOrientation} ${legPose} row ${y} column ${x}`);
+            }
+        }
+    }
+});
+
+test("walk cycle: from the front and back the two legs never merge into one", () => {
+    // The gap between the legs is outlined, so it is the outline colour where the legs are apart and skin where they have merged.
+    const outline = skinPalettes.light.outline;
+    for (const headOrientation of ["front", "back"]) {
+        const base = { headOrientation, skinTone: "light", shoeStyle: "none", bottomStyle: "shorts", hairLength: "bald" };
+        const stand = buildAvatar(base);
+        const first = stand.height - 4;
+        const filled = [...Array(stand.width).keys()].filter((x) => stand.px[first * stand.width + x]);
+        const axis = (Math.min(...filled) + Math.max(...filled)) / 2;
+        for (const legPose of Object.keys(legPoses)) {
+            const r = buildAvatar({ ...base, legPose });
+            // Every row of the legs until the second one ends has the outlined gap in the middle.
+            for (let y = first; y < first + 3; y += 1) assert.equal(r.colors[r.px[y * r.width + axis]], outline, `${headOrientation} ${legPose} row ${y - first}`);
+        }
+    }
 });

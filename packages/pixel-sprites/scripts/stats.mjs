@@ -50,7 +50,7 @@ const dims = {
   clothing,
   shoes: (count(lib.shoeStyles) - 1) * colours + 1,
   "arm pose": keysIn("src/avatar/buildAvatar.ts", "ARM_POSES"),
-  "leg pose": keysIn("src/avatar/buildAvatar.ts", "LEG_POSES")
+  "leg pose": count(lib.legPoses)
 };
 const variations = Object.values(dims).reduce((a, b) => a * b, 1);
 
