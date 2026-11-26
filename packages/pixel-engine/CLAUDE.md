@@ -42,7 +42,7 @@ A small, framework-agnostic game runtime for tile-based pixel-art worlds built o
 1. Say what the game needs it for. If a different game would not want it, it belongs in the game's repo, not here.
 2. Put it in the right entry (pure goes in core), export it from that entry's `index.ts`, and update `test/api.test.mjs`.
 3. Add tests, run `pnpm typecheck && pnpm test && pnpm size` from the repository root, and report the gzipped sizes against the budgets.
-4. Update the README table and quick start if the way you use the engine changed.
+4. Update the README table and quick start if the way you use the engine changed, and the matching topic in `studio/src/pages/Docs.tsx`. The Docs quick start must stay identical to the README's; `studio/test/docs.test.mjs` checks it, along with every name the docs import.
 
 ## Publishing
 

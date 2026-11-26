@@ -13,6 +13,9 @@ export const docSections = [
     ["together", "Using assets together"],
     ["colours", "Colours and palettes"],
     ["outside-react", "CSS, SVG and canvas"],
+    ["engine", "Engine: quick start"],
+    ["engine-loop", "Engine: loop, input, camera"],
+    ["engine-world", "Engine: walking and doors"],
     ["rules", "Design rules"]
 ] as const;
 
@@ -32,6 +35,7 @@ const pages: Record<DocId, () => ReactNode> = {
             </p>
             <CodeBlock code="npm install @ragtechdev/pixel-sprites" />
             <p>There are three entries. The core has no dependencies and no DOM. React is an optional peer.</p>
+            <p className="muted">Want the art to move? <a href="#/docs/engine">A small game engine</a> walks it around a world.</p>
             <table>
                 <tbody>
                     <tr><td><code>@ragtechdev/pixel-sprites</code></td><td>builders such as <code>buildIcon</code>, <code>toSvg</code>, <code>toVariant</code></td></tr>
@@ -182,10 +186,211 @@ const markup = toSvg(buildIcon("heart"), 4);           // an SVG string
 drawRaster(ctx, buildIcon("heart"), 0, 0, 4);          // nearest-neighbour canvas`} />
         </>
     ),
+    engine: () => (
+        <>
+            <p>
+                <code>@ragtechdev/pixel-engine</code> is a small runtime for tile-based worlds built from the sprites package: a fixed-step loop, keys, a camera, movement a tile at a time, doors and scenes.
+                The core has no framework and no DOM, so it runs the same in a browser, a test or on a server. A React component and a browser helper are separate entries.
+            </p>
+            <p className="muted">
+                The engine is new and is not on npm yet, so the install line below works once it is. Until then, use it from the repository (<code>packages/pixel-engine</code>).
+            </p>
+            <CodeBlock code="npm install @ragtechdev/pixel-engine @ragtechdev/pixel-sprites" />
+            <p>There are three entries, and the sprites package is a peer dependency:</p>
+            <table>
+                <tbody>
+                    <tr><td><code>@ragtechdev/pixel-engine</code></td><td>the loop, input, camera, walker, scenes and <code>createGame</code>. No DOM.</td></tr>
+                    <tr><td><code>…/dom</code></td><td><code>attachKeyboard</code>, <code>defaultKeymap</code> and <code>start</code>, which runs a game on a canvas</td></tr>
+                    <tr><td><code>…/react</code></td><td><code>GameView</code> and <code>useGame</code></td></tr>
+                </tbody>
+            </table>
+            <h2>A hero on a map</h2>
+            <p>
+                This walks a hero around a small map. Water and tree trunks stop them, because collision reads the same tile and object data that drew the map.
+            </p>
+            <CodeBlock code={`import { buildAvatar, buildMap, defineMap, mapTileSize, townTileset, TILE_SIZE } from "@ragtechdev/pixel-sprites";
+import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
+import { createCamera, createGame, createWalker, isWalkable } from "@ragtechdev/pixel-engine";
+import { attachKeyboard, start } from "@ragtechdev/pixel-engine/dom";
+
+const map = defineMap(townTileset, ["gggg", "gwgg", "gggg"]);
+const ground = buildMap(map);
+const tiles = mapTileSize(map);
+const camera = createCamera({ width: 128, height: 96 }, { width: tiles.width * TILE_SIZE, height: tiles.height * TILE_SIZE });
+
+const sprites = {
+    up: buildAvatar({ headOrientation: "back" }),
+    down: buildAvatar({ headOrientation: "front" }),
+    left: buildAvatar({ headOrientation: "left" }),
+    right: buildAvatar({ headOrientation: "right" })
+};
+
+const game = createGame({
+    scene: (game) => {
+        const hero = createWalker({ x: 1, y: 0 });
+        const canEnter = (x, y) => isWalkable(map, x, y);
+        return {
+            update(dt) {
+                const direction = game.input.heldDirection();
+                if (direction) hero.walk(direction, canEnter);
+                hero.update(dt);
+                camera.follow(hero.x + TILE_SIZE / 2, hero.y + TILE_SIZE / 2);
+            },
+            render(ctx) {
+                drawRaster(ctx, ground, -camera.x, -camera.y);
+                // The avatar is a tile and a half tall, so it stands 8 px above its tile.
+                drawRaster(ctx, sprites[hero.facing], hero.x - camera.x, hero.y - camera.y - 8);
+            }
+        };
+    }
+});
+
+const canvas = document.querySelector("canvas");
+canvas.tabIndex = 0; // a canvas needs focus to receive keys
+attachKeyboard(canvas, game.input);
+const stop = start(game, canvas, { width: 128, height: 96, scale: 4 });`} />
+            <p>
+                The canvas holds one pixel per game pixel and the browser scales it up without smoothing, so <code>scale</code> has to be a whole number. Click the canvas to focus it, then:
+            </p>
+            <table>
+                <tbody>
+                    <tr><td>Arrow keys or WASD</td><td><code>up</code>, <code>down</code>, <code>left</code>, <code>right</code></td></tr>
+                    <tr><td>Space or Z</td><td><code>a</code></td></tr>
+                    <tr><td>X or Escape</td><td><code>b</code></td></tr>
+                    <tr><td>Enter</td><td><code>start</code></td></tr>
+                </tbody>
+            </table>
+            <h2>In React</h2>
+            <CodeBlock code={`import { GameView, useGame } from "@ragtechdev/pixel-engine/react";
+
+function Town() {
+    const game = useGame(createTownGame); // builds the game once; createGame as above
+    return <GameView game={game} width={128} height={96} scale={4} title="A small town" autoFocus />;
+}`} />
+            <p>
+                <code>GameView</code> mounts the canvas, runs the game and stops it on unmount. By default it reads keys only while the canvas has focus, so a page with forms keeps its keys;
+                pass <code>keyboard="window"</code> to listen everywhere.
+            </p>
+            <p>
+                The <a href="#/play">Play page</a> is a bigger world built the same way, with doors, characters and seasons. <a href="#/play/code">Its whole source</a> is shown there.
+            </p>
+        </>
+    ),
+    "engine-loop": () => (
+        <>
+            <h2>The loop</h2>
+            <p>
+                Game logic runs in fixed steps, 60 a second by default, whatever the display's refresh rate. <code>createLoop</code> owns no timer: you feed it the real time that passed, in seconds,
+                and it runs as many whole steps as that covers.
+            </p>
+            <CodeBlock code={`import { createLoop } from "@ragtechdev/pixel-engine";
+
+const loop = createLoop({ update: (dt) => world.step(dt) }); // dt is 1/60
+const { steps, alpha } = loop.advance(elapsedSeconds);
+// alpha, from 0 to 1, is how far the clock is into the next step: draw between two updates with it`} />
+            <ul>
+                <li><strong>A hidden tab does not burst.</strong> One <code>advance</code> catches up on at most <code>maxFrame</code> seconds (a quarter of a second by default), not thousands of updates.</li>
+                <li><strong>Bad time is ignored.</strong> Negative, <code>NaN</code> and infinite time run no steps.</li>
+                <li><strong>It is deterministic.</strong> The same inputs give the same steps, so a test can drive it a frame at a time.</li>
+            </ul>
+            <p>
+                <code>createGame</code> ties the loop, the input and a scene stack together. <code>game.advance(seconds)</code> runs the current scene's updates and <code>game.render(ctx)</code> draws it.
+                In a browser, <code>start</code> from <code>…/dom</code> calls them from <code>requestAnimationFrame</code>.
+            </p>
+            <h2>Input</h2>
+            <p>
+                Players act through a fixed set of actions: <code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>, <code>a</code>, <code>b</code> and <code>start</code>. Keys, buttons and touches are mapped onto them,
+                and anything else is ignored.
+            </p>
+            <CodeBlock code={`const input = game.input;
+
+input.isDown("b");          // held right now
+input.wasPressed("a");      // went down since the last update, for one update only
+input.heldDirection();      // "up", "down", "left", "right" or undefined; the last one pressed wins`} />
+            <ul>
+                <li><strong>A press is seen once.</strong> <code>wasPressed</code> is true for one update, even when a frame runs two.</li>
+                <li><strong>A quick tap still counts.</strong> A key or touch let go before the next update is held for that update, so a fast tap takes a step.</li>
+                <li><strong>The last direction wins.</strong> Hold left, then up, and <code>heldDirection()</code> is <code>up</code>; let go of up and it is <code>left</code> again.</li>
+            </ul>
+            <p>
+                In a browser, <code>attachKeyboard</code> maps keys by position (<code>event.code</code>), so it works on any keyboard layout. Keys pressed with Ctrl, Cmd or Alt are never taken, and everything is released when the canvas loses focus.
+                Pass your own map to change the keys.
+            </p>
+            <CodeBlock code={`import { attachKeyboard, defaultKeymap } from "@ragtechdev/pixel-engine/dom";
+
+attachKeyboard(canvas, game.input, { ...defaultKeymap, KeyJ: "a", KeyK: "b" });`} />
+            <p>For a touch screen, call <code>input.press("left")</code> and <code>input.release("left")</code> from your own buttons. The Play page does this for its on-screen pad.</p>
+            <h2>The camera</h2>
+            <p>
+                A camera follows a point and stays inside the world. Its origin is always a whole number, so pixels never smear, and a world smaller than the view is centred instead of pinned to a corner.
+            </p>
+            <CodeBlock code={`import { createCamera } from "@ragtechdev/pixel-engine";
+
+const camera = createCamera({ width: 240, height: 144 }, { width: 320, height: 288 });
+camera.follow(hero.x + 8, hero.y + 8);                  // centre on a world pixel, then clamp
+drawRaster(ctx, ground, -camera.x, -camera.y);          // draw the world shifted by the camera`} />
+            <p>
+                <code>camera.setBounds</code> re-fits it when you change to a map of another size, and <code>cameraOrigin</code> is the same calculation as a pure function, for tests or your own camera.
+            </p>
+        </>
+    ),
+    "engine-world": () => (
+        <>
+            <h2>Walking</h2>
+            <p>
+                A walker moves one tile at a time and is drawn smoothly in between. Give it a tile to start on and, optionally, a speed in tiles per second (four by default).
+            </p>
+            <CodeBlock code={`import { createWalker, isWalkable } from "@ragtechdev/pixel-engine";
+
+const hero = createWalker({ x: 7, y: 8, facing: "up" });
+
+const result = hero.walk("up", (x, y) => isWalkable(map, x, y)); // "moved", "blocked" or "busy"
+const arrived = hero.update(dt);                                  // true on the update it reaches the next tile
+
+hero.tx; hero.ty;   // the tile it stands on (the one it is leaving, mid-step)
+hero.x; hero.y;     // its position in world pixels, rounded, for drawing`} />
+            <ul>
+                <li><strong>A blocked step still turns the walker</strong> to face the way it tried, which is what you want when someone bumps into a wall.</li>
+                <li><strong>A walker mid-step is <code>busy</code></strong> and keeps its direction until it arrives.</li>
+                <li><code>hero.teleport(x, y, facing)</code> puts it on a tile at once, which is how you place it after a warp.</li>
+            </ul>
+            <h2>What blocks the way</h2>
+            <p>
+                <code>isWalkable</code> reads the sprites package's map data, so collision always agrees with what you drew. It is false off the map, on solid terrain, on water, and on the blocking cells of an object.
+                A tree's canopy is open and its trunk blocks.
+            </p>
+            <p>
+                You decide what else blocks by writing your own <code>canEnter</code>. The Play page keeps characters in the way like this:
+            </p>
+            <CodeBlock code={`const canEnter = (x, y) =>
+    isWalkable(map, x, y, { doors: true }) && !characters.some((c) => c.x === x && c.y === y);`} />
+            <h2>Doors</h2>
+            <p>
+                A door in a wall sits on a solid tile, so by default a walker cannot step onto it. Pass <code>{`{ doors: true }`}</code> and a door counts as open. When <code>update</code> reports the arrival, ask the map whether the tile is a door and switch scenes:
+            </p>
+            <CodeBlock code={`import { queryCell } from "@ragtechdev/pixel-sprites";
+
+if (hero.update(dt) && queryCell(map, hero.tx, hero.ty)?.door) {
+    game.scenes.replace(insideScene);   // a new scene places the hero on the other side with hero.teleport(...)
+}`} />
+            <h2>Scenes</h2>
+            <p>
+                A scene is one screen of a game: a title, a map, a menu. It has an <code>update(dt)</code> and a <code>render(ctx, alpha)</code>, and optionally <code>enter</code> and <code>exit</code>.
+                Scenes live on a stack, and only the top one updates and renders.
+            </p>
+            <CodeBlock code={`game.scenes.push(menuScene);      // enter() runs; the menu is on top
+game.scenes.pop();                // exit() runs; the scene below is current again
+game.scenes.replace(nextScene);   // exit the top one, enter the next, same depth`} />
+            <p>
+                The Play world's game logic, a town, a house and the doors between them, is about 130 lines. <a href="#/play/code">Read it there</a> or try it on the <a href="#/play">Play page</a>.
+            </p>
+        </>
+    ),
     rules: () => (
         <>
             <ul>
                 <li><strong>Constrained by design.</strong> Art is fixed masks and fixed palettes. The library never accepts arbitrary images, avatars never accept arbitrary colours, and icons, objects and tiles accept only a validated hex colour.</li>
+                <li><strong>Fixed actions.</strong> The engine reads a fixed set of actions (<code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>, <code>a</code>, <code>b</code>, <code>start</code>). Keys and buttons map onto them, and there is no way to run user-supplied code or art.</li>
                 <li><strong>Small on purpose.</strong> Each part is tree-shakeable, so you ship only what you import.</li>
                 <li><strong>Made in code.</strong> No generated images or video: everything renders from code at a fraction of the resources.</li>
                 <li><strong>Licences.</strong> Code is MIT. Art is CC BY 4.0.</li>

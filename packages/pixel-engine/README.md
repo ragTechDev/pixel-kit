@@ -2,6 +2,7 @@
 
 A small game runtime for pixel-art worlds built with [`@ragtechdev/pixel-sprites`](../pixel-sprites). It gives you the parts every tile-based game needs and nothing else: a fixed-step loop, input, a camera, tile-by-tile movement with collision, and scenes.
 
+- **Guides** with the loop, input, camera, walking, doors and scenes explained are in the [docs](https://ragtechdev.github.io/pixel-kit/#/docs/engine).
 - **No framework needed.** The core entry is plain TypeScript with no DOM and no React, so it runs in a browser, in a test or on a server. A React component is a separate, optional entry.
 - **About 2.5 KB gzipped** for everything (see [Size](#size)). The sprites library is a peer dependency, not bundled.
 - **Pixel-perfect.** The canvas holds one pixel per game pixel and the browser scales it up without smoothing. Zoom is a whole number, and the camera only ever lands on whole pixels.
