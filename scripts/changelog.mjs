@@ -29,13 +29,6 @@ export const MARKER = "<!-- next-release -->";
 /** Folder names under packages/ that a command line may name. */
 export const PACKAGE_NAME = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
-/**
- * Before the repository became a workspace, tags were a plain `v<version>`. A package
- * with no tag of its own yet falls back to them. Remove an entry once that package has
- * a release tagged `<package>-v<version>`.
- */
-const LEGACY_TAG_PREFIX = { "pixel-sprites": "v" };
-
 export function parseCommit(subject, body = "") {
     const match = /^(\w+)(?:\(([^)]+)\))?(!)?: (.+)$/.exec(subject);
     if (!match) return null;
@@ -63,7 +56,7 @@ export function nextVersion(version, bump) {
 /** The tag a package's release carries: `pixel-sprites` and `0.9.0` give `pixel-sprites-v0.9.0`. */
 export const tagFor = (name, version) => `${name}-v${version}`;
 
-/** The version inside a tag (`pixel-sprites-v0.9.0` or the old `v0.8.0`), or the input when it has none. */
+/** The version inside a tag (`pixel-sprites-v0.9.0`, or the plain `v0.8.0` of releases before the workspace), or the input when it has none. */
 export function versionFromTag(tag) {
     const match = /^(?:.*-)?v?(\d+\.\d+\.\d+.*)$/.exec(tag);
     return match ? match[1] : tag;
@@ -97,16 +90,11 @@ function git(...args) {
 }
 
 function lastTag(name) {
-    const describe = (match) => {
-        try {
-            return git("describe", "--tags", "--abbrev=0", "--match", match);
-        } catch {
-            return null;
-        }
-    };
-    const own = describe(`${name}-v[0-9]*`);
-    if (own) return own;
-    return LEGACY_TAG_PREFIX[name] ? describe(`${LEGACY_TAG_PREFIX[name]}[0-9]*`) : null;
+    try {
+        return git("describe", "--tags", "--abbrev=0", "--match", `${name}-v[0-9]*`);
+    } catch {
+        return null;
+    }
 }
 
 /** Conventional commits since `tag` that changed a file under `dir`. */

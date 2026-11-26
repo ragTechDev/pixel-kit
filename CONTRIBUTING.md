@@ -22,7 +22,7 @@ Not an artist, or short on time? Ask for what you'd like to see.
 - **Constrained by design.** Art is `"0"` and `"1"` masks, and colours come from the fixed palettes and ramps. The library never accepts arbitrary images, and avatars never accept arbitrary colours; icons, objects and tiles accept only a validated hex colour.
 - **Keep it light.** No new dependencies without checking their size and licence first. Please mention the size change in your PR.
 - **Gentle gestures only.** If you add animation or gestures, keep them non-contact: a wave, a sparkle, a tipped hat.
-- **Licence.** By contributing, you agree your art is released under CC BY 4.0 and your code under MIT, as described in [LICENSE-ART.md](LICENSE-ART.md) and [LICENSE](LICENSE).
+- **Licence.** By contributing, you agree your art is released under CC BY 4.0 and your code under MIT, as described in [LICENSE-ART.md](packages/pixel-sprites/LICENSE-ART.md) and [LICENSE](LICENSE).
 
 ## Adding art with the scaffolding wizard
 
@@ -39,17 +39,17 @@ pnpm new
 4. **Make the listed edits:** it prints each file you still need to change (type unions, tables, tests) with the imports and entries already written out, ready to paste.
 5. **Check your work** (see below).
 
-It never edits existing files and never overwrites one, so it's safe to run again. `pnpm new --dry-run` shows what it would create without writing anything. Edge and nine-patch tiles aren't scaffolded, because they're built from the edge families in `src/world/tiles/tileDefs.ts`, so edit those by hand.
+It never edits existing files and never overwrites one, so it's safe to run again. `pnpm new --dry-run` shows what it would create without writing anything. Edge and nine-patch tiles aren't scaffolded, because they're built from the edge families in `packages/pixel-sprites/src/world/tiles/tileDefs.ts`, so edit those by hand.
 
 ### Where things live
 
 | Kind | Masks go in |
 | --- | --- |
-| Icon | `src/icons/<category>/`, with categories named after [Lucide's](https://lucide.dev/icons/) |
-| Avatar garment | `src/avatar/masks/clothes/<slot>/` |
-| Avatar hair | `src/avatar/masks/hair/overHead/` (front hair) or `src/avatar/masks/hair/behindHead/` (back hair) |
-| World object | `src/world/masks/objects/` |
-| World tile | `src/world/masks/tiles/` |
+| Icon | `packages/pixel-sprites/src/icons/<category>/`, with categories named after [Lucide's](https://lucide.dev/icons/) |
+| Avatar garment | `packages/pixel-sprites/src/avatar/masks/clothes/<slot>/` |
+| Avatar hair | `packages/pixel-sprites/src/avatar/masks/hair/overHead/` (front hair) or `packages/pixel-sprites/src/avatar/masks/hair/behindHead/` (back hair) |
+| World object | `packages/pixel-sprites/src/world/masks/objects/` |
+| World tile | `packages/pixel-sprites/src/world/masks/tiles/` |
 
 An icon or object with one mask is a single `name.mask.ts` file. One with several masks gets a folder with a file per part.
 
@@ -65,7 +65,7 @@ Coding agents are welcome to scaffold, draw the masks and wire everything up. Th
 
 ## Seeing your art in the studio
 
-`pnpm dev` starts the studio, which shows every icon, tile, object and avatar from `src/`. New art appears automatically, so it is the quickest way to check how a mask looks at full size, at 8x8 and 16x16, and in 1 and 2-bit colour.
+`pnpm dev` starts the studio, which shows every icon, tile, object and avatar from `packages/pixel-sprites/src/`. New art appears automatically, so it is the quickest way to check how a mask looks at full size, at 8x8 and 16x16, and in 1 and 2-bit colour.
 
 ## Before you push
 
@@ -77,6 +77,6 @@ pnpm test            # builds and runs the tests; fails if the README numbers ar
 pnpm build:studio    # the studio still builds
 ```
 
-Commit the updated `README.md` and `docs/images/` along with your change. A new tile also needs its pixel fingerprint in `test/fixtures/tile-golden.json`: run `pnpm test` once and the failure prints the value to paste in.
+Commit the updated `packages/pixel-sprites/README.md` and `packages/pixel-sprites/docs/images/` along with your change. A new tile also needs its pixel fingerprint in `packages/pixel-sprites/test/fixtures/tile-golden.json`: run `pnpm test` once and the failure prints the value to paste in.
 
 Thank you again. We're glad you're here. 💚
