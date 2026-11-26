@@ -5,7 +5,7 @@ name: Studio
 on:
   push:
     branches: [main]
-    paths: ["studio/**", "src/**", "vite.config.ts", "package.json", "pnpm-lock.yaml", ".github/workflows/studio.yml"]
+    paths: ["studio/**", "packages/**", "package.json", "pnpm-workspace.yaml", "pnpm-lock.yaml", ".github/workflows/studio.yml"]
   workflow_dispatch:
 
 permissions:

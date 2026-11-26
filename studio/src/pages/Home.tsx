@@ -1,5 +1,5 @@
-import { Avatar, Icon, Tile, World, WorldObject } from "../../../src/react";
-import { iconIds, objectIds, tileIds } from "../../../src";
+import { Avatar, Icon, Tile, World, WorldObject } from "../../../packages/pixel-sprites/src/react";
+import { iconIds, objectIds, tileIds } from "../../../packages/pixel-sprites/src";
 import { useWidth } from "../hooks";
 import { href, type Route } from "../router";
 import { miniTown } from "../worlds";

@@ -1,90 +1,26 @@
 {
-  "name": "@ragtechdev/pixel-mask-engine",
-  "version": "0.8.0",
-  "description": "Compose and render pixel-art avatars and tiles from fixed masks and palettes.",
-  "author": "RAGTECH PTE. LTD.",
+  "name": "pixel-kit",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Workspace root for the pixel-art packages and the studio.",
   "license": "(MIT AND CC-BY-4.0)",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ragTechDev/pixel-mask-engine.git"
-  },
-  "bugs": {
-    "url": "https://github.com/ragTechDev/pixel-mask-engine/issues"
-  },
-  "homepage": "https://github.com/ragTechDev/pixel-mask-engine#readme",
-  "keywords": [
-    "pixel-art",
-    "avatar",
-    "sprite",
-    "canvas",
-    "svg",
-    "tiles"
-  ],
   "packageManager": "pnpm@10.22.0",
   "engines": {
     "node": ">=20"
   },
-  "type": "module",
-  "sideEffects": false,
-  "files": [
-    "dist",
-    "LICENSE",
-    "LICENSE-ART.md"
-  ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./canvas": {
-      "types": "./dist/canvas.d.ts",
-      "import": "./dist/canvas.js"
-    },
-    "./react": {
-      "types": "./dist/react.d.ts",
-      "import": "./dist/react.js"
-    }
-  },
   "scripts": {
-    "dev": "vite",
-    "build:studio": "vite build",
-    "preview:studio": "vite preview",
-    "build": "tsup",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.core.json",
-    "test": "tsup && node --test test/*.test.mjs",
-    "size": "node scripts/size.mjs",
-    "new": "node scripts/new.mjs",
-    "check:masks": "node scripts/check-masks.mjs",
-    "stats": "tsup && node scripts/render-docs.mjs && node scripts/stats.mjs",
-    "docs:images": "tsup && node scripts/render-docs.mjs",
-    "changelog": "node scripts/changelog.mjs",
-    "changelog:write": "node scripts/changelog.mjs --write",
-    "prepublishOnly": "pnpm run typecheck && pnpm test"
-  },
-  "peerDependencies": {
-    "react": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
-    "@types/node": "^26.6.6",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.4",
-    "esbuild": "^0.28.1",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.3",
-    "vite": "^8.3.5"
-  },
-  "publishConfig": {
-    "access": "public"
+    "dev": "pnpm --filter ./studio dev",
+    "build": "pnpm --filter \"./packages/*\" build",
+    "build:studio": "pnpm --filter ./studio build",
+    "preview:studio": "pnpm --filter ./studio preview",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter \"./packages/*\" test",
+    "size": "pnpm --filter ./packages/pixel-sprites size",
+    "new": "pnpm --filter ./packages/pixel-sprites new",
+    "check:masks": "pnpm --filter ./packages/pixel-sprites check:masks",
+    "stats": "pnpm --filter ./packages/pixel-sprites stats",
+    "docs:images": "pnpm --filter ./packages/pixel-sprites docs:images",
+    "changelog": "pnpm --filter ./packages/pixel-sprites changelog",
+    "changelog:write": "pnpm --filter ./packages/pixel-sprites changelog:write"
   }
 }

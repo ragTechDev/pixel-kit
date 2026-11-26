@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { ICON_SIZE, defaultTileTheme, buildIcon, buildObject, buildTile, colorableIconIds, iconCategories, iconColors, idleIconIds, objectColors, objectIds, objectInfo, seasonalObjectIds, tileIds, toVariant, type ColorName, type HexColor, type IconId, type ObjectId, type Raster, type TileId } from "../../../src";
+import { ICON_SIZE, defaultTileTheme, buildIcon, buildObject, buildTile, colorableIconIds, iconCategories, iconColors, idleIconIds, objectColors, objectIds, objectInfo, seasonalObjectIds, tileIds, toVariant, type ColorName, type HexColor, type IconId, type ObjectId, type Raster, type TileId } from "../../../packages/pixel-sprites/src";
 import { iconKeywords, objectKeywords, tileKeywords } from "../keywords";
 import { categoryLabel, idLabel, objectLabel, tileGroup, tileGroups } from "../labels";
 import { colorOf, href, idleOf, setQuery as setRouteQuery, themeOf, tileColorsOf, variantOf, type Route } from "../router";

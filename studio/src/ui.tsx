@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Icon, PixelImage } from "../../src/react";
-import { colorDepths, colorRamps, paletteNames, palettePresets, defaultTileTheme, parseHex, tileColorGroups, tilePalettes, tileThemes, type ColorName, type HexColor, toSvg, toVariant, variantSizes, type Raster, type IconId, type PalettePreset, type VariantOptions } from "../../src";
+import { Icon, PixelImage } from "../../packages/pixel-sprites/src/react";
+import { colorDepths, colorRamps, paletteNames, palettePresets, defaultTileTheme, parseHex, tileColorGroups, tilePalettes, tileThemes, type ColorName, type HexColor, toSvg, toVariant, variantSizes, type Raster, type IconId, type PalettePreset, type VariantOptions } from "../../packages/pixel-sprites/src";
 import { CustomColours } from "./CustomColours";
 import { useMediaQuery } from "./hooks";
 import { recolor, type ColorMap } from "./recolor";

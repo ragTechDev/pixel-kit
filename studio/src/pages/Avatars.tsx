@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PixelImage } from "../../../src/react";
+import { PixelImage } from "../../../packages/pixel-sprites/src/react";
 import {
     avatarKey,
     backHairStyles,
@@ -31,7 +31,7 @@ import {
     type AvatarConfig,
     type Raster,
     type ResolvedAvatarConfig
-} from "../../../src";
+} from "../../../packages/pixel-sprites/src";
 import { useMediaQuery } from "../hooks";
 import { CustomColours } from "../CustomColours";
 import { colorRows, isolate, norm, rampFromBase, recolor, type ColorMap } from "../recolor";

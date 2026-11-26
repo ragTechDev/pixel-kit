@@ -15,6 +15,11 @@ on:
 permissions:
   contents: read
 
+# The package lives in a workspace folder; release steps run from there.
+defaults:
+  run:
+    working-directory: packages/pixel-sprites
+
 jobs:
   publish:
     runs-on: ubuntu-latest

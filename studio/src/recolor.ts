@@ -1,4 +1,4 @@
-import type { Raster } from "../../src";
+import type { Raster } from "../../packages/pixel-sprites/src";
 
 /** Original colour (lowercase #rrggbb) to the colour to show instead, for the studio's saved images. */
 export type ColorMap = Record<string, string>;
