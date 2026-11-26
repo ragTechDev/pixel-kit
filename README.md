@@ -11,7 +11,7 @@ Small, composable pieces for pixel-art games and apps, from [ragTech](https://ra
 | [`@ragtechdev/pixel-sprites`](packages/pixel-sprites) | Avatars, tiles, objects, icons and small worlds, composed from string masks and fixed palettes. Renders to SVG, canvas or React. | [README](packages/pixel-sprites/README.md) |
 | [`@ragtechdev/pixel-engine`](packages/pixel-engine) | A framework-agnostic game runtime for tile-based worlds: a fixed-step loop, input, a camera, tile movement with collision, and scenes. Uses `pixel-sprites`. | [README](packages/pixel-engine/README.md) |
 
-The **studio** browses everything in the library: icons, tiles, objects, avatars and worlds, with copyable code and downloads. It is live at <https://ragtechdev.github.io/pixel-kit/>, or run it locally with `pnpm dev`.
+The **site** is live at <https://ragtechdev.github.io/pixel-kit/>, or run it locally with `pnpm dev`. Its front page shows what the packages do: a world you can walk around, and ways to use the art as plain assets on your own pages. **Play** is a bigger version of that world, and the library pages browse every icon, tile, object, avatar and world, with copyable code and downloads.
 
 ## Using the packages
 

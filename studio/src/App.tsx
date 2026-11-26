@@ -5,6 +5,7 @@ import { AvatarsPage } from "./pages/Avatars";
 import { BrowsePage } from "./pages/Browse";
 import { DocsPage, docSections } from "./pages/Docs";
 import { HomePage } from "./pages/Home";
+import { PlayPage } from "./pages/Play";
 import { WorldsPage } from "./pages/Worlds";
 
 /** The library: browsable art. Docs is its own top-level section with its own subtopics. */
@@ -25,14 +26,17 @@ export default function App() {
 
     const inLibrary = library.some(([id]) => id === section);
     const inDocs = section === "docs";
+    const inPlay = section === "play";
     // Each Docs topic is its own page; /docs on its own is the first one.
     const docId = route.path[1] ?? docSections[0][0];
     const title = inDocs
         ? (docSections.find(([id]) => id === docId)?.[1] ?? "Docs")
-        : library.find(([id]) => id === section)?.[1];
+        : inPlay
+            ? "Play"
+            : library.find(([id]) => id === section)?.[1];
 
     useEffect(() => {
-        document.title = title ? `${title} · Pixel Kit Studio` : "Pixel Kit Studio";
+        document.title = title ? `${title} · ragTech Pixel Kit` : "ragTech Pixel Kit";
     }, [title]);
 
     // Moving to another Docs page starts it at the top.
@@ -47,6 +51,7 @@ export default function App() {
             case "objects": return <BrowsePage route={route} kind="objects" />;
             case "avatars": return <AvatarsPage route={route} />;
             case "worlds": return <WorldsPage route={route} />;
+            case "play": return <PlayPage route={route} />;
             case "docs": return <DocsPage topic={route.path[1]} />;
             default: return <HomePage route={route} />;
         }
@@ -58,11 +63,11 @@ export default function App() {
                 <div className="top-main">
                     <a className="brand" href={href([], route)}>
                         <img className="brand-mark" src="./favicon.svg" width="24" height="24" alt="" style={{ imageRendering: "pixelated" }} />
-                        Pixel Kit Studio
+                        ragTech Pixel Kit
                     </a>
-                    <span className="credit">with ♥ by <a href="https://ragtechdev.com">ragTech</a></span>
                     <nav className="nav" aria-label="Sections">
                         <a href={href(["icons"], route)} aria-current={inLibrary ? "page" : undefined}>Library</a>
+                        <a href={href(["play"], route)} aria-current={inPlay ? "page" : undefined}>Play</a>
                         <a href={href(["docs"], route)} aria-current={inDocs ? "page" : undefined}>Docs</a>
                     </nav>
                     <a className="top-note" href={GITHUB} aria-label="pixel-kit on GitHub">GitHub ↗</a>
@@ -82,7 +87,7 @@ export default function App() {
             )}
             <main className="page">{page}</main>
             <footer className="foot">
-                <span>ragTech's Pixel Sprites. Code MIT, art CC BY 4.0.</span>
+                <span>ragTech Pixel Kit. Code MIT, art CC BY 4.0.</span>
                 <a href={GITHUB}>GitHub</a>
             </footer>
         </div>

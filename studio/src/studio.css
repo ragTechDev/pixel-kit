@@ -100,8 +100,9 @@ body:has(dialog[open]) { overflow: hidden; }
 .matrix { display: grid; gap: 6px; align-items: center; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .matrix .m { background: var(--section); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 4px; }
 
-.hero { display: flex; gap: 24px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-.hero-art { display: flex; align-items: flex-end; gap: 12px; flex: 0 1 auto; max-width: 100%; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 24px; align-items: center; }
+.hero-text { max-width: 560px; }
+.hero-play { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; text-align: center; }
 .hero h1 { font-size: 28px; letter-spacing: 0.12em; text-transform: uppercase; line-height: 1.2; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .card { text-decoration: none; display: flex; flex-direction: column; gap: 8px; }
@@ -249,3 +250,30 @@ body:has(dialog[open]) { overflow: hidden; }
 .steps-labels { display: flex; justify-content: space-between; gap: 2px; }
 .steps-stop { background: none; border: 0; padding: 2px 0; font: inherit; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); cursor: pointer; flex: 1 1 0; text-align: center; }
 .steps-stop[aria-pressed="true"] { color: var(--ink); font-weight: 700; }
+
+/* The playable world: a canvas at a whole-number zoom, and a direction pad on touch screens. */
+.play { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.play-screen { background: var(--section); border: 2px solid var(--border); box-shadow: 4px 4px 0 var(--ink); line-height: 0; max-width: 100%; overflow: hidden; }
+.play-canvas { display: block; image-rendering: pixelated; }
+.play-canvas:focus-visible { outline: 3px solid var(--active); outline-offset: -3px; }
+.dpad { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(2, 56px); gap: 6px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.dpad button { font-size: 20px; background: var(--btn); color: var(--text); border: 2px solid var(--border); box-shadow: 2px 2px 0 var(--ink); touch-action: none; }
+.dpad button:active { background: var(--active); color: #fff; }
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 2; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+
+/* Ways to use the art on an ordinary page. */
+.examples { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.example { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.example-preview { background: var(--section); border: 2px solid var(--border); padding: 12px; min-height: 120px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.profile { display: flex; align-items: center; gap: 14px; }
+.tile-bg { width: 100%; height: 96px; image-rendering: pixelated; border: 2px solid var(--border); }
+.scene-img { max-width: 100%; height: auto; image-rendering: pixelated; }
+details > summary { cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px; margin-bottom: 8px; }
+details .code { max-height: 420px; overflow: auto; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+}

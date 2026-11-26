@@ -42,3 +42,17 @@ export function useMediaQuery(query: string): boolean {
         () => false
     );
 }
+
+/** Whether the element is on screen. A canvas that is scrolled away can stop running. Without IntersectionObserver it counts as visible. */
+export function useInView<T extends HTMLElement>() {
+    const ref = useRef<T>(null);
+    const [visible, setVisible] = useState(true);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el || typeof IntersectionObserver === "undefined") return;
+        const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+    return [ref, visible] as const;
+}

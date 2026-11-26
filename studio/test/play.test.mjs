@@ -223,3 +223,12 @@ test("characters of different widths are centred on their tile", () => {
         assert.ok(x + raster.width / 2 - tileLeft - 8 <= 1, "centred within a pixel");
     }
 });
+
+test("a tap shorter than one update still takes one step", () => {
+    const p = play();
+    p.game.input.press("down");
+    p.game.input.release("down"); // lifted before the game ran
+    for (let i = 0; i < 20; i += 1) p.game.advance(frame);
+    assert.deepEqual(at(p), [7, 9], "one tile down the path");
+    assert.equal(p.hero.facing, "down");
+});

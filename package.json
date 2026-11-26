@@ -14,7 +14,7 @@
     "build:studio": "pnpm --filter ./studio build",
     "preview:studio": "pnpm --filter ./studio preview",
     "typecheck": "pnpm -r typecheck",
-    "test": "node --test test/*.test.mjs && pnpm --filter \"./packages/*\" test",
+    "test": "node --test test/*.test.mjs && pnpm --filter \"./packages/*\" --filter ./studio test",
     "size": "pnpm --filter \"./packages/*\" size",
     "new": "pnpm --filter ./packages/pixel-sprites new",
     "check:masks": "pnpm --filter ./packages/pixel-sprites check:masks",
