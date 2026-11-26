@@ -46,4 +46,8 @@ A small, framework-agnostic game runtime for tile-based pixel-art worlds built o
 
 ## Publishing
 
-This package has not been published yet, and its version is `0.0.0` so that the first `pnpm release pixel-engine minor` makes `0.1.0`. Before that release: publish a placeholder to create it on npm, add a trusted-publisher entry (owner `ragTechDev`, repo `pixel-kit`, workflow `release.yml`, environment `npm-publish`, permission npm publish), and add `pixel-engine-v*` to the `npm-publish` environment's tag rules. The workflow already accepts the tag. Then follow "Releases" in the root `CLAUDE.md` with `pixel-engine` as the package.
+Published to npm as `@ragtechdev/pixel-engine` (0.1.0 was the first release), by the same workflow as `pixel-sprites`: a `pixel-engine-v*` tag starts `.github/workflows/release.yml`, which publishes with provenance after the `npm-publish` approval. Follow "Releases" in the root `CLAUDE.md` with `pixel-engine` as the package.
+
+- Releases use `npm publish`, which does not rewrite `workspace:`. That is why the peer dependency on `@ragtechdev/pixel-sprites` is a real range and only the dev dependency is `workspace:*`.
+- When `pixel-sprites` ships a breaking minor, change the peer range in the same change as the engine code that needs it, and say so in the changelog.
+- The README on npm is the one published with that version, while the site's Docs follow `main` at once, so they can differ until the next release.

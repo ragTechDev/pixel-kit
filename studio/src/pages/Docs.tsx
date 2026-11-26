@@ -175,9 +175,6 @@ drawRaster(ctx, buildIcon("heart"), 0, 0, 4);          // nearest-neighbour canv
                 <code>@ragtechdev/pixel-engine</code> is a small runtime for tile-based worlds built from the sprites package: a fixed-step loop, keys, a camera, movement a tile at a time, doors and scenes.
                 The core has no framework and no DOM, so it runs the same in a browser, a test or on a server. A React component and a browser helper are separate entries.
             </p>
-            <p className="muted">
-                The engine is new and is not on npm yet, so the install line below works once it is. Until then, use it from the repository (<code>packages/pixel-engine</code>).
-            </p>
             <CodeBlock code="npm install @ragtechdev/pixel-engine @ragtechdev/pixel-sprites" />
             <p>There are three entries, and the sprites package is a peer dependency:</p>
             <table>
