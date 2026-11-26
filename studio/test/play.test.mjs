@@ -342,3 +342,12 @@ test("the world works at any view width a phone produces, not only whole tiles",
         assert.ok(view.width <= 240 && view.width >= 160, `${screen}px gives a ${view.width}px view`);
     }
 });
+
+test("randomizing the looks leaves the world playable", () => {
+    const p = play();
+    p.randomize();
+    p.randomize();
+    p.hero.teleport(7, 8, "up");
+    hold(p, "up", 0.25);
+    assert.deepEqual(at(p), [7, 7], "the hero still walks");
+});

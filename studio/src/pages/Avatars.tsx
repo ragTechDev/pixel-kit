@@ -23,6 +23,7 @@ import {
     frontHairStyles,
     hairPalettes,
     pieceColorFields,
+    randomAvatar,
     resolveAvatarConfig,
     shoeStyles,
     skinPalettes,
@@ -198,20 +199,8 @@ function prepare(look: ResolvedAvatarConfig, custom: Custom): { render: Resolved
     return { render, map };
 }
 
-function shuffled(current: AvatarConfig): AvatarConfig {
-    const next: Record<string, string> = { ...(resolveAvatarConfig(current) as Record<string, string>) };
-    for (const tab of TABS) {
-        // Random keeps some hair; bald is a deliberate choice.
-        for (const section of tab.sections) next[section.field] = pick(section.field === "hairLength" ? section.options.filter((id) => id !== "bald") : section.options);
-    }
-    // Each piece often matches the clothes colour, and sometimes has a colour of its own.
-    for (const field of pieceColorFields) next[field] = Math.random() < 0.5 ? next.clothesColor : pick(keys(clothesPalettes));
-    // Keep it dressed: always a real top and bottom, and now and then a one-piece.
-    next.topStyle = "top";
-    next.bottomStyle = pick(keys(bottomStyles).filter((id) => id !== "none"));
-    next.headOrientation = current.headOrientation ?? "front";
-    return next as AvatarConfig;
-}
+/** A random look, keeping the way the avatar faces. */
+const shuffled = (current: AvatarConfig): AvatarConfig => ({ ...randomAvatar(), headOrientation: current.headOrientation ?? "front" });
 
 const CROP_ROWS = { head: 14, feet: 9 } as const;
 

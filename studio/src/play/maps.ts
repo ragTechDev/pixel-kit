@@ -1,4 +1,4 @@
-import { defineMap, houseTileset, type AvatarConfig, type ObjectId, type PlacedObject, type TileMap } from "@ragtechdev/pixel-sprites";
+import { defineMap, houseTileset, randomAvatar, type AvatarConfig, type ObjectId, type PlacedObject, type TileMap } from "@ragtechdev/pixel-sprites";
 import type { Direction } from "@ragtechdev/pixel-engine";
 import { townMap } from "../worlds";
 
@@ -52,21 +52,21 @@ export interface Place {
     readonly exits: readonly Exit[];
 }
 
-/** The hero is the library's default avatar. */
-export const heroLook: AvatarConfig = {};
+/** The hero and the two characters get a new random look each time the page loads. */
+export const heroLook: AvatarConfig = randomAvatar();
 
 export const places: Record<PlaceId, Place> = {
     town: {
         id: "town",
         map: townMap,
-        npcs: [{ x: 9, y: 8, look: { skinTone: "brown", hairColor: "black", topStyle: "top", sleeveLength: "long", clothesColor: "red", backHairStyle: "highPigtails" } }],
+        npcs: [{ x: 9, y: 8, look: randomAvatar() }],
         arrive: { x: 7, y: 6, facing: "down" },
         exits: [{ x: 7, y: 5, to: "interior" }]
     },
     interior: {
         id: "interior",
         map: interiorMap,
-        npcs: [{ x: 3, y: 6, look: { skinTone: "medium", hairColor: "blonde", topLength: "hip", tuck: "onePiece", bottomStyle: "skirt", bottomLength: "knee", clothesColor: "green", frontHairStyle: "bangs" } }],
+        npcs: [{ x: 3, y: 6, look: randomAvatar() }],
         arrive: { x: 7, y: 9, facing: "up" },
         exits: [{ x: 7, y: 10, to: "town" }]
     }

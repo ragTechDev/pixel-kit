@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { defaultTileTheme, tileThemes } from "@ragtechdev/pixel-sprites";
 import gameSource from "../play/game.ts?raw";
-import { createPlay, DESKTOP_VIEW, HANDHELD_VIEW } from "../play/game";
+import { createPlay, DESKTOP_VIEW, HANDHELD_VIEW, type Play } from "../play/game";
 import { Handheld } from "../play/Handheld";
 import { PlayCanvas } from "../play/PlayCanvas";
 import { useHandheld } from "../hooks";
@@ -9,6 +9,16 @@ import { href, setQuery, themeOf, type Route } from "../router";
 import { Chips, CodeBlock } from "../ui";
 
 const ENGINE = "https://github.com/ragTechDev/pixel-kit/tree/main/packages/pixel-engine";
+
+/** Gives the world's characters new looks, and goes to the avatar studio to make one by hand. */
+function Actions({ play, route }: { play: Play; route: Route }) {
+    return (
+        <div className="row">
+            <button className="btn primary" onClick={() => play.randomize()}>Randomize avatars</button>
+            <a className="btn" href={href(["avatars"], route)}>Make your own in the avatar studio</a>
+        </div>
+    );
+}
 
 function About() {
     return (
@@ -58,7 +68,10 @@ export function PlayPage({ route }: { route: Route }) {
         return (
             <div className="stack" style={{ gap: 0 }}>
                 <Handheld play={play} exitHref={href([], route)} />
-                <div className="gb-about"><About /></div>
+                <div className="gb-about">
+                    <section className="panel stack"><Actions play={play} route={route} /></section>
+                    <About />
+                </div>
             </div>
         );
     }
@@ -71,6 +84,7 @@ export function PlayPage({ route }: { route: Route }) {
                     {" "}(or the pad on a touch screen). Step onto the house door to go inside, and back out through the door at the bottom.
                 </p>
                 <PlayCanvas play={play} maxScale={3} autoFocus />
+                <Actions play={play} route={route} />
                 <Chips
                     label="Season"
                     value={theme}

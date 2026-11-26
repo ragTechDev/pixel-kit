@@ -1,4 +1,4 @@
-import { buildMap, queryCell, mapTileSize, tileThemes, walkCycle, TILE_SIZE } from "@ragtechdev/pixel-sprites";
+import { buildMap, queryCell, mapTileSize, randomAvatar, tileThemes, walkCycle, TILE_SIZE, type AvatarConfig } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 import { createCamera, createGame, createWalker, isWalkable, neighbor, type Camera, type Direction, type Game, type Scene, type Walker } from "@ragtechdev/pixel-engine";
 import { heroLook, places, start, type Npc, type Place, type PlaceId, type Spawn } from "./maps";
@@ -42,6 +42,8 @@ export interface Play {
     place(): PlaceId;
     /** Which way a character is facing. Characters start facing down and turn when the hero speaks to them. */
     facing(npc: Npc): Direction;
+    /** Gives the hero and every character a new random look. */
+    randomize(): void;
 }
 
 /**
@@ -56,6 +58,14 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
     const turned = new Map<Npc, Direction>();
     const facing = (npc: Npc): Direction => turned.get(npc) ?? "down";
     let current: PlaceId = start.place;
+    // The looks are this world's own, so a new random one changes nothing for another world made from the same maps.
+    let heroLookNow: AvatarConfig = heroLook;
+    const npcLooks = new Map<Npc, AvatarConfig>();
+    const lookOf = (npc: Npc) => npcLooks.get(npc) ?? npc.look;
+    const randomize = () => {
+        heroLookNow = randomAvatar();
+        for (const place of Object.values(places)) for (const npc of place.npcs) npcLooks.set(npc, randomAvatar());
+    };
 
     const nextSeason = () => {
         const next = tileThemes[(tileThemes.indexOf(options.theme as (typeof tileThemes)[number]) + 1) % tileThemes.length];
@@ -108,8 +118,8 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
                 const travelled = hero.facing === "left" || hero.facing === "up" ? -(hero.x + hero.y) : hero.x + hero.y;
                 const legPose = hero.moving ? walkCycle[Math.floor((((travelled % (2 * TILE_SIZE)) + 2 * TILE_SIZE) % (2 * TILE_SIZE)) / ((2 * TILE_SIZE) / walkCycle.length))] : "neutral";
                 const actors = [
-                    ...place.npcs.map((npc) => ({ y: npc.y * TILE_SIZE, x: npc.x * TILE_SIZE, raster: avatarFrame(npc.look, facing(npc)) })),
-                    { y: hero.y, x: hero.x, raster: avatarFrame(heroLook, hero.facing, legPose) }
+                    ...place.npcs.map((npc) => ({ y: npc.y * TILE_SIZE, x: npc.x * TILE_SIZE, raster: avatarFrame(lookOf(npc), facing(npc)) })),
+                    { y: hero.y, x: hero.x, raster: avatarFrame(heroLookNow, hero.facing, legPose) }
                 ].sort((a, b) => a.y - b.y);
                 // Rasters are cropped to their content (hair and a side view change the width), so centre each on its tile.
                 for (const actor of actors) {
@@ -128,7 +138,7 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
     const game = createGame<CanvasRenderingContext2D>({
         scene: (g) => placeScene(g, places[start.place], start.spawn)
     });
-    return { game, hero, camera, options, view, place: () => current, facing };
+    return { game, hero, camera, options, view, place: () => current, facing, randomize };
 }
 
 function mapPixels(place: Place) {
