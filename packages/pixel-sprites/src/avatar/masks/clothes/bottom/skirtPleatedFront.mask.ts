@@ -3,7 +3,7 @@
 export const skirtPleatedFrontMask = [
     "0001111111000",
     "00011S1S11000",
-    "0011S1S1S1100",
+    "0001S1S1S1000",
     "0011S1S1S1100",
     "011S1S1S1S110"
 ];

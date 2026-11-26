@@ -3,7 +3,7 @@
 // pixels; the left, right and back entries were re-recorded when those views got their own masks, and again when the side legs and feet were narrowed to be smaller than the body. Every entry was re-recorded when
 // hands became their own part, drawn with an outline over the end of each arm, and the entries with back hair were
 // re-recorded when that hair got room to swish, which makes the picture a little wider, and the entries with a long-sleeve or spaghetti top were re-recorded when
-// those tops were shortened to end where the shirt does.
+// those tops were shortened to end where the shirt does, and again when the bottoms moved up a row and the shorts gained a row.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";

@@ -219,11 +219,11 @@ export const topStyles = {
 } as const satisfies Record<TopStyle, GarmentDefinition>;
 
 /** The shortest pants: one row at the hips, as wide as the legs. */
-const shortPants = viewed("bottom", [{ masks: { front: shortsFrontMask, side: shortsSideMask }, offsetX: 2, offsetY: 12, placement: "overBody" }]);
+const shortPants = viewed("bottom", [{ masks: { front: shortsFrontMask, side: shortsSideMask }, offsetX: 2, offsetY: 11, placement: "overBody" }]);
 
 export const bottomStyles = {
     none: { slot: "bottom", byOrientation: {}, fallback: [] },
-    skirt: viewed("bottom", [{ masks: { front: skirtFrontMask, side: skirtSideMask }, offsetX: 2, offsetY: 12, placement: "overBody" }]),
+    skirt: viewed("bottom", [{ masks: { front: skirtFrontMask, side: skirtSideMask }, offsetX: 2, offsetY: 11, placement: "overBody" }]),
     // Pants of the shortest length are shorts; `pantsStyles` has the longer ones.
     pants: shortPants
 } as const satisfies Record<BottomStyle, GarmentDefinition>;
@@ -233,9 +233,9 @@ export const skirtShapes = { flowing: 1, pleated: 1, pencil: 1 } as const;
 export type SkirtShape = keyof typeof skirtShapes;
 /**
  * How far down a skirt or pants go, in rows from the waist: short is the one row at the hips, and a floor-length one
- * reaches the last row of the feet. A skirt from short to floor is the top rows of the full-length mask of its shape, and pants
+ * reaches the row of the feet. A skirt from short to floor is the top rows of the full-length mask of its shape, and pants
  * are the hips and the top rows of the legs. Ankle length stops just above the feet, so only their last row shows; floor
- * length covers the feet.
+ * length hangs over the legs and the tops of the shoes, which are drawn under it.
  */
 export const bottomLengths = { short: 1, knee: 1, calf: 1, ankle: 1, floor: 1 } as const;
 export type BottomLength = keyof typeof bottomLengths;
@@ -259,7 +259,7 @@ const SKIRT_SWAY: Record<SkirtShape, Partial<Record<BottomLength, number>>> = {
 const BOTTOM_FLAGS: Partial<Record<BottomLength, { hangsOverShoes?: true; showsOnlyFeet?: true; coversFeet?: true }>> = {
     calf: { hangsOverShoes: true },
     ankle: { showsOnlyFeet: true },
-    floor: { coversFeet: true }
+    floor: { hangsOverShoes: true }
 };
 
 function skirtOf(shape: SkirtShape, length: BottomLength): GarmentDefinition {
@@ -269,7 +269,7 @@ function skirtOf(shape: SkirtShape, length: BottomLength): GarmentDefinition {
     const reach = SKIRT_SWAY[shape][length];
     return viewed(
         "bottom",
-        [{ masks: { front: masks.front.slice(0, rows), side: masks.side.slice(0, rows) }, offsetX: 0, offsetY: 12, placement: "overBody", ...(reach ? { swing: { pivot: 12, reach } } : {}) }],
+        [{ masks: { front: masks.front.slice(0, rows), side: masks.side.slice(0, rows) }, offsetX: 0, offsetY: 11, placement: "overBody", ...(reach ? { swing: { pivot: 11, reach } } : {}) }],
         BOTTOM_FLAGS[length]
     );
 }
@@ -309,7 +309,7 @@ function pantsOf(length: BottomLength): GarmentDefinition {
         ...(legs.back ? { back: [...shortsFrontMask, ...legs.back.slice(0, rows)] } : {})
     });
     const poses = Object.fromEntries(Object.entries(legsFrames).map(([pose, legs]) => [pose, withHips(legs)])) as Record<LegPose, ViewMasks>;
-    return viewed("bottom", [{ masks: poses.neutral, poses, offsetX: 2, offsetY: 12, placement: "overBody" }], BOTTOM_FLAGS[length]);
+    return viewed("bottom", [{ masks: poses.neutral, poses, offsetX: 2, offsetY: 11, placement: "overBody" }], BOTTOM_FLAGS[length]);
 }
 
 /** Every pair of pants, by length. */

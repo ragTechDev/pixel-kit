@@ -550,10 +550,10 @@ test("skirts get longer with the length, in every shape", () => {
 
 test("flowing and pleated skirts sway like hair when walking, a pencil skirt does not, and every pose is one size", () => {
     const red = new Set(Object.values(clothesPalettes.red));
-    // Only the hem, the skirt's two lowest rows, is compared, since a swinging hand can cover the top of it.
+    // Only the hem, the skirt's lowest row, is compared, since a swinging hand can cover the rows above it.
     const hem = (f) => {
         const at = [...f.px].map((p, i) => (red.has(f.colors[p]) ? i : -1)).filter((i) => i >= 0);
-        const last = Math.floor(at[at.length - 1] / f.width) - 1;
+        const last = Math.floor(at[at.length - 1] / f.width);
         return at.filter((i) => Math.floor(i / f.width) >= last).join();
     };
     const swaying = { flowing: ["knee", "calf", "ankle", "floor"], pleated: ["calf", "ankle", "floor"], pencil: [] };
@@ -572,7 +572,7 @@ test("flowing and pleated skirts sway like hair when walking, a pencil skirt doe
     }
 });
 
-test("an ankle-length skirt shows only the last row of the feet, and a floor-length one covers them", () => {
+test("an ankle-length skirt shows only the last row of the feet, and a floor-length one hangs over the legs and the tops of the shoes", () => {
     const red = new Set(Object.values(clothesPalettes.red));
     for (const skirtShape of ["flowing", "pleated", "pencil"]) {
         for (const headOrientation of ["front", "back", "left", "right"]) {
@@ -581,12 +581,14 @@ test("an ankle-length skirt shows only the last row of the feet, and a floor-len
                     const look = { headOrientation, legPose, bottomStyle: "skirt", skirtShape, bottomColor: "red", shoeStyle, shoeColor: "yellow", clothesColor: "blue", topStyle: "shirt", hairLength: "bald" };
                     const ankle = buildAvatar({ ...look, bottomLength: "ankle" });
                     const floor = buildAvatar({ ...look, bottomLength: "floor" });
-                    const onlySkirt = (f, rows) => {
-                        for (const y of rows) for (let x = 0; x < f.width; x += 1) assert.ok(!f.colors[f.px[y * f.width + x]] || red.has(f.colors[f.px[y * f.width + x]]), `${skirtShape} ${headOrientation} ${shoeStyle} ${legPose}: only skirt at row ${y}`);
+                    const yellow = new Set([clothesPalettes.yellow.base, clothesPalettes.yellow.shadow, clothesPalettes.yellow.highlight]);
+                    const noShoesAbove = (f, row) => {
+                        for (let i = 0; i < row * f.width; i += 1) assert.ok(!yellow.has(f.colors[f.px[i]]), `${skirtShape} ${headOrientation} ${shoeStyle} ${legPose}: no shoe above row ${row}`);
                     };
-                    // The row above the hem is all skirt for both. The floor-length skirt reaches the last rows, with no feet there.
-                    onlySkirt(ankle, [ankle.height - 4]);
-                    onlySkirt(floor, [floor.height - 4, floor.height - 3, floor.height - 2]);
+                    // A swinging hand can cover the skirt, so only the shoes are checked. An ankle-length skirt leaves just the last row of
+                    // the shoes, above the outline under them, and a floor-length one hangs over the shoes, so a boot shows only where it sticks out past the skirt in profile.
+                    noShoesAbove(ankle, ankle.height - 2);
+                    noShoesAbove(floor, floor.height - 4);
                 }
             }
         }
@@ -635,19 +637,20 @@ test("pants get longer with the length, and step with the legs", () => {
     }
 });
 
-test("ankle-length pants show only the last row of the feet, and floor-length pants cover them", () => {
+test("ankle-length pants show only the last row of the feet, and floor-length pants hang over the legs", () => {
     const red = new Set(Object.values(clothesPalettes.red));
     for (const headOrientation of ["front", "back", "left", "right"]) {
         for (const shoeStyle of ["boots", "shoes", "sandals"]) {
             for (const legPose of ["neutral", "contactLeft", "contactRight"]) {
                 const look = { headOrientation, legPose, bottomStyle: "pants", bottomColor: "red", shoeStyle, shoeColor: "yellow", clothesColor: "blue", topStyle: "shirt", hairLength: "bald" };
-                const onlyPants = (f, rows, label) => {
-                    for (const y of rows) for (let x = 0; x < f.width; x += 1) assert.ok(!f.colors[f.px[y * f.width + x]] || red.has(f.colors[f.px[y * f.width + x]]), `${label} ${headOrientation} ${shoeStyle} ${legPose}: only pants at row ${y}, column ${x}`);
+                const yellow = new Set([clothesPalettes.yellow.base, clothesPalettes.yellow.shadow, clothesPalettes.yellow.highlight]);
+                const noShoesAbove = (f, row) => {
+                    for (let i = 0; i < row * f.width; i += 1) assert.ok(!yellow.has(f.colors[f.px[i]]), `${headOrientation} ${shoeStyle} ${legPose}: no shoe above row ${row}`);
                 };
                 const ankle = buildAvatar({ ...look, bottomLength: "ankle" });
                 const floor = buildAvatar({ ...look, bottomLength: "floor" });
-                onlyPants(ankle, [ankle.height - 4], "ankle");
-                onlyPants(floor, [floor.height - 4, floor.height - 3, floor.height - 2], "floor");
+                noShoesAbove(ankle, ankle.height - 2);
+                noShoesAbove(floor, floor.height - 4);
             }
         }
     }

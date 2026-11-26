@@ -1,3 +1,3 @@
 export const skirtSideMask = [
-    "011111110"
+    "001111100"
 ];
