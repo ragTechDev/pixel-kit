@@ -14,13 +14,13 @@
     "build:studio": "pnpm --filter ./studio build",
     "preview:studio": "pnpm --filter ./studio preview",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter \"./packages/*\" test",
+    "test": "node --test test/*.test.mjs && pnpm --filter \"./packages/*\" test",
     "size": "pnpm --filter ./packages/pixel-sprites size",
     "new": "pnpm --filter ./packages/pixel-sprites new",
     "check:masks": "pnpm --filter ./packages/pixel-sprites check:masks",
     "stats": "pnpm --filter ./packages/pixel-sprites stats",
     "docs:images": "pnpm --filter ./packages/pixel-sprites docs:images",
-    "changelog": "pnpm --filter ./packages/pixel-sprites changelog",
-    "changelog:write": "pnpm --filter ./packages/pixel-sprites changelog:write"
+    "changelog": "node scripts/changelog.mjs",
+    "release": "node scripts/release.mjs"
   }
 }

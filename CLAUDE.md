@@ -59,6 +59,8 @@ pnpm size          # gzipped size per entry (scripts/size.mjs)
 pnpm new           # scaffolding wizard for new art (scripts/new.mjs)
 pnpm docs:images   # re-renders docs/images (banner, icons, avatars, tiles, objects, themes) from the built package (scripts/render-docs.mjs)
 pnpm stats         # rebuilds, re-renders the images, then updates the counts and bundled sizes in the README (scripts/stats.mjs); --check only verifies the counts
+pnpm changelog <package>      # suggested bump and a changelog draft from the commits that touched packages/<package> (scripts/changelog.mjs)
+pnpm release <package> <bump> # bump, commit and tag <package>-v<version>; pushing the tag starts the release (scripts/release.mjs)
 pnpm check:masks   # validate every mask: 0/1 only, rectangular, tile and icon size limits, naming, orphans (scripts/check-masks.mjs)
 ```
 
@@ -72,17 +74,17 @@ The package manager is pnpm (pinned in `packageManager`); do not use npm or comm
 - `trustPolicy: no-downgrade` rejects versions that lost provenance. Exceptions go in `trustPolicyExclude`, exact version only, with a comment saying why. Never add one without reviewing the package (maintainer, repo, publish history).
 - Always install with `--frozen-lockfile` in CI. Add a dependency only after checking its size and licence.
 - Publishing happens only from `.github/workflows/release.yml` via npm trusted publishing (OIDC, with provenance). No npm token is stored anywhere. The npm trusted-publisher entry needs the **npm publish** permission (not "stage publish"), and its owner, repo, workflow and environment must match GitHub's spelling exactly (`ragTechDev`, `pixel-kit`, `release.yml`, `npm-publish`).
-- A release needs a manual approval: the `npm-publish` GitHub environment has a required reviewer and only allows `v*` tags.
+- A release needs a manual approval: the `npm-publish` GitHub environment has a required reviewer and only allows the tag patterns of the published packages (`pixel-sprites-v*`, and one per package added later). Each published package needs its own trusted-publisher entry on npm.
 - GitHub Actions are pinned to commit SHAs. Repo policy (Settings -> Actions) requires SHA pinning and allows only GitHub-owned actions plus `pnpm/action-setup`. To use a new action, review it first, then add it to that allow-list.
 - Dependabot (`.github/dependabot.yml`) proposes weekly updates for Actions and dev dependencies, skipping versions younger than 3 days. Review each PR: check the changelog, and treat any new install-script warning or trust-policy failure as a stop sign, not something to exclude by reflex.
 
 ## Releases
 
-Versions follow semver (before 1.0, a breaking change bumps the minor). Release notes live in `CHANGELOG.md` (Keep a Changelog format) and are drafted from the commit history by `scripts/changelog.mjs`, which has no dependencies.
+Versions follow semver (before 1.0, a breaking change bumps the minor). Each package is versioned and released on its own, with its own `CHANGELOG.md` (Keep a Changelog format) and tags of the form `<package>-v<version>` (for example `pixel-sprites-v0.9.0`). Notes are drafted from the commits that touched that package's folder by `scripts/changelog.mjs`, and the version bump, commit and tag are made by `scripts/release.mjs`. Neither has dependencies. `pnpm version` is not used: it does not tag per package.
 
 - Commit messages use `type(scope): subject`. Mark a breaking change with `!` after the scope (`refactor(world)!: ...`) or a `BREAKING CHANGE:` footer, or the suggested bump will miss it. `feat`, `fix`, `perf`, `refactor` and `revert` reach the changelog; `chore`, `docs`, `test`, `ci` and `build` do not.
-- To release: run `pnpm changelog` for the suggested bump and a draft. Run `pnpm changelog:write` to insert the draft into `CHANGELOG.md`, then rewrite it for readers and add anything the script cannot see. Commit it, run `pnpm version <patch|minor|major>` (it bumps `package.json` and makes the commit and the `v*` tag), then push the commit and the tag.
-- The tag starts `.github/workflows/release.yml`. It refuses to publish when the version has no `CHANGELOG.md` section. After the approval-gated publish, a separate job creates the GitHub release from that section. Nothing automatic bumps versions or pushes tags, so no write token exists beyond that release job.
+- To release a package: run `pnpm changelog <package>` for the suggested bump and a draft, where `<package>` is its folder under `packages/`. Run `pnpm changelog <package> --write` to insert the draft into its `CHANGELOG.md`, then rewrite it for readers and add anything the script cannot see. Commit it, run `pnpm release <package> <patch|minor|major>` (it refuses without a changelog section, bumps `package.json`, and makes the commit and the `<package>-v<version>` tag; add `--dry-run` to preview), then push the commit and the tag as it prints. The first release of `pixel-sprites` reads the old plain `v*` tags to find where the last release ended; that fallback lives in `scripts/changelog.mjs` and goes away once a `pixel-sprites-v*` tag exists.
+- The tag starts `.github/workflows/release.yml`, which reads the package and version from the tag and runs from that package's folder. It refuses to publish when the tag does not match the package's name and version, or when the version has no `CHANGELOG.md` section. After the approval-gated publish, a separate job creates the GitHub release from that section. Nothing automatic bumps versions or pushes tags, so no write token exists beyond that release job.
 
 ## Measuring size
 

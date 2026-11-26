@@ -58,8 +58,6 @@
     "check:masks": "node scripts/check-masks.mjs",
     "stats": "tsup && node scripts/render-docs.mjs && node scripts/stats.mjs",
     "docs:images": "tsup && node scripts/render-docs.mjs",
-    "changelog": "node scripts/changelog.mjs",
-    "changelog:write": "node scripts/changelog.mjs --write",
     "prepublishOnly": "pnpm run typecheck && pnpm test"
   },
   "peerDependencies": {
