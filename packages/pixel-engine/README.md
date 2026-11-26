@@ -95,7 +95,7 @@ A few details that are easy to miss:
 
 - **Updates are fixed.** Game logic runs at 60 steps per second whatever the display's refresh rate. `render` receives `alpha`, how far the clock is into the next step, if you want to interpolate.
 - **A tab that was hidden catches up on at most a quarter of a second** (`maxFrame`), not a burst of thousands of updates.
-- **A fresh press is visible to exactly one update**, even when a frame runs two (`input.wasPressed`).
+- **A fresh press is visible to exactly one update**, even when a frame runs two (`input.wasPressed`). A tap shorter than an update is not lost: it counts as held for that update, so a quick touch still takes a step.
 - **Water counts as solid.** `isWalkable` is `false` off the map, on solid terrain, on water and on the blocking cells of an object. A tree's canopy is open and its trunk blocks.
 - **Doors are solid unless you ask.** A door in a wall sits on a solid tile, so `isWalkable(map, x, y, { doors: true })` lets a walker step onto it. When `walker.update` reports the arrival, check `queryCell(map, walker.tx, walker.ty)?.door` and switch scenes.
 - **Browser shortcuts keep working.** Keys pressed with Ctrl, Cmd or Alt are never taken, and everything is released when focus is lost.

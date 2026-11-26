@@ -72,3 +72,22 @@ test("an input can be supplied, and nothing runs without a scene on the stack", 
     assert.equal(game.advance(0.1), 6);
     game.render("ctx");
 });
+
+test("a quick tap on a direction still moves a walker one tile", async () => {
+    const { createWalker } = await import("../dist/index.js");
+    const hero = createWalker({ x: 0, y: 0 });
+    const game = createGame({
+        scene: (g) => ({
+            update(dt) {
+                const direction = g.input.heldDirection();
+                if (direction) hero.walk(direction, () => true);
+                hero.update(dt);
+            },
+            render() {}
+        })
+    });
+    game.input.press("right");
+    game.input.release("right"); // a touch lifted before the next update
+    for (let i = 0; i < 20; i += 1) game.advance(1 / 60);
+    assert.deepEqual([hero.tx, hero.ty], [1, 0], "one tile, not zero and not a run");
+});
