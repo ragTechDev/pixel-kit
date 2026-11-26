@@ -54,7 +54,7 @@ function DPad({ input }: { input: Input }) {
  * The demo world on a canvas, as large a whole-number zoom as fits. It runs only while it is on screen,
  * and takes keys only while it has focus, so it never traps scrolling or the keys of a form.
  */
-export function PlayCanvas({ play, maxScale = 4, autoFocus = false, scale: fixed, pad = true }: {
+export function PlayCanvas({ play, maxScale = 4, autoFocus = false, scale: fixed, pad = true, fill = false }: {
     play: Play;
     maxScale?: number;
     autoFocus?: boolean;
@@ -62,6 +62,8 @@ export function PlayCanvas({ play, maxScale = 4, autoFocus = false, scale: fixed
     scale?: number;
     /** Show the simple on-screen pad on touch screens. A layout with its own controls turns this off. */
     pad?: boolean;
+    /** Span the whole width of the container, with the picture centred and the backdrop colour in any spare pixels. */
+    fill?: boolean;
 }) {
     const { view } = play;
     const [sized, width] = useWidth<HTMLDivElement>();
@@ -70,7 +72,7 @@ export function PlayCanvas({ play, maxScale = 4, autoFocus = false, scale: fixed
     const scale = fixed ?? Math.max(1, Math.min(maxScale, Math.floor(width / view.width)));
     return (
         <div className="play" ref={sized}>
-            <div className="play-screen" ref={watched} style={{ width: view.width * scale, height: view.height * scale }}>
+            <div className={`play-screen${fill ? " play-fill" : ""}`} ref={watched} style={{ width: fill ? "100%" : view.width * scale, height: view.height * scale }}>
                 {(fixed !== undefined || width > 0) && visible && (
                     <GameView
                         game={play.game}

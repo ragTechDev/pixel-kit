@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Avatar, Icon, Tile, World, WorldObject } from "@ragtechdev/pixel-sprites/react";
 import { buildMap, buildTile, iconIds, objectIds, tileIds, toSvgDataUrl } from "@ragtechdev/pixel-sprites";
-import { createPlay } from "../play/game";
+import { createPlay, DESKTOP_VIEW } from "../play/game";
 import { PlayCanvas } from "../play/PlayCanvas";
+import { useMediaQuery, useWidth } from "../hooks";
 import { href, themeOf, type Route } from "../router";
 import { CodeBlock } from "../ui";
 import { miniTown } from "../worlds";
@@ -50,7 +51,17 @@ start(game, canvas, { width: 240, height: 144, scale: 3 });`;
 
 export function HomePage({ route }: { route: Route }) {
     const theme = themeOf(route);
-    const [play] = useState(() => createPlay({ theme }));
+    const mobile = useMediaQuery("(max-width: 720px)");
+    const touch = useMediaQuery("(pointer: coarse)");
+    // The demo's own width, not the window's: it changes when a scrollbar appears, and the window's size does not.
+    const [demo, measured] = useWidth<HTMLDivElement>();
+    const width = measured || document.documentElement.clientWidth;
+    // On a phone the world spans the screen. The zoom is a whole number that keeps the view inside the map (at most 240 px
+    // wide), and the view is just wide enough to fill the width at that zoom. Turning the phone makes a new world.
+    const scale = width > 480 ? 3 : 2;
+    const view = mobile ? { width: Math.floor(width / scale), height: DESKTOP_VIEW.height } : DESKTOP_VIEW;
+    // The theme only seeds the first world; the line below keeps it in step afterwards.
+    const play = useMemo(() => createPlay({ theme }, view), [view.width]);
     play.options.theme = theme;
     const toAssets = () => {
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -70,9 +81,12 @@ export function HomePage({ route }: { route: Route }) {
                     </div>
                     <p className="muted">Built from fixed masks and fixed palettes, so it stays small and consistent. Code MIT, art CC BY 4.0.</p>
                 </div>
-                <div className="hero-play">
-                    <PlayCanvas play={play} maxScale={3} />
-                    <p className="muted">Click the world, then walk with the arrow keys or WASD. Try the door.</p>
+                <div className="hero-play" ref={demo}>
+                    <PlayCanvas play={play} maxScale={3} scale={mobile ? scale : undefined} fill={mobile} />
+                    <div className="hero-play-foot">
+                        <p className="muted">{touch ? "Use the pad to walk. Try the door." : "Click the world, then walk with the arrow keys or WASD. Try the door."}</p>
+                        <a className="btn primary" href={href(["play"], route)}>{mobile ? "Play full screen" : "Open the Play page"}</a>
+                    </div>
                 </div>
             </section>
 

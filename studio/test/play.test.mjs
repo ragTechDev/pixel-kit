@@ -316,3 +316,29 @@ test("the handheld view is 160 by 144, a classic handheld's screen, and the worl
     p.game.render(ctx);
     assert.equal(ctx.draws.length, 3, "the same map, character and hero");
 });
+
+test("the world works at any view width a phone produces, not only whole tiles", () => {
+    // 2x zoom fills 360, 390, 412, 430 and 480 px; 3x fills 540 to 720 px. Both keep the view at 240 px or less.
+    for (const screen of [360, 390, 412, 430, 480]) {
+        const view = { width: Math.floor(screen / 2), height: 144 };
+        const p = play({ theme: "summer" }, view);
+        assert.equal(p.camera.width, view.width);
+        for (const [x, y] of [[0, 0], [19, 17], [10, 9], [0, 17], [19, 0]]) {
+            p.hero.teleport(x, y, "down");
+            p.game.advance(frame);
+            assert.ok(p.camera.x >= 0 && p.camera.x <= 320 - view.width, `${screen}px, x at ${x},${y}: ${p.camera.x}`);
+        }
+        p.hero.teleport(7, 7, "up");
+        hold(p, "up", 0.5); // through the door
+        assert.equal(p.place(), "interior");
+        p.game.advance(frame);
+        assert.ok(p.camera.x >= 0 && p.camera.x <= 256 - view.width, `${screen}px inside: ${p.camera.x}`);
+        const ctx = fakeContext();
+        p.game.render(ctx);
+        assert.ok(ctx.draws.length >= 2, "it draws");
+    }
+    for (const screen of [540, 600, 720]) {
+        const view = { width: Math.floor(screen / 3), height: 144 };
+        assert.ok(view.width <= 240 && view.width >= 160, `${screen}px gives a ${view.width}px view`);
+    }
+});

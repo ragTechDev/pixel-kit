@@ -69,7 +69,8 @@ export function useHandheld(): boolean {
 
 /** The visible size of the window in CSS pixels, kept current on resize and rotation. */
 export function useViewport() {
-    const read = () => ({ width: window.innerWidth, height: window.innerHeight });
+    // clientWidth leaves out a scrollbar, so an element sized to it never overflows the page.
+    const read = () => ({ width: document.documentElement.clientWidth, height: window.innerHeight });
     const [size, setSize] = useState(read);
     useEffect(() => {
         const update = () => setSize(read());
