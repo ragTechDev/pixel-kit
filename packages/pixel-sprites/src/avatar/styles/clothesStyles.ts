@@ -1,6 +1,7 @@
 import type { PixelMask } from "../../core/maskUtils";
 import { headOrientations, maskForView, type HeadOrientation, type ViewMasks } from "../orientation";
-import { armFrames, legFrames, liftFoot, onLegs, smallerFoot, type LegPose } from "../legPoses";
+import { legFrames, liftFoot, onLegs, sleeveFrames as sleevesOver, smallerFoot, type LegPose } from "../legPoses";
+import { armsFrames } from "../arms";
 import { skirtFrontMask } from "../masks/clothes/bottom/skirtFront.mask";
 import { skirtSideMask } from "../masks/clothes/bottom/skirtSide.mask";
 import { shortsFrontMask } from "../masks/clothes/bottom/shortsFront.mask";
@@ -71,7 +72,7 @@ function viewed(slot: GarmentSlot, layers: readonly ViewedLayer[], extra: { cove
 
 /** Sleeves swing with the arms: in profile they are the top rows of the swung arm. */
 const sleeveFrames = (front: PixelMask, side: PixelMask) =>
-    armFrames(front, side, { forward: armsSideForwardMask.slice(0, side.length), back: armsSideBackMask.slice(0, side.length) });
+    sleevesOver(front, side, armsFrames, { forward: armsSideForwardMask.slice(0, side.length), back: armsSideBackMask.slice(0, side.length) });
 
 export type TopStyle = "none" | "spaghetti" | "shirt" | "longSleeve" | "overalls" | "dress";
 export type BottomStyle = "none" | "shorts" | "skirt";

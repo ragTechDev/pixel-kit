@@ -412,3 +412,19 @@ test("walk cycle: from the front and back the two legs never merge into one", ()
         }
     }
 });
+
+test("in profile the hand of an arm swung forward is over the body", () => {
+    const skin = new Set(Object.values(skinPalettes.light));
+    const shirt = new Set(Object.values(clothesPalettes.red));
+    const look = { headOrientation: "right", skinTone: "light", topStyle: "shirt", clothesColor: "red", hairLength: "bald", shoeStyle: "none", bottomStyle: "none" };
+    const standing = buildAvatar(look);
+    const swung = buildAvatar({ ...look, legPose: "contactLeft" });
+    assert.deepEqual([swung.width, swung.height], [standing.width, standing.height]);
+    const colour = (r, x, y) => r.colors[r.px[y * r.width + x]];
+    // The torso is the shirt columns on a row with no arm; the hand is the lowest skin that sits among them.
+    const row = standing.height - 11;
+    const torso = [...Array(standing.width).keys()].filter((x) => shirt.has(colour(standing, x, row)));
+    const handRows = [...Array(5).keys()].map((i) => row + 2 + i);
+    const over = handRows.some((y) => torso.some((x) => skin.has(colour(swung, x, y)) && shirt.has(colour(standing, x, row))));
+    assert.ok(over);
+});

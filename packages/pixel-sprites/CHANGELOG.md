@@ -16,6 +16,7 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 - **`legPose: "step"` is replaced by the four frames of a walk.** `LegPose` is now `neutral`, `contactLeft` or `contactRight`, in front, back and side views, and `walkCycle` plays them as left, standing, right, standing. Replace `"step"` with a frame of `walkCycle`, which is also new. An unknown value, such as the old `"step"`, falls back to `neutral`.
 
 ### Added
+- Hands. The end of each arm is now its own skin layer, drawn over the clothes with its own outline, so an arm swung in front overlaps the body. Every avatar's pixels change slightly because of it.
 - Walk-cycle legs, footwear (boots, shoes, sandals) and, from the front and back, arms and sleeves that swing against the legs, for every view. The right-foot frame is the left-foot one flipped, and the back view is the front flipped. A side view cannot show which foot leads, so both feet share its stride.
 
 ## [0.9.0] - 2026-11-26

@@ -3,10 +3,6 @@ import { configKey } from "../core/cache";
 import { mirrorMask, type PixelMask } from "../core/maskUtils";
 import { clothesPalettes, eyePalettes, hairPalettes, skinPalettes } from "../core/palette";
 import { defineSprite, rampSlots, shadeMask, SLOT, type Sprite } from "../core/sprite";
-import { armsFrontMask } from "./masks/armsFront.mask";
-import { armsSideMask } from "./masks/armsSide.mask";
-import { armsSideBackMask } from "./masks/armsSideBack.mask";
-import { armsSideForwardMask } from "./masks/armsSideForward.mask";
 import { eyesFrontMask } from "./masks/eyesFront.mask";
 import { eyesSideMask } from "./masks/eyesSide.mask";
 import { headFrontMask } from "./masks/headFront.mask";
@@ -14,7 +10,8 @@ import { headSideMask } from "./masks/headSide.mask";
 import { legsFrontMask } from "./masks/legsFront.mask";
 import { legsSideMask } from "./masks/legsSide.mask";
 import { legsFrontContactMask, legsSideContactMask } from "./masks/legs/legsContact.mask";
-import { armFrames, legFrames, legPoses, type LegPose } from "./legPoses";
+import { armOver, backHands, legFrames, legPoses, splitHalves, type LegPose } from "./legPoses";
+import { armsFrames, handsFrames } from "./arms";
 import { torsoFrontMask } from "./masks/torsoFront.mask";
 import { torsoSideMask } from "./masks/torsoSide.mask";
 import { accessoryParts, hairAccessories, type HairAccessory } from "./styles/hairAccessories";
@@ -195,7 +192,6 @@ function flatSprite(mask: PixelMask, outlined: boolean): Sprite {
     return sprite;
 }
 
-const armsFrames = armFrames(armsFrontMask, armsSideMask, { forward: armsSideForwardMask, back: armsSideBackMask });
 const headMasks = { front: headFrontMask, side: headSideMask };
 const legsFrames = legFrames(
     { front: legsFrontMask, side: legsSideMask },
@@ -270,13 +266,27 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
 
     const legs = layer(maskForView(legsFrames[c.legPose], o), skin, 2, 13);
     const torso = layer(maskForView(torsoMasks, o), skin, 2, 6);
-    const arms = layer(maskForView(armsFrames[c.legPose], o), skin, 0, 6);
+    const inProfile = o === "left" || o === "right";
+    // In a walking pose, from the front the arm that has come in close to the body is drawn over the clothes, and from
+    // behind both are, so that no sleeve is left over a hidden arm.
+    const armsMask = maskForView(armsFrames[c.legPose], o);
+    const walking = armOver(c.legPose) !== undefined && !inProfile;
+    const armSplit = splitHalves(armsMask, o === "front" && walking ? armOver(c.legPose) : undefined);
+    const arms = layer(o === "back" && walking ? armSplit.side : armSplit.rest, skin, 0, 6);
+    // Where that arm lies over the top or the bottom it has no outline of its own, so it is not boxed in against the body.
+    const clothesUnder = [...clothesSlots(c.topColor), ...clothesSlots(c.bottomColor)].filter(Boolean);
+    const armOverClothes = !walking ? [] : [{ ...layer(o === "back" ? armSplit.rest : armSplit.side, skin, 0, 6), noOutlineOver: clothesUnder }];
+    // The hands are drawn over the clothes, so an arm swung in front has its hand overlapping the body. From behind the
+    // arm is over the hand, so the hand goes under it, except the hand of an arm swung back toward the viewer.
+    const handMask = maskForView(handsFrames[c.legPose], o);
+    const behind = o === "back" ? backHands(handMask, c.legPose) : undefined;
+    const hands = layer(behind ? behind.over : handMask, skin, 0, 6);
+    const handsUnder = behind ? [layer(behind.under, skin, 0, 6)] : [];
     // Loose hair frames the face, so the head has no outline where it sits against that hair.
     const head: Layer = {
         ...layer(maskForView(headMasks, o), skin, 1, -5),
         ...(isLooseHair(c.backHairStyle) && c.hairLength !== "bald" ? { noOutlineOver: hairBody } : {})
     };
-    const inProfile = o === "left" || o === "right";
     // The back of the head has no face. In profile one eye sits near the face side of the head.
     const eyeLayers: Layer[] =
         o === "front"
@@ -291,10 +301,12 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         legs,
         torso,
         // In profile the arm hangs in front of the torso, so it goes over the clothes on the body.
+        ...handsUnder,
         ...(inProfile ? [] : [arms]),
         ...garmentsAt("overBody"),
-        ...(inProfile ? [arms] : []),
+        ...(inProfile ? [arms] : armOverClothes),
         ...garmentsAt("overArms"),
+        hands,
         ...hairAt("behindHead"),
         head,
         ...eyeLayers,
