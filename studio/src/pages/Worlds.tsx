@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { PixelImage } from "../../../packages/pixel-sprites/src/react";
-import { TILE_SIZE, defaultTileTheme, buildMap, mapTileSize, toMapVariant } from "../../../packages/pixel-sprites/src";
+import { PixelImage } from "@ragtechdev/pixel-sprites/react";
+import { TILE_SIZE, defaultTileTheme, buildMap, mapTileSize, toMapVariant } from "@ragtechdev/pixel-sprites";
 import { useWidth } from "../hooks";
 import { themeOf, tileColorsOf, variantOf, type Route } from "../router";
 import { CustomColours } from "../CustomColours";

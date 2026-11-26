@@ -1,4 +1,4 @@
-import type { IconId, ObjectId, TileId } from "../../packages/pixel-sprites/src";
+import type { IconId, ObjectId, TileId } from "@ragtechdev/pixel-sprites";
 
 export const idLabel = (id: string) => id.replaceAll("_", " ");
 

@@ -1,5 +1,15 @@
 {
   "extends": "../tsconfig.base.json",
-  "compilerOptions": { "noEmit": true },
-  "include": ["src", "../packages/pixel-sprites/src"]
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "@ragtechdev/pixel-sprites": ["../packages/pixel-sprites/src/index.ts"],
+      "@ragtechdev/pixel-sprites/canvas": ["../packages/pixel-sprites/src/canvas/index.ts"],
+      "@ragtechdev/pixel-sprites/react": ["../packages/pixel-sprites/src/react/index.tsx"],
+      "@ragtechdev/pixel-engine": ["../packages/pixel-engine/src/index.ts"],
+      "@ragtechdev/pixel-engine/dom": ["../packages/pixel-engine/src/dom/index.ts"],
+      "@ragtechdev/pixel-engine/react": ["../packages/pixel-engine/src/react/index.tsx"]
+    }
+  },
+  "include": ["src", "../packages/pixel-sprites/src", "../packages/pixel-engine/src"]
 }

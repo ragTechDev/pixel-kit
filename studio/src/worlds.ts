@@ -1,4 +1,4 @@
-import { defineMap, houseTileset, townTileset, type ObjectId, type PlacedObject } from "../../packages/pixel-sprites/src";
+import { defineMap, houseTileset, townTileset, type ObjectId, type PlacedObject } from "@ragtechdev/pixel-sprites";
 
 const at = (id: ObjectId, ...spots: [number, number][]): PlacedObject[] => spots.map(([x, y]) => ({ id, x, y }));
 
