@@ -97,6 +97,7 @@ A few details that are easy to miss:
 - **A tab that was hidden catches up on at most a quarter of a second** (`maxFrame`), not a burst of thousands of updates.
 - **A fresh press is visible to exactly one update**, even when a frame runs two (`input.wasPressed`).
 - **Water counts as solid.** `isWalkable` is `false` off the map, on solid terrain, on water and on the blocking cells of an object. A tree's canopy is open and its trunk blocks.
+- **Doors are solid unless you ask.** A door in a wall sits on a solid tile, so `isWalkable(map, x, y, { doors: true })` lets a walker step onto it. When `walker.update` reports the arrival, check `queryCell(map, walker.tx, walker.ty)?.door` and switch scenes.
 - **Browser shortcuts keep working.** Keys pressed with Ctrl, Cmd or Alt are never taken, and everything is released when focus is lost.
 
 ## Size

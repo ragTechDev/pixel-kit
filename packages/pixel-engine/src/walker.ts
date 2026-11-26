@@ -14,10 +14,18 @@ export function neighbor(tx: number, ty: number, direction: Direction): { x: num
     return { x: tx + dx, y: ty + dy };
 }
 
+export interface WalkOptions {
+    /**
+     * Count a door as open even where its tile is solid, as a door in a wall is, so a walker can step onto it
+     * and the game can warp when `update` reports the arrival. Default false.
+     */
+    readonly doors?: boolean;
+}
+
 /** True when a walker can stand on the tile: it is on the map and neither solid terrain, water nor a blocking object covers it. */
-export function isWalkable(map: TileMap, tx: number, ty: number): boolean {
+export function isWalkable(map: TileMap, tx: number, ty: number, { doors = false }: WalkOptions = {}): boolean {
     const cell = queryCell(map, tx, ty);
-    return cell !== undefined && !cell.solid;
+    return cell !== undefined && (!cell.solid || (doors && cell.door));
 }
 
 export interface WalkerOptions {

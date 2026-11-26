@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { defineMap, townTileset } from "@ragtechdev/pixel-sprites";
+import { defineMap, queryCell, townTileset } from "@ragtechdev/pixel-sprites";
 import { createWalker, isWalkable, neighbor } from "../dist/index.js";
 
 const open = () => true;
@@ -111,4 +111,32 @@ test("a walker stops at water and at a tree trunk on a real map", () => {
     const toTrunk = createWalker({ x: 1, y: 1 });
     assert.equal(toTrunk.walk("left", canEnter), "blocked");
     assert.equal(createWalker({ x: 1, y: 1 }).walk("down", canEnter), "moved");
+});
+
+// A door in a house wall sits on a solid wall tile. Without the option it blocks like the rest of the wall.
+const house = defineMap(
+    townTileset,
+    ["gggggggggg", "gg<==>gggg", "gg[__]gggg", "gggpgggggg"],
+    [{ id: "door", x: 7, y: 5 }, { id: "tree", x: 0, y: 0 }]
+);
+
+test("a door in a wall is walkable only when doors are asked for", () => {
+    assert.equal(isWalkable(house, 7, 5), false, "the wall tile under the door is solid");
+    assert.equal(isWalkable(house, 7, 5, { doors: true }), true);
+    assert.equal(isWalkable(house, 7, 5, { doors: false }), false);
+    assert.equal(isWalkable(house, 6, 5, { doors: true }), false, "the rest of the wall still blocks");
+    assert.equal(isWalkable(house, 0, 1, { doors: true }), false, "and so does a tree trunk");
+    assert.equal(isWalkable(house, -1, 5, { doors: true }), false, "off the map is never open");
+    assert.equal(queryCell(house, 7, 5).door, true);
+});
+
+test("a walker steps onto a door and the arrival is the moment to warp", () => {
+    const walker = createWalker({ x: 7, y: 6, facing: "up" });
+    const canEnter = (x, y) => isWalkable(house, x, y, { doors: true });
+    assert.equal(walker.walk("up", canEnter), "moved");
+    let arrived = false;
+    for (let i = 0; i < 20 && !arrived; i += 1) arrived = walker.update(1 / 60);
+    assert.ok(arrived);
+    assert.equal(queryCell(house, walker.tx, walker.ty).door, true);
+    assert.equal(walker.walk("up", canEnter), "blocked", "and the wall behind the door still blocks");
 });
