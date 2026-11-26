@@ -3,7 +3,8 @@ import { useHandheld, useHeight } from "./hooks";
 import { href, useRoute } from "./router";
 import { AvatarsPage } from "./pages/Avatars";
 import { BrowsePage } from "./pages/Browse";
-import { DocsPage, docSections } from "./pages/Docs";
+import { DocsPage } from "./pages/Docs";
+import { docSections, docTitle } from "./pages/docTopics";
 import { HomePage } from "./pages/Home";
 import { PlayPage } from "./pages/Play";
 import { WorldsPage } from "./pages/Worlds";
@@ -33,7 +34,7 @@ export default function App() {
     // Each Docs topic is its own page; /docs on its own is the first one.
     const docId = route.path[1] ?? docSections[0][0];
     const title = inDocs
-        ? (docSections.find(([id]) => id === docId)?.[1] ?? "Docs")
+        ? docTitle(docSections.find(([id]) => id === docId)?.[0] ?? docSections[0][0])
         : inPlay
             ? "Play"
             : library.find(([id]) => id === section)?.[1];
@@ -62,7 +63,7 @@ export default function App() {
 
     return (
         <div className={`app${inDocs ? " in-docs" : ""}${handheldPlay ? " play-handheld" : ""}`} style={{ "--main-h": `${headerHeight}px` } as CSSProperties}>
-            <header ref={header} className={`top${inLibrary || inDocs ? "" : " top-solo"}`}>
+            <header ref={header} className={`top${inLibrary ? "" : " top-solo"}`}>
                 <div className="top-main">
                     <a className="brand" href={href([], route)}>
                         <img className="brand-mark" src="./favicon.svg" width="24" height="24" alt="" style={{ imageRendering: "pixelated" }} />
@@ -76,16 +77,12 @@ export default function App() {
                     <a className="top-note" href={GITHUB} aria-label="pixel-kit on GitHub">GitHub ↗</a>
                 </div>
             </header>
-            {(inLibrary || inDocs) && (
-                <nav className="subnav" aria-label={inDocs ? "Docs topics" : "Library"}>
-                    <span className="subnav-label">{inDocs ? "Docs" : "Library"}</span>
-                    {inDocs
-                        ? docSections.map(([id, label]) => (
-                            <a key={id} href={`#/docs/${id}`} aria-current={docId === id ? "page" : undefined}>{label}</a>
-                        ))
-                        : library.map(([id, label]) => (
-                            <a key={id} href={href([id], route)} aria-current={section === id ? "page" : undefined}>{label}</a>
-                        ))}
+            {inLibrary && (
+                <nav className="subnav" aria-label="Library">
+                    <span className="subnav-label">Library</span>
+                    {library.map(([id, label]) => (
+                        <a key={id} href={href([id], route)} aria-current={section === id ? "page" : undefined}>{label}</a>
+                    ))}
                 </nav>
             )}
             <main className="page">{page}</main>

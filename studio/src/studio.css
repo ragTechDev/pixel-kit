@@ -197,9 +197,8 @@ body:has(dialog[open]) { overflow: hidden; }
   .cell .name { font-size: 9px; letter-spacing: 0.04em; }
   :root { --head: 0px; }
   .top { position: static; }
-  /* On a phone the header scrolls away; only the Docs topics stay on screen. */
+  /* On a phone the header scrolls away; only the Docs topic bar stays on screen. */
   .subnav { position: static; }
-  .in-docs .subnav { position: sticky; top: 0; }
   .in-docs { --head: 48px; }
   .page { --page-pad: 12px; }
   .panel { padding: 12px; }
@@ -376,4 +375,31 @@ html:has(.play-handheld) { overscroll-behavior-y: none; }
   .gb-deck .gb-speaker { display: flex; }
   .gb-deck .gb-center { margin: 0 0 14px; align-self: end; }
   .gb-deck .gb-buttons { align-self: start; margin-top: 14px; }
+}
+
+/* Docs: a sidebar of grouped topics beside the page on a wide screen, a drop-down bar on a narrow one. With the sticky header
+   as the only thing above them, headings scroll to just below it. */
+.in-docs { --head: var(--main-h, 56px); }
+.docs-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 32px; align-items: start; }
+.docs-nav { position: sticky; top: calc(var(--main-h, 50px) + 12px); max-height: calc(100vh - var(--main-h, 50px) - 24px); overflow-y: auto; padding-right: 4px; }
+.docs-nav-toggle { display: none; }
+.docs-group + .docs-group { margin-top: 18px; }
+.docs-group-title { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); padding: 0 8px 4px; margin-bottom: 6px; border-bottom: 2px solid var(--border); }
+.docs-group ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.docs-group a { display: block; padding: 5px 8px; font-size: 13px; text-decoration: none; border-left: 3px solid transparent; }
+.docs-group a:hover { background: var(--section); }
+.docs-group a[aria-current="page"] { background: var(--active); color: #fff; border-left-color: var(--active-border); }
+.page-links { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.prose .page-links .next-link { margin-top: 8px; }
+.prose .prev-link { text-align: left; }
+
+@media (max-width: 900px) {
+  .docs-layout { display: block; }
+  .docs-nav { position: sticky; top: 0; z-index: 9; max-height: none; overflow: visible; padding: 0; margin: calc(-1 * var(--page-pad)) calc(-1 * var(--page-pad)) 12px; background: var(--section); border-bottom: 3px solid var(--border); box-shadow: 0 3px 0 var(--ink); }
+  .docs-nav-toggle { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px var(--page-pad); background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+  .docs-nav-kicker { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+  .docs-nav-current { flex: 1; min-width: 0; font-weight: 700; }
+  .docs-topics { display: none; max-height: calc(100vh - 110px); max-height: calc(100dvh - 110px); overflow-y: auto; padding: 8px var(--page-pad) 14px; background: var(--section); border-top: 2px solid var(--border); }
+  .docs-nav[data-open] .docs-topics { display: block; }
+  .docs-group a { padding: 11px 8px; font-size: 14px; }
 }

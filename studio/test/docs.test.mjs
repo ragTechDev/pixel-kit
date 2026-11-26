@@ -64,15 +64,40 @@ test("every name the docs, the home page and the Play page import from our packa
     assert.ok(checked >= 40, `only ${checked} imports were found, so the pattern may have stopped matching`);
 });
 
-test("the engine topics are in the Docs menu, in order, before the design rules", () => {
-    const docs = read("studio/src/pages/Docs.tsx");
-    const ids = [...docs.matchAll(/^\s+\["([a-z-]+)", "[^"]+"\],?$/gm)].map((m) => m[1]);
+/** The grouped topics, from docTopics.ts (which holds no React, so it can be bundled and imported as it is). */
+async function loadTopics() {
+    const bundle = await build({ entryPoints: [join(root, "studio/src/pages/docTopics.ts")], bundle: true, write: false, format: "esm", logLevel: "silent" });
+    return import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`);
+}
+
+test("the topics are grouped, in reading order, with the engine after the sprites and the rules last", async () => {
+    const { docGroups, docSections } = await loadTopics();
+    assert.deepEqual(docGroups.map((group) => group.title), ["Sprites", "Engine", "Reference"]);
+    const ids = docSections.map(([id]) => id);
+    assert.equal(new Set(ids).size, ids.length, "no topic appears twice");
+    for (const group of docGroups) assert.ok(group.topics.length > 0, `${group.title} is not empty`);
     const at = (id) => ids.indexOf(id);
-    assert.ok(at("engine") > at("outside-react"), "after the sprites topics");
-    assert.ok(at("engine") < at("engine-loop") && at("engine-loop") < at("engine-world"), "in reading order");
-    assert.ok(at("engine-world") < at("rules"), "before the design rules, which end the docs");
+    assert.ok(at("outside-react") < at("engine"), "the sprites come before the engine");
+    assert.ok(at("engine") < at("engine-loop") && at("engine-loop") < at("engine-world"), "the engine topics are in reading order");
+    assert.equal(ids.at(-1), "rules", "the design rules end the docs");
+    assert.equal(ids[0], "start", "and it starts with getting started");
+});
+
+test("every topic has a page, a menu label and a heading", async () => {
+    const { docTopics, docTitle } = await loadTopics();
+    const docs = read("studio/src/pages/Docs.tsx");
+    for (const [id, label] of docTopics) {
+        assert.ok(new RegExp(`^\\s+(?:"${id}"|${id}): \\(\\) =>`, "m").test(docs), `${id} has a page in Docs.tsx`);
+        assert.ok(label.length > 0 && docTitle(id).length > 0, `${id} has a label and a title`);
+    }
+});
+
+test("an engine topic's heading says it is about the engine even though its menu label sits under an Engine heading", async () => {
+    const { docTitle, docSections } = await loadTopics();
+    const label = (id) => docSections.find(([known]) => known === id)[1];
     for (const id of ["engine", "engine-loop", "engine-world"]) {
-        assert.ok(docs.includes(`${id.includes("-") ? `"${id}"` : id}: () =>`), `${id} has a page`);
+        assert.ok(docTitle(id).startsWith("Engine: "), `${id}: ${docTitle(id)}`);
+        assert.ok(!label(id).startsWith("Engine"), `${id}'s menu label is short: ${label(id)}`);
     }
 });
 
