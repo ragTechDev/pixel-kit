@@ -428,3 +428,63 @@ test("in profile the hand of an arm swung forward is over the body", () => {
     const over = handRows.some((y) => torso.some((x) => skin.has(colour(swung, x, y)) && shirt.has(colour(standing, x, row))));
     assert.ok(over);
 });
+
+test("walk cycle: hair swishes with the steps and the avatar keeps its size", () => {
+    const looks = [
+        { backHairStyle: "lowPonytailRight", hairLength: "armpit" },
+        { backHairStyle: "highPigtails", hairLength: "shoulder" },
+        { backHairStyle: "looseBlunt", hairLength: "midBack", hairDrape: "behindShoulder" },
+        { backHairStyle: "looseBlunt", hairLength: "chin" }
+    ];
+    for (const look of looks) {
+        for (const headOrientation of ["front", "back", "left", "right"]) {
+            const frames = ["neutral", "contactLeft", "contactRight"].map((legPose) => buildAvatar({ ...look, headOrientation, legPose, hairColor: "red", hairAccessory: "none", clothesColor: "blue" }));
+            for (const f of frames) assert.deepEqual([f.width, f.height], [frames[0].width, frames[0].height], `${look.backHairStyle} ${headOrientation}`);
+            // The hair is the only red here, so where the picture's pixels in the hair's colours are is where the hair is.
+            const ramp = new Set(Object.values(hairPalettes.red));
+            const where = (f) => [...f.px].map((p, i) => (ramp.has(f.colors[p]) ? i : -1)).filter((i) => i >= 0).join();
+            assert.notEqual(where(frames[1]), where(frames[0]), `${look.backHairStyle} ${headOrientation} swings`);
+            assert.notEqual(where(frames[1]), where(frames[2]), `${look.backHairStyle} ${headOrientation} swings both ways`);
+        }
+    }
+});
+
+test("walk cycle: from the front and back the hair swings toward the planted foot", () => {
+    // Read from the picture alone: the planted foot is the lowest skin, and the hair is the only red.
+    const skin = new Set(Object.values(skinPalettes.light));
+    const hair = new Set(Object.values(hairPalettes.red));
+    const centroid = (r, rows, wanted) => {
+        let sum = 0;
+        let count = 0;
+        for (const y of rows) {
+            for (let x = 0; x < r.width; x += 1) {
+                if (wanted.has(r.colors[r.px[y * r.width + x]])) {
+                    sum += x;
+                    count += 1;
+                }
+            }
+        }
+        return sum / count;
+    };
+    const all = (r) => [...Array(r.height).keys()];
+    const lowestSkinRow = (r) => Math.max(...all(r).filter((y) => centroid(r, [y], skin) >= 0));
+    const looks = [
+        { backHairStyle: "looseBlunt", hairLength: "midBack", hairDrape: "behindShoulder" },
+        { backHairStyle: "lowPonytailMiddle", hairLength: "armpit" },
+        { backHairStyle: "highPigtails", hairLength: "shoulder" },
+        { backHairStyle: "looseBlunt", hairLength: "chin" }
+    ];
+    for (const look of looks) {
+        for (const headOrientation of ["front", "back"]) {
+            const base = { ...look, headOrientation, hairColor: "red", skinTone: "light", clothesColor: "blue", topStyle: "shirt", bottomStyle: "shorts", shoeStyle: "none", hairAccessory: "none" };
+            const standing = buildAvatar(base);
+            for (const legPose of ["contactLeft", "contactRight"]) {
+                const stepping = buildAvatar({ ...base, legPose });
+                const planted = Math.sign(centroid(stepping, [lowestSkinRow(stepping)], skin) - centroid(standing, [lowestSkinRow(standing)], skin));
+                const swung = Math.sign(centroid(stepping, all(stepping), hair) - centroid(standing, all(standing), hair));
+                assert.notEqual(planted, 0, `${headOrientation} ${legPose}: a planted foot`);
+                assert.equal(swung, planted, `${look.backHairStyle} ${headOrientation} ${legPose}`);
+            }
+        }
+    }
+});

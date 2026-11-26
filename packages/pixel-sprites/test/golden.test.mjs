@@ -1,7 +1,8 @@
 // Pixel-for-pixel check against the pre-refactor React/SVG renderer.
 // Fixture: per-pixel SHA-256 fingerprints recorded from commit db0a2c2. Front-facing entries are still the original
 // pixels; the left, right and back entries were re-recorded when those views got their own masks, and again when the side legs and feet were narrowed to be smaller than the body. Every entry was re-recorded when
-// hands became their own part, drawn with an outline over the end of each arm.
+// hands became their own part, drawn with an outline over the end of each arm, and the entries with back hair were
+// re-recorded when that hair got room to swish, which makes the picture a little wider.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";

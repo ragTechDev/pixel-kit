@@ -3,121 +3,121 @@
  "avatars": [
   {
    "config": {},
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "headOrientation": "front"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "headOrientation": "left"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "6b6f3c6fb012ed3eddef22109af8276dcaa914343edf0fa7d02266947894569c"
+   "sha256": "8fad26bd5c673b88b3a5dbad460ea7a597bdba81eb255c4fa4912d8d00e5f8b7"
   },
   {
    "config": {
     "headOrientation": "right"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "cd91896bd3ce3412443be43dbe9e9f1d300ee6ee870e6946c5c1ba4058184134"
+   "sha256": "c1edef82521e49b978c2207ea21ce0c8acb2669f179af6daa987e1a9da0880ce"
   },
   {
    "config": {
     "headOrientation": "back"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "d3b3faea009433ab61ed27b7c45b6844e41583da3ac812e9e8f64a015b63cc60"
+   "sha256": "52c9d80f06d2c0b302852e0d0c1d3f78cd77c37462ab8e2578f584db40f59c75"
   },
   {
    "config": {
     "skinTone": "light"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "skinTone": "medium"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "f6766deeacc71afecf26caeacce82d5cd28aaba0b1c95eaab4aabb6e07ff8a6b"
+   "sha256": "8b281283aed25c0ddffa809976190ff0095c896ee9c66ccc247eb40477c62bf0"
   },
   {
    "config": {
     "skinTone": "brown"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "931d0cd542d56d67cda7776b5efea498deb04f78088b98857608cde369dfd2e0"
+   "sha256": "e1588e3cfd8255928821814e7d8850492075c72d0f621ca3c1b699207f89554a"
   },
   {
    "config": {
     "frontHairStyle": "centerPart"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "frontHairStyle": "bangs"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "aff5cb7ec94d7409b58511841792ea461167800041de8dc796cd62dd27c2e40b"
+   "sha256": "a557ac8f8cb924010062edc5cb4d38e478d3e182cbb049dc89a38c25ed2607fa"
   },
   {
    "config": {
     "frontHairStyle": "sideSwept"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "60a64bdb6cb672f001c687e9ddb330f5bb72a0573a8dfbf5d463b245443314fe"
+   "sha256": "4794701cc6ea5642c74e947160c55721fbfff8dca22aae76d04dd50f3fa72f09"
   },
   {
    "config": {
     "backHairStyle": "lowPonytailRight"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "backHairStyle": "highPonytailRight"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "38c65a15f4058dae5f2acc66d3be0c5cd80f23242fdd36e8f1fca22bcaeb825c"
+   "sha256": "ce18675ff7787d1efcab3889e17b5fd144a462fcaf0d3ea39422e65db13482ee"
   },
   {
    "config": {
     "backHairStyle": "lowPigtails"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "fd1a50a205b68f5325863dc9bed97b1bc54557377664a4757cfdecb6ca532d11"
+   "sha256": "03da7a9c0d177cf95b7a6cf24feaa2ce3f73c40bd5703af7b8c824f319275f97"
   },
   {
    "config": {
     "backHairStyle": "highPigtails"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "4209c14f2e90d8d638f0c36d92acb06d2443ca3fda439e6904d0902acd4a94a7"
+   "sha256": "965e6abee40f7cf05014f0d541dda862b14dc412e6d0d88525d7504ad44a6e1d"
   },
   {
    "config": {
@@ -132,223 +132,223 @@
    "config": {
     "hairColor": "brown"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "hairColor": "black"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "ffd96b6b8fed23ee5f98b0e2c5715fa87a6f03abdd1bf462aaead8b78b916a1e"
+   "sha256": "26e5386e43c803bbacc802ac4eb874013a29e0fa4a1d10c5c309a2100e557f72"
   },
   {
    "config": {
     "hairColor": "blonde"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "e8a01f6d79afb792541f415e4df9acbc46739dc1097c71925284b8740c4be5cb"
+   "sha256": "08549323d414520c1aabe8ae507b0df0a99dc0403156abedab4c39c8ad328452"
   },
   {
    "config": {
     "eyeColor": "dark"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "eyeColor": "green"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "715d15b98563de9ebc5621accc1b8a0a5eb7014c50cb39014899cec032cdf4c4"
+   "sha256": "9a8ec8ca7d0e451caebf81e6b04dbcfb68fb6665cea04be86517e58cb453aa67"
   },
   {
    "config": {
     "eyeColor": "blue"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "0f251e4cb331b3936fcb741a1f505a645ce221e2c26e0296f10823bee207c466"
+   "sha256": "0443dda20229a2e35da7e6430261e6b4b43b7c9202f3113872c1fa43ec3fa61f"
   },
   {
    "config": {
     "clothesColor": "blue"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "clothesColor": "red"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "d8caa6b609cb59da8f61b09a0283920686ebe5e3e0adfbea49400f5376b80a5d"
+   "sha256": "1f1fc7db1363ddcb1c1e6f09ea2f8a0cc7d886b3b00e5923a789bfcabe406900"
   },
   {
    "config": {
     "clothesColor": "green"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "6abfe7bd7c1bb5b5854113158473245a937df2a40d010be733258c2ae625d287"
+   "sha256": "faa1b5dd5fb180411aaf2aae401db3fadae3a201d3173434b1bb2a2acc22da24"
   },
   {
    "config": {
     "topStyle": "none"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "000239543410b6e4fa48dc4a40f3d205417a5d17093ddb4e2b028d6ac9dbe8c9"
+   "sha256": "a584bf97831f4e00233a76067136df2f34c636b2dba21cb3292143462efa249d"
   },
   {
    "config": {
     "topStyle": "spaghetti"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "479a6d29e68f0fbd97d33881d93f32d574f3d6903065c9fef297105b5242ce2c"
+   "sha256": "47e2a2c01e24ecb49587b07a23c734a59eae795ed4c3bc9f966a9a67a4ca40fa"
   },
   {
    "config": {
     "topStyle": "shirt"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "topStyle": "longSleeve"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "3d224df9fa9c6d8272794b8e49cbecc9c95ce0d51dda32d3f32d0c68718b6d0f"
+   "sha256": "e08745a08cb41319cd718814354a0a6c9bf6827b2e19df0b4d6bd020e7855777"
   },
   {
    "config": {
     "bottomStyle": "none"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "f9185e1f4ba47f63034d6003eb16e5b836b1f2985f20c5aef497be715a0572a0"
+   "sha256": "f110bbe3b471ae6cfeb713ee300b89bc4aed199c71192fc22ebc0d51660dcdab"
   },
   {
    "config": {
     "bottomStyle": "shorts"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "bottomStyle": "skirt"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "31e4d6896839443171f594ae9da7d425ba348032bcf58e61c62ff78839f68455"
+   "sha256": "788af40ad26a093557b3adee5d694c2162ea205663fb2b79d8fa2d9037d3e91c"
   },
   {
    "config": {},
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "topStyle": "overalls"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "825d45a7ad142215f577bfc7dd2d7334e5c07724f2833e0d4492c9e11c6244a3"
+   "sha256": "2830766d6526a3996b099babeecfe2538505bb2ba56ee92014d3aafad7271ad6"
   },
   {
    "config": {
     "topStyle": "dress"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "01df686e4ec97448008b51902865ec293893ea98bebf26d047349da39c00225f"
+   "sha256": "406d6035f79f9ad8bb5229baa35e6489fdd42f8bba97cbf79dade7f00b919585"
   },
   {
    "config": {
     "shoeStyle": "none"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "52d8292d444be980423afcdc4cd1321fbd70e805161d6760af6b3633ebbe5fa8"
+   "sha256": "35a577f4dbd544d18b14cb39334d0b8e25a29e3fb08d16113707998cc2533099"
   },
   {
    "config": {
     "shoeStyle": "boots"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "shoeStyle": "sandals"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "c5808bf357ec4f823e3808fd5cc2b7c499dab616379ab09b30be914db9240c2b"
+   "sha256": "0c53e6ef4755521b6f0bd51ab02bbfe282900786494a5d0e1cdc4f3e38e0274d"
   },
   {
    "config": {
     "shoeStyle": "shoes"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "3a5fe94bfb773af562f3f1cd565d3ebddc6b99059d8acf9658c011f61930e84d"
+   "sha256": "281f5dcae84f601c0e1726182ad4a6ee324dbe0616c9c3130d11b23aefb26527"
   },
   {
    "config": {
     "armPose": "down"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "armPose": "forward"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "80e743cbad96833a2e3016c1e9edb44251d74e50be34d4b7965fdd7626300f52"
+   "sha256": "50c6181341f8dc61dd62776ee6f66ecf400f7e9c4868ef0739f7941c535489c4"
   },
   {
    "config": {
     "armPose": "back"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "80e743cbad96833a2e3016c1e9edb44251d74e50be34d4b7965fdd7626300f52"
+   "sha256": "50c6181341f8dc61dd62776ee6f66ecf400f7e9c4868ef0739f7941c535489c4"
   },
   {
    "config": {
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
     "legPose": "step"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5f6b1c23d0010525064a25842e7b30241ea3106166d18a2e3e889106f9c51b3c"
+   "sha256": "06cec1d3343efc2fa88000192696b1931b3be0b4d600be8ff5182cb4f1e04c7f"
   },
   {
    "config": {
@@ -365,9 +365,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "bd297db26dd65a600ca7ee026474991baf8a5204444955525dc259f23f8763be"
+   "sha256": "b94adfdc00c70f44c0d978f858987e061fcfad9089e3e71397bf779cb6108908"
   },
   {
    "config": {
@@ -404,9 +404,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "7c9da6e5de15c9d3931eeac0c059b2108b58ab269f30a5f33ee15c1c970b3802"
+   "sha256": "53e369ec04ad96b0a7a7675a6030ff4f55b190a069972c6abb63aa13d1c5c50c"
   },
   {
    "config": {
@@ -423,9 +423,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "7cb7ff00302b2d7797501638cc92fe5000e3c5daa7c674111fd0abcefbf5090c"
+   "sha256": "855dce36567f9dcbca622c21cc1bf6f89515ed2a01e52deeaa81b41673256fac"
   },
   {
    "config": {
@@ -442,9 +442,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "c700feffe2747f0fe7826d2384fa529d8d345440f8588d8e318a0efe102854f6"
+   "sha256": "afa5bb71bb208fe778ccd306c0b341cf68853e8170fb9686a14b5fd051c3f083"
   },
   {
    "config": {
@@ -461,9 +461,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "d1613062c98efcd8db1e211ac85f9b2c5a6f0282bf1c239293dcf9672eab8b97"
+   "sha256": "974bd5f29ec14b4ab30579dafd8d7cc64c94e1adcd3587fd222d0cbe771a795a"
   },
   {
    "config": {
@@ -480,9 +480,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "c6097ed1b1e72bc5511432720e12f326632c923c5a322bf9cabbf650b6889639"
+   "sha256": "45bfdc3a5da35d4c2a4e9c322e0b03738aaf485a787cfffd8dd3c0ee0249d4d3"
   },
   {
    "config": {
@@ -499,9 +499,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "26f124a84b64eb04c1eed9f1391c55331110c5bbccbd497f327225af6a0f2b1a"
+   "sha256": "d0ee0be7407437c8ff3fd0146a8c0db085c8f60d626524b51f7a3d2b71a07536"
   },
   {
    "config": {
@@ -518,9 +518,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "aef14063041ab0f9efd4568105c2b9819990c620bd07b09cb48b0220f133abb2"
+   "sha256": "a8bb56d431c2d6a013b7d1179793c9ed264e443e0187b2d799d58ca0de84bc16"
   },
   {
    "config": {
@@ -537,9 +537,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "a59975e6ceb14adac1d9680c3714ec7b3a0cae7ce5edf7f21c6e0d1a8bc193b0"
+   "sha256": "12f9539c5a8a7eddf75f511fe11f09bacedc69cf9cc11a90ae3aa988ae9bd7b3"
   },
   {
    "config": {
@@ -556,9 +556,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "2ff28a7bf435dee56d21fb624839067b9a9e890d3ca296b0e4bf909234d22a52"
+   "sha256": "082f09fcea8259ee1ae4f71d927dfa0b240dfa17a7d88d9293d014603b6ca5d1"
   },
   {
    "config": {
@@ -575,9 +575,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "c3456977a2de2c8e1bbe4808771369a81c23b013b16c85f819f2f3d5e809deae"
+   "sha256": "364b7b51b9755c8498238caa42c054ae997a44bf57a5d0cd81c387321662107d"
   },
   {
    "config": {
@@ -594,9 +594,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "a8de0b403d2575104768b82559f9d4a613bc56b4832233fedfcb6cefcf9c444e"
+   "sha256": "6d5e918d05e4fdb6a02ac27c0f137444e1d1168dd21a3eb60ad0c661fc2de9b9"
   },
   {
    "config": {
@@ -613,9 +613,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "766b691bbe4fa7be7138dca649a60dc13d86f6cd0b4957fdc34d1caec91f9e77"
+   "sha256": "9d54a72cf580e643aaf0629ab222840c2a511c5c6cf5c4464fd4d58f32335a82"
   },
   {
    "config": {
@@ -672,9 +672,9 @@
     "armPose": "down",
     "legPose": "step"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "c466d5826aeb1eacec01c9fbf29b9987d3acb32adb3e3217e521d011fce13c59"
+   "sha256": "e8bf16ba59c901db7c1c574ee3fa1f95361fef53355796a26fa920eeefb75f33"
   },
   {
    "config": {
@@ -691,9 +691,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "426658ca08ceeaa5ff998e7d771761067952b46c50316402d116152088f045a1"
+   "sha256": "de3e3dc13ad83dbafb9bdc5c1fbe5d8862de31c9e216ae55be0ddc020c4b1030"
   },
   {
    "config": {
@@ -710,9 +710,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "4b5224dc554fe3ffc05f8bc684e21efaf1bda00f761148552e0bd6868e4620cd"
+   "sha256": "616e7370897ebd9689cfa36f0f2e4cf81f82e1b0ecb4913c0ba09298d706a030"
   },
   {
    "config": {
@@ -729,9 +729,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "971c0d5233ab5424462821eecb9420a57205575f544c013b7f5aebd94f9364ce"
+   "sha256": "0d85b8d642263f82ac178cd1afe2e4ccea185a7cdfb5de52b96e936504a66c65"
   },
   {
    "config": {
@@ -748,9 +748,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "2bd6b558f0b9a33cda78e79d2e5d94ce32f15cd36cdc5096dc9565c12c481347"
+   "sha256": "d101481a0ca71060075184fdaff477a28a70fba88583aac33c5c5cae8b19b702"
   },
   {
    "config": {
@@ -767,9 +767,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "59a23993a2dfd88b76b2d57354db7f719af1b8e7b317604953f1a29b4c05d6e8"
+   "sha256": "967fcd2b42bfa85b66b2cbed7aa0e6558c5140e3b32b5c124163eb51f6b73d8e"
   },
   {
    "config": {
@@ -786,9 +786,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "19e980c2d452a5239db7ee17bb309f0f66b37edac902b1ce3ebf09ecc770a5b5"
+   "sha256": "a9f1450812c4736008d412ec17a3043651624317e69bbbe249b3d89064a94353"
   },
   {
    "config": {
@@ -805,9 +805,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "d88f58aaf63e055e2a437969f5b300e9b259ca6dd7cd33bd972ff7d996703af3"
+   "sha256": "bd362ac408414baff32200a21e4aa3f9b3ad46e23cfb12d182dcc6630a268c9c"
   },
   {
    "config": {
@@ -824,9 +824,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "55634da21aa43af5b32e418b7e336e82312a87e298342d575fe12a342d73f1ec"
+   "sha256": "b36d2225d0ddf9ee92b3c0f95605df392c4de512409c5956cd7076d813dd75cc"
   },
   {
    "config": {
@@ -843,9 +843,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "7f7c8e042c6956ad90c3516b71b03c78c62b3b5fdfbda09c21fec2ca5e661c1f"
+   "sha256": "9af325069d25b3d9bad61e9d205c344650637de4e37b9de9e9ecb7a66d3fb791"
   },
   {
    "config": {
@@ -862,9 +862,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "44b204ac20c0207c14b388db4d59fc68de9eb2b89c33a2a6f1794504c784bf86"
+   "sha256": "7acd3c1ae9e49268a2756b769f0c2f609701d3b5cf715a249fd2326fa2b766d0"
   },
   {
    "config": {
@@ -881,9 +881,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "0e88a5d7230b716666c7e8336190290c9db14d40ef9f9fc90bcf64acd0e5aaba"
+   "sha256": "b4f017839b51aead5db1c1dddfc4935589295d3ef665b5d79e47f9f44a2b7d46"
   },
   {
    "config": {
@@ -900,9 +900,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "5d702be2144b3a0b1b2834562979bada3125ac1d26a4453cef277e143f2707f3"
+   "sha256": "a1de3ffc0d336b16c1a12e2baf6b026308f8c000cd0093ce56fc868fd6b4e662"
   },
   {
    "config": {
@@ -919,9 +919,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "e66e20aa536b7a715e98df766c7f2da62665f5099738a155254b610b20369e0a"
+   "sha256": "86ca2932efb4364a56c13b9f82292f42dda09407a3f71a6547639686b8172455"
   },
   {
    "config": {
@@ -938,9 +938,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "5688766a6347ba663207bdb6d83a1fe170b9c9475cb35053b5de45f26b73744d"
+   "sha256": "811318fb0113198998342084a4eb69e7d65a61ccc7084702bc46b75fa15ec3ae"
   },
   {
    "config": {
@@ -957,9 +957,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "cb1d1f8644d3aa3011f064423e4a54893264391d131c362fcf33142d12e58b5e"
+   "sha256": "86bbafdcbe575f7e02d76915b0fb0bab449e927ea9cc53dc306643c95090411c"
   },
   {
    "config": {
@@ -976,9 +976,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "6745239f3fa7a8c7edc750b81d4121fbbf9bdd7aecbb69a2a5f3f5173b970a25"
+   "sha256": "620afec81d4d9dedee9037ebf8f0bbb8a3f6db52ba8a285ae3dff42ca7645f6e"
   },
   {
    "config": {
@@ -995,9 +995,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "4174c6a8f2a1b7d484c591dd70be30115071bd5d0b369a36dea90b8482136e20"
+   "sha256": "2ab5bf4f6aff21541e9f2d1510a3ce0cb4af4eb5ed5ef3ab2158626622e8929d"
   },
   {
    "config": {
@@ -1014,9 +1014,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "302ebb46ff261aff9e6bafb6fc584fa0bba4138dac95107fdb3d79c6cd082be6"
+   "sha256": "62c67cf6d15601967d5b6a7d640b72f3e4a0cfefda5b5ca262191556e677275a"
   },
   {
    "config": {
@@ -1033,9 +1033,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "280b65c49e4ffc576f248b60ba399416264559db68b3b0560191d76908cda73e"
+   "sha256": "592d50243db852896278403a2e65c912a21f1985c5e9005fd679ed12321aa682"
   },
   {
    "config": {
@@ -1052,9 +1052,9 @@
     "armPose": "back",
     "legPose": "neutral"
    },
-   "width": 16,
+   "width": 18,
    "height": 24,
-   "sha256": "98d7d3010f4a44b6aa679019d0bba8843a6775f6271d3ba3c71ed8cae3801db6"
+   "sha256": "3226238788a8dc59a40b04d3b4718d9755d3254e57a9ac13afc7445315878f68"
   },
   {
    "config": {
@@ -1071,9 +1071,9 @@
     "armPose": "down",
     "legPose": "neutral"
    },
-   "width": 17,
+   "width": 19,
    "height": 24,
-   "sha256": "ebe0e1b6025750c2b45fb39fdd0b598bd9bf615954c12616de6f04b0a7f9a1e2"
+   "sha256": "9fcfbc1061c0bddbe5fe31fb65f4cb2e39873249e1551aa6cb811f9a0ad6468a"
   },
   {
    "config": {
@@ -1110,9 +1110,9 @@
     "armPose": "forward",
     "legPose": "neutral"
    },
-   "width": 19,
+   "width": 23,
    "height": 24,
-   "sha256": "53fe0e568eaa5a495f643d0e32e0036030e79b8e9f224341d9f67928a5d82587"
+   "sha256": "a9f7032923649644f8198e63fc23d02b6de0c803366cc2a1f6a9e1079baa4a2e"
   }
  ]
 }

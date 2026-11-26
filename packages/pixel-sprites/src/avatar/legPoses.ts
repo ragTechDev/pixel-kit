@@ -180,14 +180,6 @@ export function handFrames(arms: Record<LegPose, ViewMasks>): Record<LegPose, Vi
     );
 }
 
-/**
- * Which arm is drawn over the clothes, left or right of the picture, on each step (the right on a left-foot step). From the front it is the arm swung
- * forward, which has come in close to the body; from behind it is the one swung back, which comes toward the viewer.
- * Standing, both arms are under the clothes.
- */
-const overSide = { contactLeft: "right", contactRight: "left" } as const;
-export const armOver = (pose: LegPose): "left" | "right" | undefined => (pose === "neutral" ? undefined : overSide[pose]);
-
 /** Splits a front or back mask into the half on `side` and the other half, each the size of the original. */
 export function splitHalves(mask: PixelMask, side: "left" | "right" | undefined): { side: PixelMask; rest: PixelMask } {
     const width = mask[0].length;
@@ -202,8 +194,7 @@ export function splitHalves(mask: PixelMask, side: "left" | "right" | undefined)
  * of the arm, as it does standing. In a step the arm swung back keeps its hand on the arm's end, over it, and the arm
  * swung forward is moving away from the viewer, so its hand is out of sight behind the arm.
  */
-export function backHands(hands: PixelMask, pose: LegPose): { under: PixelMask; over: PixelMask } {
-    const walking = armOver(pose) !== undefined;
-    const { side, rest } = splitHalves(hands, armOver(pose));
-    return { under: walking ? hands.map((row) => "0".repeat(row.length)) : ["0".repeat(hands[0].length), ...rest], over: side };
+export function backHands(hands: PixelMask, over: "left" | "right" | undefined): { under: PixelMask; over: PixelMask } {
+    const { side, rest } = splitHalves(hands, over);
+    return { under: over ? hands.map((row) => "0".repeat(row.length)) : ["0".repeat(hands[0].length), ...rest], over: side };
 }

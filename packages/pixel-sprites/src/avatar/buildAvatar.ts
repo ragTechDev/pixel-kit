@@ -7,10 +7,9 @@ import { eyesFrontMask } from "./masks/eyesFront.mask";
 import { eyesSideMask } from "./masks/eyesSide.mask";
 import { headFrontMask } from "./masks/headFront.mask";
 import { headSideMask } from "./masks/headSide.mask";
-import { legsFrontMask } from "./masks/legsFront.mask";
-import { legsSideMask } from "./masks/legsSide.mask";
-import { legsFrontContactMask, legsSideContactMask } from "./masks/legs/legsContact.mask";
-import { armOver, backHands, legFrames, legPoses, splitHalves, type LegPose } from "./legPoses";
+import { backHands, legPoses, splitHalves, type LegPose } from "./legPoses";
+import { armOver, legsFrames } from "./legs";
+import { swingHair } from "./hairSwing";
 import { armsFrames, handsFrames } from "./arms";
 import { torsoFrontMask } from "./masks/torsoFront.mask";
 import { torsoSideMask } from "./masks/torsoSide.mask";
@@ -193,10 +192,6 @@ function flatSprite(mask: PixelMask, outlined: boolean): Sprite {
 }
 
 const headMasks = { front: headFrontMask, side: headSideMask };
-const legsFrames = legFrames(
-    { front: legsFrontMask, side: legsSideMask },
-    { front: legsFrontContactMask, side: legsSideContactMask }
-);
 const torsoMasks = { front: torsoFrontMask, side: torsoSideMask };
 const eyesLegend = { "1": SLOT.base, H: SLOT.highlight };
 const eyesSprites = { front: defineSprite(eyesFrontMask, eyesLegend), side: defineSprite(eyesSideMask, eyesLegend) };
@@ -222,6 +217,9 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     });
 
     const hairLayers: readonly HairLayer[] = resolveHairLayers(c.frontHairStyle, c.backHairStyle, c.hairLength, c.hairDrape, o);
+    // In a walking pose the lower hair swishes. The size covers both swings, so the avatar keeps it in every pose.
+    const hairIn = (pose: LegPose) => hairLayers.map((h) => swingHair(h, pose, o));
+    const hairNow = hairIn(c.legPose);
     // A one-piece top (a dress, overalls) covers the legs, so nothing is drawn for the bottom.
     const coversBottom = (topStyles[c.topStyle] as GarmentDefinition).coversBottom === true;
     const piece = (layers: readonly GarmentLayer[], color: ClothesColor | undefined) => {
@@ -262,7 +260,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     };
     // An accessory goes just after its tail, or just before it where the tail falls over the tie.
     const withAccessory = (h: HairLayer): Layer[] => (h.tie?.under ? [...accessoryLayers(h), hairLayer(h)] : [hairLayer(h), ...accessoryLayers(h)]);
-    const hairAt = (placement: HairLayer["placement"]) => hairLayers.filter((h) => h.placement === placement).flatMap(withAccessory);
+    const hairAt = (placement: HairLayer["placement"]) => hairNow.filter((h) => h.placement === placement).flatMap(withAccessory);
 
     const legs = layer(maskForView(legsFrames[c.legPose], o), skin, 2, 13);
     const torso = layer(maskForView(torsoMasks, o), skin, 2, 6);
@@ -270,8 +268,9 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     // In a walking pose, from the front the arm that has come in close to the body is drawn over the clothes, and from
     // behind both are, so that no sleeve is left over a hidden arm.
     const armsMask = maskForView(armsFrames[c.legPose], o);
-    const walking = armOver(c.legPose) !== undefined && !inProfile;
-    const armSplit = splitHalves(armsMask, o === "front" && walking ? armOver(c.legPose) : undefined);
+    const over = armOver(c.legPose, o);
+    const walking = over !== undefined;
+    const armSplit = splitHalves(armsMask, o === "front" ? over : undefined);
     const arms = layer(o === "back" && walking ? armSplit.side : armSplit.rest, skin, 0, 6);
     // Where that arm lies over the top or the bottom it has no outline of its own, so it is not boxed in against the body.
     const clothesUnder = [...clothesSlots(c.topColor), ...clothesSlots(c.bottomColor)].filter(Boolean);
@@ -279,7 +278,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     // The hands are drawn over the clothes, so an arm swung in front has its hand overlapping the body. From behind the
     // arm is over the hand, so the hand goes under it, except the hand of an arm swung back toward the viewer.
     const handMask = maskForView(handsFrames[c.legPose], o);
-    const behind = o === "back" ? backHands(handMask, c.legPose) : undefined;
+    const behind = o === "back" ? backHands(handMask, over) : undefined;
     const hands = layer(behind ? behind.over : handMask, skin, 0, 6);
     const handsUnder = behind ? [layer(behind.under, skin, 0, 6)] : [];
     // Loose hair frames the face, so the head has no outline where it sits against that hair.
@@ -326,7 +325,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         torso,
         arms,
         head,
-        ...hairLayers.flatMap(withAccessory),
+        ...[...hairLayers, ...hairIn("contactLeft"), ...hairIn("contactRight")].flatMap(withAccessory),
         ...garments.map((g) => layer(g.mask, g.slots, g.offsetX, g.offsetY))
     ]);
 

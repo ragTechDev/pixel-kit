@@ -54,6 +54,8 @@ export type HairLayer = {
     blends?: true;
     /** Where the tail is tied, as the picture column of its middle and the row. An accessory goes here. */
     tie?: { x: number; y: number; tilt?: "slash" | "backslash"; under?: true };
+    /** A lock that swings when walking. Its rows below this picture row move, further the lower they are; the rows above stay. `reach` is how far the end moves, where it is not the usual amount. */
+    swing?: { pivot: number; reach?: number };
 };
 
 type HairFamilyDefinition = {
@@ -87,6 +89,9 @@ export const hairDrapeApplies = (length: HairLength): boolean => length === "sho
 /** A ponytail is a single tail and pigtails are a pair. */
 /** Loose hair is cut blunt, in a V or in a U. */
 export type BackHairStyle = "looseBlunt" | "looseV" | "looseU" | "highPonytailRight" | "highPonytailLeft" | "highPonytailMiddle" | "lowPonytailRight" | "lowPonytailLeft" | "lowPonytailMiddle" | "highPigtails" | "lowPigtails";
+
+/** How far the end of a tail down the middle swings from the front. It hangs behind the body, so it has to swing far enough to peek out past its sides. */
+const BEHIND_BODY_REACH = 8;
 
 const HEAD_X = 1;
 const HEAD_Y = -5;
@@ -132,6 +137,7 @@ type TailHeight = "high" | "low";
 /** Marks where a tail is tied, for an accessory. */
 const tiedAt = (l: HairLayer, x: number, y: number, tilt?: "slash" | "backslash", under?: boolean): HairLayer => ({
     ...l,
+    swing: { pivot: y },
     tie: { x, y, ...(tilt ? { tilt } : {}), ...(under ? { under: true as const } : {}) }
 });
 
@@ -190,7 +196,8 @@ function ponytail(length: TiedLength, height: TailHeight, drape: HairDrape, posi
         const y = height === "high" ? -7 : 1;
         // It is tied on the tuft above the crown when high, clear of the head's outline, and at the nape when low.
         const tie = height === "high" ? y : y + 1;
-        const front = [tiedAt(layer(mask, 1, y, "behindBody"), 6, tie)];
+        const [tied] = [tiedAt(layer(mask, 1, y, "behindBody"), 6, tie)];
+        const front = [{ ...tied, swing: { pivot: tie, reach: BEHIND_BODY_REACH } }];
         return {
             byOrientation: {
                 front,
@@ -298,6 +305,15 @@ const LOOSE_BACK_Y = HEAD_Y + 6;
 /** Rows of loose hair that hang below the head, which is as far up as a cut can reach. */
 const hanging: Record<Exclude<HairLength, "bald">, number> = { ear: 0, chin: 0, shoulder: 2, armpit: 4, midBack: 6 };
 
+/**
+ * The row loose hair swings from, at the top of the ears. The crown stays, and the sideways shift grows evenly from here
+ * down to the ends, so the hair swings in a gradual slope. Starting lower, at the chin, left the top rigid and only the
+ * last rows moved.
+ */
+const LOOSE_PIVOT = HEAD_Y + 3;
+/** How far the ends of loose hair swing: more than a tail for long hair, since the whole curtain moves, and a little for a chin-length cut. Ear length and shorter stay put. */
+const LOOSE_REACH: Record<Exclude<HairLength, "bald">, number> = { ear: 0, chin: 2, shoulder: 4, armpit: 4, midBack: 4 };
+
 function loose(length: Exclude<HairLength, "bald">, drape: HairDrape, cut: HairCut): HairFamilyDefinition {
     const base = looseMasks[length];
     const cutOf = (mask: PixelMask | undefined) => (mask && cut !== "blunt" ? cutMask(mask, cut, hanging[length]) : mask);
@@ -333,9 +349,14 @@ function loose(length: Exclude<HairLength, "bald">, drape: HairDrape, cut: HairC
         return [top, drape === "overShoulder" ? layer(m.behindFront, 0, HEAD_Y, "behindBody") : layer(m.back!, 0, LOOSE_BACK_Y, "top", true)];
     };
 
+    // The crown stays; the hair from the ears down swings.
+    // Past the chin the crown stays and the hair from the ears down swings. A chin-length cut is all one piece, so it swings whole.
+    const reach = LOOSE_REACH[length];
+    const hangs = (layers: HairLayer[]) =>
+        layers.map((l): HairLayer => (reach === 0 || (l.mask === m.volume && hanging[length] > 0) ? l : { ...l, swing: { pivot: LOOSE_PIVOT, reach } }));
     return {
-        byOrientation: { front: front(), right: profile("right"), left: profile("left"), back: back() },
-        fallback: front()
+        byOrientation: { front: hangs(front()), right: hangs(profile("right")), left: hangs(profile("left")), back: hangs(back()) },
+        fallback: hangs(front())
     };
 }
 
