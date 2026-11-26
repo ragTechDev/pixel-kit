@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Avatar, Icon, Tile, WorldObject } from "@ragtechdev/pixel-sprites/react";
-import { clothesPalettes, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, bottomLengths, skirtShapes, tileThemes, variantSizes } from "@ragtechdev/pixel-sprites";
+import { clothesPalettes, collars, colorDepths, eyePalettes, hairPalettes, iconColors, objectColors, paletteNames, skinPalettes, bottomLengths, skirtShapes, sleeveLengths, tileThemes, topLengths, tucks, variantSizes } from "@ragtechdev/pixel-sprites";
 import { CodeBlock } from "../ui";
 import { docGroups, docSections, docTitle, type DocId, type DocTopic } from "./docTopics";
 
@@ -48,8 +48,8 @@ buildIcon("cottage", { idle: true });`} />
     avatars: () => (
         <>
             <p>An avatar is plain data: ids from fixed tables. Unknown values fall back to a default, so configs loaded from storage are always safe.</p>
-            <Demo><Avatar pixelSize={4} skinTone="medium" hairColor="black" topStyle="shirt" /></Demo>
-            <CodeBlock code={`<Avatar skinTone="medium" hairColor="black" topStyle="shirt" pixelSize={4} />`} />
+            <Demo><Avatar pixelSize={4} skinTone="medium" hairColor="black" topStyle="top" /></Demo>
+            <CodeBlock code={`<Avatar skinTone="medium" hairColor="black" topStyle="top" pixelSize={4} />`} />
         </>
     ),
     worlds: () => (
@@ -120,7 +120,7 @@ const retro = toVariant(buildTile("grass"), { size: 8, bits: 1 });`} />
                 Every colour the library draws comes from a fixed table, so what you build is always one of the named looks below. Pick by name; there is no way to pass a colour of your own to the library.
             </p>
             <h3>Avatars</h3>
-            <p>Each part has its own list. Skin: {Object.keys(skinPalettes).join(", ")}. Hair: {Object.keys(hairPalettes).join(", ")} (<code>brown</code> is brunette). Eyes: {Object.keys(eyePalettes).join(", ")}. Clothes: {Object.keys(clothesPalettes).join(", ")}. <code>clothesColor</code> colours every piece; <code>topColor</code>, <code>bottomColor</code> and <code>shoeColor</code> give one piece a colour of its own. A dress or overalls is a top (<code>topStyle="dress"</code>) that covers the bottom. A skirt is <code>bottomStyle="skirt"</code> with a <code>skirtShape</code> ({Object.keys(skirtShapes).join(", ")}), and pants are <code>bottomStyle="pants"</code>. Both take a <code>bottomLength</code> ({Object.keys(bottomLengths).join(", ")}, where <code>floor</code> covers the feet). Flowing and pleated skirts sway when walking, a pencil skirt does not, and pants step with the legs.</p>
+            <p>Each part has its own list. Skin: {Object.keys(skinPalettes).join(", ")}. Hair: {Object.keys(hairPalettes).join(", ")} (<code>brown</code> is brunette). Eyes: {Object.keys(eyePalettes).join(", ")}. Clothes: {Object.keys(clothesPalettes).join(", ")}. <code>clothesColor</code> colours every piece; <code>topColor</code>, <code>bottomColor</code> and <code>shoeColor</code> give one piece a colour of its own. A top is <code>topStyle="top"</code>, with a <code>topLength</code> ({Object.keys(topLengths).join(", ")}), a <code>sleeveLength</code> ({Object.keys(sleeveLengths).join(", ")}) and a <code>collar</code> ({Object.keys(collars).join(", ")}); a <code>hip</code> or <code>tunic</code> top over a bottom hangs over it unless <code>tuck</code> is <code>tucked</code>; the choices are {Object.keys(tucks).join(", ")}. Set <code>tuck="onePiece"</code> to join the top and the bottom into one garment with no seam between them, such as a dress (a top over a skirt) or overalls (straps over pants), in the top colour. A skirt is <code>bottomStyle="skirt"</code> with a <code>skirtShape</code> ({Object.keys(skirtShapes).join(", ")}), and pants are <code>bottomStyle="pants"</code>. Both take a <code>bottomLength</code> ({Object.keys(bottomLengths).join(", ")}, where <code>floor</code> covers the feet). Flowing and pleated skirts sway when walking, a pencil skirt does not, and pants step with the legs.</p>
             <Demo>{(["blonde", "brown", "red", "auburn", "grey", "pink"] as const).map((hairColor) => <Avatar key={hairColor} hairColor={hairColor} pixelSize={3} />)}</Demo>
             <CodeBlock code={`<Avatar skinTone="tan" hairColor="auburn" eyeColor="hazel" clothesColor="teal" />
 

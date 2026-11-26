@@ -33,7 +33,7 @@ pnpm install
 pnpm new
 ```
 
-1. **Choose what to add:** an icon, an avatar garment (top, which includes a dress or overalls, bottom or shoes), an avatar hair style, a world object or a world tile.
+1. **Choose what to add:** an icon, an avatar garment (top, bottom or shoes), an avatar hair style, a world object or a world tile.
 2. **Answer the prompts:** an id, the parts it's made of, and a placeholder size. Press Enter to accept the default in brackets.
 3. **Draw the masks:** the wizard creates placeholder mask files in the right folder. Replace the placeholder rows with your art: `"1"` is filled and `"0"` is empty. Outline, highlight and shadow are added for you.
 4. **Make the listed edits:** it prints each file you still need to change (type unions, tables, tests) with the imports and entries already written out, ready to paste.

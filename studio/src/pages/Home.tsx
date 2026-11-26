@@ -115,7 +115,7 @@ export function HomePage({ route }: { route: Route }) {
                         text="Pick hair, skin and clothes from the fixed options."
                         preview={
                             <div className="profile">
-                                <Avatar skinTone="brown" hairColor="black" topStyle="longSleeve" clothesColor="red" backHairStyle="highPigtails" pixelSize={4} />
+                                <Avatar skinTone="brown" hairColor="black" topStyle="top" sleeveLength="long" clothesColor="red" backHairStyle="highPigtails" pixelSize={4} />
                                 <div>
                                     <strong>Mina</strong>
                                     <div className="muted">Gardener, level 4</div>
@@ -124,7 +124,7 @@ export function HomePage({ route }: { route: Route }) {
                         }
                         code={`import { Avatar } from "@ragtechdev/pixel-sprites/react";
 
-<Avatar skinTone="brown" hairColor="black" topStyle="longSleeve"
+<Avatar skinTone="brown" hairColor="black" topStyle="top" sleeveLength="long"
         clothesColor="red" backHairStyle="highPigtails" pixelSize={4} />`}
                     />
                     <Example

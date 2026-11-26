@@ -59,14 +59,14 @@ export const places: Record<PlaceId, Place> = {
     town: {
         id: "town",
         map: townMap,
-        npcs: [{ x: 9, y: 8, look: { skinTone: "brown", hairColor: "black", topStyle: "longSleeve", clothesColor: "red", backHairStyle: "highPigtails" } }],
+        npcs: [{ x: 9, y: 8, look: { skinTone: "brown", hairColor: "black", topStyle: "top", sleeveLength: "long", clothesColor: "red", backHairStyle: "highPigtails" } }],
         arrive: { x: 7, y: 6, facing: "down" },
         exits: [{ x: 7, y: 5, to: "interior" }]
     },
     interior: {
         id: "interior",
         map: interiorMap,
-        npcs: [{ x: 3, y: 6, look: { skinTone: "medium", hairColor: "blonde", topStyle: "dress", clothesColor: "green", frontHairStyle: "bangs" } }],
+        npcs: [{ x: 3, y: 6, look: { skinTone: "medium", hairColor: "blonde", topLength: "hip", tuck: "onePiece", bottomStyle: "skirt", bottomLength: "knee", clothesColor: "green", frontHairStyle: "bangs" } }],
         arrive: { x: 7, y: 9, facing: "up" },
         exits: [{ x: 7, y: 10, to: "town" }]
     }

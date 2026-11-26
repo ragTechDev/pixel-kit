@@ -15,6 +15,8 @@ import {
     bottomStyles,
     buildAvatar,
     clothesPalettes,
+    collarHasSleeves,
+    collars,
     createCache,
     defaultAvatarConfig,
     eyePalettes,
@@ -26,6 +28,9 @@ import {
     skinPalettes,
     bottomLengths,
     skirtShapes,
+    sleeveLengths,
+    topLengths,
+    tucks,
     tilePalettes,
     toSvg,
     toVariant,
@@ -55,6 +60,7 @@ interface Section {
     hint?: string;
     /** Picked with a stepped slider, for options that are in order. */
     slider?: true;
+    /** Picked with a switch, for a choice of two: the option the switch turns on, the one it turns off, and what it says. */
 }
 
 /** What a tab's icon zooms in on. */
@@ -87,7 +93,11 @@ const TABS: Tab[] = [
         { field: "hairAccessoryColor", title: "Accessory colour", options: keys(clothesPalettes), crop: "head", colors: clothesPalettes }
     ] },
     { id: "top", label: "Top", crop: "body", sections: [
-        { field: "topStyle", title: "Top", hint: "Dresses and overalls are tops that cover the bottom.", options: keys(topStyles), crop: "body" },
+        { field: "topStyle", title: "Top", hint: "A top has a length, sleeves and a collar.", options: keys(topStyles), crop: "body" },
+        { field: "topLength", title: "Length", hint: "From a crop top to a tunic. A hip-length top reaches the bottom, and a tunic hangs past it.", options: keys(topLengths), crop: "body", slider: true },
+        { field: "sleeveLength", title: "Sleeves", hint: "From bare arms to long sleeves. Straps, a strapless top and a halter neck have none.", options: keys(sleeveLengths), crop: "body", slider: true },
+        { field: "collar", title: "Collar", hint: "How the top is cut at the neck and shoulders. The neckline is plainest from behind and in profile.", options: keys(collars), crop: "body" },
+        { field: "tuck", title: "Tuck", hint: "A top that reaches the bottom hangs over it or is tucked in. As a one-piece the two join with no seam, like a dress or overalls, in the top colour.", options: keys(tucks), crop: "body" },
         { field: "topColor", title: "Top colour", options: keys(clothesPalettes), crop: "body", colors: clothesPalettes }
     ] },
     { id: "bottom", label: "Bottom", crop: "body", sections: [
@@ -105,10 +115,6 @@ const TABS: Tab[] = [
 const PALETTES = { skinTone: skinPalettes, eyeColor: eyePalettes, hairColor: hairPalettes, topColor: clothesPalettes, bottomColor: clothesPalettes, shoeColor: clothesPalettes, hairAccessoryColor: clothesPalettes } as const;
 type ColourField = keyof typeof PALETTES;
 const isColourField = (field: Field): field is ColourField => field in PALETTES;
-/** A one-piece top (a dress, overalls) covers the legs, so there is no bottom under it. */
-const coversBottom = (top: string | undefined) => (topStyles as Record<string, { coversBottom?: boolean }>)[top ?? ""]?.coversBottom === true;
-/** What a covering top becomes when you pick a bottom: an ordinary top. */
-const ORDINARY_TOP = "shirt";
 const isPieceColour = (field: Field): field is (typeof pieceColorFields)[number] => (pieceColorFields as readonly string[]).includes(field);
 
 const presetBase = (field: ColourField, id: string) => (PALETTES[field] as Record<string, { base: string }>)[id]?.base ?? "#888888";
@@ -136,11 +142,6 @@ function loadLook(): AvatarConfig {
         // resolveAvatarConfig drops anything that is not in the fixed tables.
         if (saved) {
             const old = JSON.parse(saved);
-            // Looks saved before dresses and overalls became tops.
-            if (old && typeof old.fullOutfitStyle === "string" && old.fullOutfitStyle !== "none") {
-                old.topStyle = old.fullOutfitStyle;
-                if (old.outfitColor) old.topColor = old.outfitColor;
-            }
             // The creator no longer has an "all clothes" colour: each piece keeps the colour it had.
             if (old && typeof old.clothesColor === "string" && old.clothesColor !== defaultAvatarConfig.clothesColor) {
                 for (const field of pieceColorFields) old[field] ??= old.clothesColor;
@@ -205,10 +206,8 @@ function shuffled(current: AvatarConfig): AvatarConfig {
     }
     // Each piece often matches the clothes colour, and sometimes has a colour of its own.
     for (const field of pieceColorFields) next[field] = Math.random() < 0.5 ? next.clothesColor : pick(keys(clothesPalettes));
-    // Keep it dressed: always a real top and bottom, and now and then a dress or overalls.
-    const tops = keys(topStyles).filter((id) => id !== "none");
-    const wantCover = Math.random() < 0.25;
-    next.topStyle = pick(tops.filter((id) => coversBottom(id) === wantCover));
+    // Keep it dressed: always a real top and bottom, and now and then a one-piece.
+    next.topStyle = "top";
     next.bottomStyle = pick(keys(bottomStyles).filter((id) => id !== "none"));
     next.headOrientation = current.headOrientation ?? "front";
     return next as AvatarConfig;
@@ -263,16 +262,16 @@ function elementArt(look: ResolvedAvatarConfig, element: Element): Raster | null
             }
             case "top": {
                 // Short hair keeps a ponytail out of the way of the shoulders.
-                const r = buildAvatar({ ...front, topStyle: front.topStyle === "none" ? "shirt" : front.topStyle, bottomStyle: "none", shoeStyle: "none", backHairStyle: "looseBlunt", hairLength: "ear" });
+                const r = buildAvatar({ ...front, topStyle: front.topStyle === "none" ? "top" : front.topStyle, bottomStyle: "none", shoeStyle: "none", backHairStyle: "looseBlunt", hairLength: "ear" });
                 return isolate(r, everything(r), ROWS.torso);
             }
             case "bottom": {
-                // A dress would hide it, so it is shown under a plain shirt.
-                const r = buildAvatar({ ...front, topStyle: "shirt", bottomStyle: front.bottomStyle === "none" ? "pants" : front.bottomStyle, shoeStyle: "none", backHairStyle: "looseBlunt", hairLength: "ear" });
+                // A one-piece would hide it, so it is shown under a plain shirt.
+                const r = buildAvatar({ ...front, topStyle: "top", tuck: "untucked", bottomStyle: front.bottomStyle === "none" ? "pants" : front.bottomStyle, shoeStyle: "none", backHairStyle: "looseBlunt", hairLength: "ear" });
                 return isolate(r, everything(r), ROWS.hips);
             }
             case "shoes": {
-                const r = buildAvatar({ ...front, topStyle: "shirt", bottomStyle: "pants", shoeStyle: front.shoeStyle === "none" ? "boots" : front.shoeStyle, backHairStyle: "looseBlunt", hairLength: "ear" });
+                const r = buildAvatar({ ...front, topStyle: "top", tuck: "untucked", bottomStyle: "pants", shoeStyle: front.shoeStyle === "none" ? "boots" : front.shoeStyle, backHairStyle: "looseBlunt", hairLength: "ear" });
                 return isolate(r, everything(r), ROWS.feet);
             }
         }
@@ -302,6 +301,7 @@ const ELEMENT_OF: Partial<Record<Field, Element>> = {
     topStyle: "top",
     bottomStyle: "bottom",
     skirtShape: "bottom",
+    collar: "top",
     shoeStyle: "shoes"
 };
 
@@ -322,11 +322,10 @@ function StepSlider({ options, current, label, onChange }: { options: readonly s
 }
 
 /** The style cards of one section: each shows only that element, close up, all at the same scale. */
-function OptionGrid({ section, look, current, bottomCovered, choose }: {
+function OptionGrid({ section, look, current, choose }: {
     section: Section;
     look: ResolvedAvatarConfig;
     current: string;
-    bottomCovered: boolean;
     choose: (field: Field, value: string) => void;
 }) {
     const element = ELEMENT_OF[section.field];
@@ -352,7 +351,7 @@ function OptionGrid({ section, look, current, bottomCovered, choose }: {
     return (
         <div className="opt-grid">
             {options.map((id, i) => {
-                const selected = id === current && !(section.field === "bottomStyle" && bottomCovered);
+                const selected = id === current;
                 const art = arts[i];
                 return (
                     <button key={id} className="opt" aria-pressed={selected} onClick={() => choose(section.field, id)}>
@@ -417,14 +416,12 @@ export function AvatarsPage({ route }: { route: Route }) {
     const px = Math.max(1, Math.floor((phone ? 130 : 230) / Math.max(bare.width, bare.height)));
     const facing = FACING.indexOf(look.headOrientation as (typeof FACING)[number]);
 
-    // Picking a bottom under a dress or overalls swaps that for an ordinary top, so the bottom shows.
     const choose = (field: Field, value: string) => {
         if (isColourField(field)) setCustom((prev) => { const { [field]: _gone, ...rest } = prev; return rest; });
         setCfg((prev) => {
             const next: AvatarConfig = {
                 ...prev,
                 [field]: value,
-                ...(field === "bottomStyle" && coversBottom(prev.topStyle) ? { topStyle: ORDINARY_TOP as AvatarConfig["topStyle"] } : {}),
                 // A one-row skirt has no shape, so picking one lengthens the skirt to show it.
                 ...(field === "skirtShape" && resolveAvatarConfig(prev).bottomLength === "short" ? { bottomLength: "calf" as const } : {}),
                 // Pants of the shortest length are short pants, so picking pants from another bottom lengthens them to the ankle.
@@ -483,19 +480,13 @@ export function AvatarsPage({ route }: { route: Route }) {
                             </button>
                         ))}
                     </div>
-                    {tab.sections.filter((section) => !(look.hairLength === "bald" && (section.field === "frontHairStyle" || section.field === "backHairStyle" || section.field === "hairTexture")) && !(section.field === "hairDrape" && (!hairDrapeApplies(look.hairLength) || isMiddlePonytail(look.backHairStyle))) && !((section.field === "hairAccessory" || section.field === "hairAccessoryColor") && (!hairAccessoryApplies(look.hairLength, look.backHairStyle) || (section.field === "hairAccessoryColor" && look.hairAccessory === "none"))) && !(section.field === "skirtShape" && (look.bottomStyle !== "skirt" || coversBottom(look.topStyle))) && !(section.field === "bottomLength" && ((look.bottomStyle !== "skirt" && look.bottomStyle !== "pants") || coversBottom(look.topStyle)))).map((section) => {
+                    {tab.sections.filter((section) => !(look.hairLength === "bald" && (section.field === "frontHairStyle" || section.field === "backHairStyle" || section.field === "hairTexture")) && !(section.field === "hairDrape" && (!hairDrapeApplies(look.hairLength) || isMiddlePonytail(look.backHairStyle))) && !((section.field === "hairAccessory" || section.field === "hairAccessoryColor") && (!hairAccessoryApplies(look.hairLength, look.backHairStyle) || (section.field === "hairAccessoryColor" && look.hairAccessory === "none"))) && !((section.field === "topLength" || section.field === "sleeveLength" || section.field === "collar") && look.topStyle !== "top") && !(section.field === "sleeveLength" && !collarHasSleeves(look.collar)) && !(section.field === "tuck" && (look.topStyle !== "top" || look.bottomStyle === "none")) && !(section.field === "bottomColor" && look.tuck === "onePiece") && !(section.field === "skirtShape" && look.bottomStyle !== "skirt") && !(section.field === "bottomLength" && (look.bottomStyle !== "skirt" && look.bottomStyle !== "pants"))).map((section) => {
                         // A piece without a colour of its own shows the clothes colour.
                         const current = (look[section.field] ?? (isPieceColour(section.field) ? look.clothesColor : undefined)) as string;
-                        const bottomCovered = (section.field === "bottomStyle" || section.field === "bottomColor") && coversBottom(look.topStyle);
                         return (
                             <div key={section.field} className="opt-section">
                                 <div className="h opt-title">{section.title}</div>
                                 {section.hint && <p className="muted opt-note">{section.hint}</p>}
-                                {bottomCovered && (
-                                    <p className="muted opt-note">
-                                        {section.field === "bottomStyle" ? `Your ${words(look.topStyle)} covers the bottom. Picking one switches to a ${ORDINARY_TOP}.` : "Hidden while your top covers the bottom."}
-                                    </p>
-                                )}
                                 {section.slider ? (
                                     <StepSlider options={section.options} current={current} label={section.title} onChange={(id) => choose(section.field, id)} />
                                 ) : section.colors ? (
@@ -523,7 +514,7 @@ export function AvatarsPage({ route }: { route: Route }) {
                                         )}
                                     </div>
                                 ) : (
-                                    <OptionGrid section={section} look={look} current={current} bottomCovered={bottomCovered} choose={choose} />
+                                    <OptionGrid section={section} look={look} current={current} choose={choose} />
                                 )}
                             </div>
                         );
