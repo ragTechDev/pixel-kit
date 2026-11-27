@@ -10,9 +10,9 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 
 <!-- next-release -->
 
-## Unreleased
+## [0.12.0] - 2026-11-27
 
-### Changed
+### Breaking changes
 - **Every standing object blocks only its foot, the same depth for all.** `solidBoxes` makes a standing object solid only in the lowest `OBJECT_FOOT` (8) pixels of what is drawn on its blocking cells, as crops and tree trunks already were (an object can still set its own `foot`). A mover can walk up behind a counter, a table, a fence, a shelf or a till until its feet are 8 pixels above the object's base, and the object is drawn over its legs (`mapDrawables` sorts on the base). Counters, tables and tills used to block from near the top of the picture, and crops only 4 pixels. `OBJECT_FOOT` is a new export; `queryCell` and the footprints are unchanged.
 
 ### Fixed
