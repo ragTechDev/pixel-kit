@@ -30,7 +30,7 @@ before(async () => {
     globalThis.OffscreenCanvas = FakeOffscreenCanvas;
     const bundle = await build({
         stdin: {
-            contents: `export * from "./src/play/game"; export * from "./src/play/maps"; export { doorBoxes, mapDrawables, solidBoxes } from "@ragtechdev/pixel-sprites";`,
+            contents: `export * from "./src/play/game"; export * from "./src/play/maps"; import { paintRaster } from "@ragtechdev/pixel-sprites/canvas"; export { paintRaster }; export { buildObject, doorBoxes, mapDrawables, solidBoxes } from "@ragtechdev/pixel-sprites";`,
             resolveDir: fileURLToPath(new URL("..", import.meta.url)),
             loader: "ts"
         },
@@ -173,6 +173,96 @@ test("a fruit tree blocks only its foot, and a field can be walked across", () =
     put(p, 5, 10, "left");
     hold(p, "left", 2);
     assert.deepEqual(at(p), [0, 10], "across the whole row of vegetables");
+});
+
+const tap = (p, action) => {
+    p.game.input.press(action);
+    p.game.advance(frame);
+    p.game.input.release(action);
+    p.game.advance(frame);
+};
+const wait = (p, seconds) => {
+    for (let i = 0; i < Math.round(seconds / frame); i += 1) p.game.advance(frame);
+};
+
+test("A in front of a crop picks it: the hero holds the vegetable, and the crop is gone from the field", () => {
+    const p = play();
+    put(p, 0, 9, "down");
+    assert.equal(p.carrying(), undefined);
+    tap(p, "a");
+    assert.equal(p.carrying(), "veg_carrot", "the carrot at (0,10) is picked");
+    assert.equal(p.map().objects.some((o) => o.id === "crop_carrot" && o.x === 0 && o.y === 10), false, "and is gone from the soil");
+    // The hero stands still while picking it up, then walks off holding it.
+    const before = p.hero.x;
+    p.game.input.press("right");
+    for (let i = 0; i < 20; i += 1) p.game.advance(frame);
+    assert.equal(p.hero.x, before, "still bending down");
+    wait(p, 1);
+    hold(p, "right", 0.2);
+    assert.ok(p.hero.x > before, "free to walk once it is held");
+    assert.equal(p.carrying(), "veg_carrot");
+});
+
+test("a held vegetable is drawn with the hero, over its head while it is lifted", () => {
+    const p = play();
+    put(p, 0, 9, "down");
+    tap(p, "a");
+    const carrot = maps.buildObject("veg_carrot");
+    const picture = maps.paintRaster(carrot);
+    const drawn = () => {
+        const ctx = fakeContext();
+        p.game.render(ctx);
+        return { hero: heroDraw(p, ctx), item: ctx.draws.find(([canvas]) => canvas === picture) };
+    };
+    wait(p, 0.7);
+    let { hero, item } = drawn();
+    assert.ok(item[2] + carrot.height <= hero[2] + 4, "the vegetable is above the avatar's head");
+    wait(p, 1);
+    ({ hero, item } = drawn());
+    assert.ok(item[2] > hero[2], "and is then carried lower, in front of the body");
+});
+
+test("hands full: A does not pick up a second thing, and A with nothing in front puts it down", () => {
+    const p = play();
+    put(p, 0, 9, "down");
+    tap(p, "a");
+    wait(p, 1.2);
+    put(p, 1, 9, "down");
+    tap(p, "a");
+    assert.equal(p.carrying(), "veg_carrot", "still holding the carrot");
+    assert.equal(p.map().objects.some((o) => o.id === "crop_radish"), true, "the radish stays in the field");
+    put(p, 8, 14, "right");
+    tap(p, "a");
+    assert.equal(p.carrying(), undefined, "put down");
+});
+
+test("A under a tree that bears fruit picks its fruit, and the tree bears nothing after", () => {
+    const p = play();
+    put(p, 0, 7, "up");
+    hold(p, "up", 1);
+    tap(p, "a");
+    assert.equal(p.carrying(), "fruit_orange", "the orange tree at (0,3) is bearing fruit");
+    const tree = p.map().objects.find((o) => o.id === "fruit_tree" && o.x === 0 && o.y === 3);
+    assert.equal(tree.bearing, "none");
+    assert.equal(tree.crop, "orange");
+    wait(p, 1.2);
+    p.game.input.press("a");
+    p.game.advance(frame);
+    p.game.input.release("a");
+    assert.equal(p.carrying(), undefined, "A at the same tree, now bare, puts the orange down instead of picking again");
+});
+
+test("a tree in blossom or still young gives nothing", () => {
+    const p = play();
+    // The cherry at (2,0) is in flower: stand under its crown with its trunk in front.
+    p.hero.teleport(2 * 16, 45, "up");
+    tap(p, "a");
+    assert.equal(p.carrying(), undefined, "blossom is not fruit");
+    // The pear at (2,3) is young.
+    put(p, 2, 7, "up");
+    hold(p, "up", 1);
+    tap(p, "a");
+    assert.equal(p.carrying(), undefined, "a young tree bears nothing");
 });
 
 test("a character in the way blocks the hero", () => {

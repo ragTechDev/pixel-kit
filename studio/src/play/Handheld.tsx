@@ -119,9 +119,9 @@ function Controls({ input }: { input: Input }) {
             </div>
             <div className="gb-buttons">
                 <Key input={input} action="b" className="gb-round" label="B: hold to run" caption="B" />
-                <Key input={input} action="a" className="gb-round" label="A: speak to the character in front" caption="A" />
+                <Key input={input} action="a" className="gb-round" label="A: speak, or pick up what is in front" caption="A" />
             </div>
-            <p className="gb-hint">A speak · B hold to run · Start season</p>
+            <p className="gb-hint">A speak or pick up · B hold to run · Start season</p>
             <div className="gb-speaker" aria-hidden>
                 <span /><span /><span />
             </div>

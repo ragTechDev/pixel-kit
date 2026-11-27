@@ -101,7 +101,7 @@ export function PlayPage({ route }: { route: Route }) {
                     onPick={(next) => next && setQuery(route, { theme: next === defaultTileTheme ? undefined : next })}
                 />
                 <p className="muted">
-                    Keys: arrows or WASD walk, Z or Space is A (speak to the character in front, and they turn to face you), hold X for B (run), and Enter is START (change the season).
+                    Keys: arrows or WASD walk, Z or Space is A (speak to the character in front, who turns to face you, or pick a crop or a tree's fruit and hold it; A again puts it down), hold X for B (run), and Enter is START (change the season).
                     Water, trees, walls and the other characters stop you, because collision reads the same tile and object data that drew the map.
                 </p>
                 <p className="muted">On a phone this page becomes a handheld console, with a pad and A, B and START buttons on screen.</p>

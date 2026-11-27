@@ -412,6 +412,27 @@ for (const t of things) drawRaster(ctx, t.raster, t.x - camera.x, t.y - camera.y
             <p>
                 A door is a box too: <code>doorBoxes(map)</code> lists them, and when the mover's <code>feet</code> overlap one (<code>overlaps(a, b)</code>), it is the moment to warp.
             </p>
+            <h2>Picking things up</h2>
+            <p>
+                <code>createCarry</code> shows an avatar picking an object up and holding on to it: it bends, lifts the object overhead, shows it for a moment, then carries it in front, out toward where it faces.
+                It draws nothing. It counts the time and says where the object and the avatar go on each frame, so any picture can be carried, and it holds whatever you give it (here, the id of the fruit).
+            </p>
+            <CodeBlock code={`import { createCarry } from "@ragtechdev/pixel-engine";
+
+const carry = createCarry();
+
+// Pick it up from where it lies: the object's top-left, relative to the avatar's.
+carry.pickUp("fruit_apple", { x: 6, y: 24 });
+
+// Each update (carry.busy is true until it is held, so keep the avatar still for it).
+carry.update(dt);
+
+// Each render: where to draw the avatar's crouch and the object. Undefined when nothing is held.
+const pose = carry.pose({ width: 22, height: 24 }, { width: 10, height: 10 }, hero.facing);
+// pose.x, pose.y: the object's top-left, relative to the avatar. pose.crouch: draw the avatar this much lower.
+// pose.behind: draw the avatar over the object (its back is turned).
+
+carry.drop();     // puts it down and gives it back`} />
             <h2>What blocks the way</h2>
             <p>
                 <code>isWalkable</code> reads the sprites package's map data, so collision always agrees with what you drew. It is false off the map, on solid terrain, on water, and on the blocking cells of an object.
