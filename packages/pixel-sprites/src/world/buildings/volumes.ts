@@ -5,10 +5,11 @@ import { TILE_SIZE } from "../size";
 import type { RoofKind } from "./roof";
 
 // A building is one volume, or two when it has a wing, each drawn on its own (its wall, roof and facade) and placed in the
-// picture. A front wing is a narrower volume in the middle that sticks out two tiles in front of the main part, closer to you,
-// so it is drawn lower and over it; it has the door. A side wing is a lower, one-storey volume beside the main part, which is
-// then two storeys tall and has the door. The two are set against each other, each with a complete roof, and their walls run
-// out to the join (`joined` in the volume's config) so the ground floor is one wall across it.
+// picture. The main part has `storeys` and the wing has `wingStoreys`. A front wing is a narrower volume in the middle that
+// sticks out two tiles in front of the main part, closer to you, so it is drawn lower and over it; it has the door. A side wing
+// is a volume beside the main part, which has the door; whichever of the two is taller has the corner line down beside the other.
+// The two are set against each other, each with a complete roof, and their walls run out to the join (`joined` in the volume's
+// config) so the ground floor is one wall across it.
 
 /** One volume of a building: what to draw, and where its top-left tile is in the picture. */
 export interface Volume {
@@ -36,16 +37,16 @@ const longer = (c: ResolvedBuildingConfig) => buildingDepths[Math.min(buildingDe
 function frontWing(c: ResolvedBuildingConfig): Volume[] {
     // Narrower than the building by two tiles on each side, or one if that would leave less than three.
     const width = c.width - 4 >= 3 ? c.width - 4 : c.width - 2;
-    // The part behind has no door, and the barrels are at the wing's door; the flower boxes stay under the windows of the main part.
     const margin = ((c.width - width) / 2) * TILE_SIZE;
-    // The chimney stands in the middle of the margin beside the wing, where the roof behind it shows, not under the wing's roof.
+    // The chimney stands in the middle of the margin beside the wing, where the roof behind shows, not under the wing's roof.
     const chimneyAt = c.chimney === "left" ? Math.round(margin / 2) : Math.round(c.width * TILE_SIZE - margin / 2);
+    // The part behind has no door, and the barrels are at the wing's door; the flower boxes stay under the windows of the main part.
     const main: VolumeConfig = { ...c, wing: "none", porch: "none", props: c.props === "barrels" ? "none" : c.props, chimneyAt };
     const wing: VolumeConfig = {
         ...c,
         wing: "none",
         width,
-        storeys: 1,
+        storeys: c.wingStoreys,
         // A step longer than the main part, so its roof rises over the eave of the roof behind it.
         depth: longer(c),
         windows: c.windows === "none" ? "none" : "some",
@@ -54,40 +55,41 @@ function frontWing(c: ResolvedBuildingConfig): Volume[] {
         chimney: "none",
         props: c.props === "planters" ? "none" : c.props
     };
-    const total = volumeBox(main).height + WING_TILES;
+    const mainHeight = volumeBox(main).height;
+    const wingHeight = volumeBox(wing).height;
+    // The wing sticks out in front of the main part; if it is taller than that, the main part sits lower in the picture.
+    const total = Math.max(mainHeight + WING_TILES, wingHeight);
     return [
-        { config: main, roof: mainRoofs[c.roof], door: false, x: 0, y: 0 },
-        { config: wing, roof: wing.roof, door: true, x: (c.width - width) / 2, y: total - volumeBox(wing).height }
+        { config: main, roof: mainRoofs[c.roof], door: false, x: 0, y: total - WING_TILES - mainHeight },
+        { config: wing, roof: wing.roof, door: true, x: (c.width - width) / 2, y: total - wingHeight }
     ];
 }
 
 function sideWing(c: ResolvedBuildingConfig, side: "left" | "right"): Volume[] {
-    const annexWidth = c.width >= 7 ? 3 : 2;
-    // The taller part has the door and always two storeys; the lower part beside it has one and no door. Each is a whole
-    // building with a complete roof, set against the other, and their walls run out to the join, so the ground floor
-    // wall is one wall across it.
-    const tall: VolumeConfig = { ...c, wing: "none", width: c.width - annexWidth, storeys: 2, door: "centre", joined: side === "left" ? { left: true, right: false } : { left: false, right: true } };
-    const low: VolumeConfig = {
+    const wingWidth = c.width >= 7 ? 3 : 2;
+    // The main part has the door and `storeys`; the wing beside it has `wingStoreys`. Each is a whole building with a complete
+    // roof, set against the other, and their walls run out to the join (`joined`) so the ground floor is one wall across it.
+    const main: VolumeConfig = { ...c, wing: "none", width: c.width - wingWidth, door: "centre", joined: side === "left" ? { left: true, right: false } : { left: false, right: true } };
+    const wing: VolumeConfig = {
         ...c,
         wing: "none",
-        width: annexWidth,
-        storeys: 1,
+        width: wingWidth,
+        storeys: c.wingStoreys,
         roof: wingRoofs[c.roof],
         chimney: "none",
         porch: "none",
         props: c.props === "barrels" ? "none" : c.props,
         joined: side === "left" ? { left: false, right: true } : { left: true, right: false }
     };
-    const lowY = volumeBox(tall).height - volumeBox(low).height;
-    return side === "left"
-        ? [
-              { config: low, roof: low.roof, door: false, x: 0, y: lowY },
-              { config: tall, roof: tall.roof, door: true, x: annexWidth, y: 0, sideWall: "left" }
-          ]
-        : [
-              { config: low, roof: low.roof, door: false, x: tall.width, y: lowY },
-              { config: tall, roof: tall.roof, door: true, x: 0, y: 0, sideWall: "right" }
-          ];
+    const mainHeight = volumeBox(main).height;
+    const wingHeight = volumeBox(wing).height;
+    const total = Math.max(mainHeight, wingHeight);
+    const mainVolume: Volume = { config: main, roof: main.roof, door: true, x: side === "left" ? wingWidth : 0, y: total - mainHeight };
+    const wingVolume: Volume = { config: wing, roof: wing.roof, door: false, x: side === "left" ? 0 : main.width, y: total - wingHeight };
+    // The taller part has the corner line down beside the lower one's roof, on the side the lower one is on. Equal heights have no step.
+    if (mainHeight > wingHeight) return [wingVolume, { ...mainVolume, sideWall: side }];
+    if (wingHeight > mainHeight) return [mainVolume, { ...wingVolume, sideWall: side === "left" ? "right" : "left" }];
+    return [wingVolume, mainVolume];
 }
 
 /** The volumes of a building, back to front. */

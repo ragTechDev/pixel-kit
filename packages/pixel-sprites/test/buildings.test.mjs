@@ -10,10 +10,10 @@ import {
 const paint = (r) => [...r.px].map((i) => r.colors[i]);
 // The row (in pixels) where the lower part of a side wing starts: the taller part is two storeys, the lower one, with the roof it gets, one.
 const lowerRoof = { gable: "gable", hip: "hip", hipFlat: "hip", mansard: "hip", gambrel: "gable", saltbox: "gable", flat: "flat" };
-const lowTopOf = (roof, width = 8) => (buildingBox({ roof, width, wing: "left", storeys: 1 }).height - buildingBox({ roof: lowerRoof[roof], width, storeys: 1 }).height) * TILE_SIZE;
+const lowTopOf = (roof, width = 8) => (buildingBox({ roof, width, wing: "left", storeys: 2, wingStoreys: 1 }).height - buildingBox({ roof: lowerRoof[roof], width, storeys: 1 }).height) * TILE_SIZE;
 
 test("every choice draws a building a whole number of tiles wide and tall, standing on the bottom row", () => {
-    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, rooftop: buildingRooftops, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
+    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, rooftop: buildingRooftops, wingStoreys: buildingStoreys, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
     for (const [field, options] of Object.entries(lists)) {
         for (const option of options) {
             const config = { [field]: option };
@@ -173,7 +173,7 @@ test("a side wing is a lower, one-storey section beside a two-storey main part, 
     for (const wing of ["left", "right"]) {
         for (const width of buildingWidths) {
             for (const roof of roofShapes) {
-                const config = { wing, width, roof, storeys: 1 };
+                const config = { wing, width, roof, storeys: 2, wingStoreys: 1 };
                 const box = buildingBox(config);
                 const plain = buildingBox({ width, roof, storeys: 2 });
                 // The main part is two storeys, so the building is as tall as a two-storey one.
@@ -195,7 +195,7 @@ test("a side wing is a lower, one-storey section beside a two-storey main part, 
         }
     }
     // The picture has the lower part's roof beside the main one, and a map lets a walker stand where the lower part's top rows are open.
-    const config = { wing: "left", width: 8, roof: "flat" };
+    const config = { wing: "left", width: 8, roof: "flat", storeys: 2 };
     const footprint = buildingFootprint(config);
     const map = defineMap(townTileset, Array(12).fill("gggggggggg"), [], [{ config, x: 1, y: 2 }]);
     assert.equal(queryCell(map, 1, 2).solid, false);
@@ -207,7 +207,7 @@ test("a side wing is joined to the main part: the ground floor wall is one wall,
     // The corner line is one dark pixel, with a shadow-tone pixel beside it on the lower part's side. Two columns either side of those, nothing is dark.
     for (const [wing, join, away] of [["left", 3 * TILE_SIZE, [-4, -3, 1, 2]], ["right", 5 * TILE_SIZE, [-3, -2, 3, 4]]]) {
         for (const wall of ["clapboard", "brick", "stone", "timber"]) {
-            const config = { wing, width: 8, roof: "flat", wall, wallColor: "yellow" };
+            const config = { wing, width: 8, roof: "flat", storeys: 2, wall, wallColor: "yellow" };
             const raster = buildBuilding(config);
             const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
             // Between the ground floor windows and the foundation, so a beam or a window frame is not what is measured.
@@ -222,7 +222,7 @@ test("the roof of a side wing is complete at the end where it joins the main par
     const red = Object.values(colorRamps.red);
     for (const wing of ["left", "right"]) {
         for (const roof of roofShapes) {
-            const config = { wing, width: 8, roof, roofColor: "red", wall: "clapboard", wallColor: "white" };
+            const config = { wing, width: 8, roof, storeys: 2, roofColor: "red", wall: "clapboard", wallColor: "white" };
             const raster = buildBuilding(config);
             const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
             // The lower part is three tiles wide, and its roof goes right up to the line that is the taller part's corner.
@@ -240,7 +240,7 @@ test("the roof of a side wing is complete at the end where it joins the main par
 test("where a side wing joins, the taller part's corner is a line straight down the wall, right under the lower roof, which goes a pixel past it", () => {
     for (const [wing, dark, shade] of [["left", 3 * TILE_SIZE - 1, 3 * TILE_SIZE - 2], ["right", 5 * TILE_SIZE, 5 * TILE_SIZE + 1]]) {
         for (const roof of roofShapes) {
-            const config = { wing, width: 8, roof, wall: "clapboard", wallColor: "yellow", roofColor: "purple" };
+            const config = { wing, width: 8, roof, storeys: 2, wall: "clapboard", wallColor: "yellow", roofColor: "purple" };
             const raster = buildBuilding(config);
             const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
             const lowTop = lowTopOf(roof);
@@ -261,7 +261,7 @@ test("where a side wing joins, the taller part's corner is a line straight down 
     }
     // On a flat lower roof there is no parapet between the floor and the corner: no coping stone (the roof's base colour) just beside it, and
     // the roof goes a pixel past the line: at the line's own column, beside the roof, it is the roof (not the wall's line colours).
-    const flat = buildBuilding({ wing: "left", width: 8, roof: "flat", wall: "clapboard", wallColor: "yellow", roofColor: "grey" });
+    const flat = buildBuilding({ wing: "left", width: 8, roof: "flat", storeys: 2, wall: "clapboard", wallColor: "yellow", roofColor: "grey" });
     const at = (x, y) => flat.colors[flat.px[y * flat.width + x]];
     for (const x of [3 * TILE_SIZE - 6, 3 * TILE_SIZE - 5, 3 * TILE_SIZE - 4]) assert.notEqual(at(x, 2 * TILE_SIZE + 30), colorRamps.grey.base, `no parapet at x=${x}: the floor runs up to the corner`);
     for (let y = 2 * TILE_SIZE + 12; y < 2 * TILE_SIZE + 30; y += 1) assert.ok(![colorRamps.yellow.outline, colorRamps.yellow.shadow].includes(at(3 * TILE_SIZE - 1, y)), `the flat roof goes past the line at row ${y}`);
@@ -327,6 +327,45 @@ test("a chimney is not hidden under the roof of a front wing: it stands where th
             }
         }
     }
+});
+
+test("a wing has its own storeys: the main part has `storeys`, the wing `wingStoreys`, and the door is on the main part (or the front wing)", () => {
+    const height = (config) => buildingBox(config).height;
+    for (const wing of ["left", "right"]) {
+        for (const [storeys, wingStoreys] of [[1, 1], [1, 2], [2, 1], [2, 2]]) {
+            const config = { wing, width: 8, roof: "flat", storeys, wingStoreys };
+            // The building is as tall as its taller part.
+            assert.equal(height(config), Math.max(height({ width: 5, roof: "flat", storeys }), height({ width: 3, roof: "flat", storeys: wingStoreys })), `${wing} ${storeys}/${wingStoreys}`);
+            const footprint = buildingFootprint(config);
+            assert.equal([...footprint.join("")].filter((c) => c === "D").length, 1);
+            // The door is in the main part: on the far side from the wing.
+            const door = footprint.at(-1).indexOf("D");
+            assert.ok(wing === "left" ? door >= 3 : door < 5, `${wing} ${storeys}/${wingStoreys}: the door is in the main part`);
+            // A part that is lower than the other leaves the rows above it open.
+            const lowerWidth = wing === "left" ? footprint[0].slice(0, 3) : footprint[0].slice(5);
+            if (storeys === wingStoreys) assert.ok(footprint.every((row) => !row.includes(".")), "equal parts fill the picture");
+            else assert.equal(lowerWidth.includes("."), wingStoreys < storeys, `${wing} ${storeys}/${wingStoreys}: the lower part leaves its top rows open`);
+        }
+    }
+    // The picture shows each part's storeys: a taller wing has more windows in its column than a lower one.
+    const windowRows = (raster, x) => {
+        let rows = 0;
+        let was = false;
+        for (let y = 0; y < raster.height; y += 1) {
+            const glass = raster.colors[raster.px[y * raster.width + x]] === objectRamps.glass.base;
+            if (glass && !was) rows += 1;
+            was = glass;
+        }
+        return rows;
+    };
+    const wingTall = buildBuilding({ wing: "left", width: 8, roof: "gable", storeys: 1, wingStoreys: 2 });
+    const wingLow = buildBuilding({ wing: "left", width: 8, roof: "gable", storeys: 1, wingStoreys: 1 });
+    // Down a column of the wing's windows (the wing is the left three tiles, its windows in the middle one, off the glazing bar): more panes when it has two storeys.
+    assert.ok(windowRows(wingTall, TILE_SIZE + 5) > windowRows(wingLow, TILE_SIZE + 5));
+    // A front wing has its storeys too: a taller wing makes the picture taller when it is taller than the part behind plus what it sticks out.
+    assert.equal(height({ wing: "front", width: 8, roof: "flat", storeys: 1, wingStoreys: 1 }), height({ width: 8, roof: "flat", storeys: 1 }) + 2);
+    assert.ok(height({ wing: "front", width: 8, roof: "flat", storeys: 1, wingStoreys: 2 }) > height({ wing: "front", width: 8, roof: "flat", storeys: 1, wingStoreys: 1 }));
+    assert.equal(height({ wing: "front", width: 8, roof: "flat", storeys: 2, wingStoreys: 1 }), height({ width: 8, roof: "flat", storeys: 2 }) + 2);
 });
 
 test("a building with a front wing has the door on the wing, which sticks out in front of the rest", () => {

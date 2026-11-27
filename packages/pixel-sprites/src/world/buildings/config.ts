@@ -3,7 +3,7 @@ import { parseHex, type HexColor } from "../../core/customColor";
 
 /** How many tiles wide a building is. */
 export const buildingWidths = [5, 6, 7, 8] as const;
-/** How many storeys of wall a building has. */
+/** How many storeys of wall a building has, or its wing (`wingStoreys`): one or two. */
 export const buildingStoreys = [1, 2] as const;
 /**
  * The shape of the roof, as it looks from above and in front:
@@ -24,8 +24,8 @@ export const roofShapes = ["gable", "hip", "hipFlat", "mansard", "gambrel", "sal
 export const buildingRooftops = ["none", "vents", "machinery", "boxes", "skylights", "solar", "garden"] as const;
 /**
  * A second section of the building. `front` sticks out at the front, in the middle, with the same kind of roof, so a gable
- * roof gets a cross gable and a flat one a notch. `left` and `right` are a lower, one-storey section beside the main part,
- * which is then two storeys tall, so a flat roof has a step in it.
+ * roof gets a cross gable and a flat one a notch. `left` and `right` are a second section beside the main part, which has the
+ * door. The main part has `storeys` and the wing `wingStoreys`, so a wing lower than the main part makes a step in the roofline.
  */
 export const buildingWings = ["none", "front", "left", "right"] as const;
 /** How steep the roof is. A steep roof is one tile taller. */
@@ -73,6 +73,8 @@ export type BuildingColor = ColorName | HexColor;
 export interface BuildingConfig {
     width?: BuildingWidth;
     storeys?: BuildingStoreys;
+    /** How many storeys the wing has, when there is one. `storeys` is then the main part's, the part with the door (or, with a front wing, the part behind it). */
+    wingStoreys?: BuildingStoreys;
     roof?: RoofShape;
     wing?: BuildingWing;
     rooftop?: BuildingRooftop;
@@ -106,6 +108,7 @@ export type VolumeConfig = Omit<ResolvedBuildingConfig, "width"> & {
 export const defaultBuildingConfig: ResolvedBuildingConfig = {
     width: 6,
     storeys: 1,
+    wingStoreys: 1,
     roof: "gable",
     wing: "none",
     rooftop: "none",
@@ -139,6 +142,7 @@ export function resolveBuildingConfig(config: BuildingConfig = {}): ResolvedBuil
     return {
         width: oneOf(buildingWidths, c.width, d.width),
         storeys: oneOf(buildingStoreys, c.storeys, d.storeys),
+        wingStoreys: oneOf(buildingStoreys, c.wingStoreys, d.wingStoreys),
         roof: oneOf(roofShapes, c.roof, d.roof),
         wing: oneOf(buildingWings, c.wing, d.wing),
         rooftop: oneOf(buildingRooftops, c.rooftop, d.rooftop),
@@ -179,6 +183,7 @@ export function randomBuilding(seed: number = Math.floor(Math.random() * 4294967
     return {
         width: pick(buildingWidths),
         storeys: pick(buildingStoreys),
+        wingStoreys: pick(buildingStoreys),
         roof: pick(roofShapes),
         wing: pick(buildingWings),
         rooftop: pick(buildingRooftops),
