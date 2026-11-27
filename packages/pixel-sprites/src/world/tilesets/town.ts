@@ -14,6 +14,9 @@ import { defineTileSet } from "../tileset";
  *   the rest are edges and corners against grass)
  * - `l` `h` `r` wall (left edge, middle, right edge)
  * - `[` `_` `]` wall one block high with its foundation row (left corner, middle, right corner)
+ * - `J` road, `K` brick pavement
+ * - after a war: `L` cracked pavement, `M` cracked road (each with a cracked tile in two corners of the block, so a street
+ *   looks broken without repeating), `N` scorched earth, `O` rubble, `Q` rubble lying in scorched earth. None of them blocks movement.
  *
  * Trees, fences, flowers, doors and windows are objects placed on top.
  */
@@ -56,7 +59,16 @@ export const townTileset = defineTileSet({
         r: [["wall", "wall_right"], ["wall", "wall_right"]],
         "[": [["wall_left", "wall"], ["wall_base_left", "wall_base"]],
         _: [["wall", "wall"], ["wall_base", "wall_base"]],
-        "]": [["wall", "wall_right"], ["wall_base", "wall_base_right"]]
+        "]": [["wall", "wall_right"], ["wall_base", "wall_base_right"]],
+
+        J: [["road", "road"], ["road", "road"]],
+        K: [["brick_pavement", "brick_pavement"], ["brick_pavement", "brick_pavement"]],
+
+        L: [["cracked_pavement", "beige_pavement"], ["beige_pavement", "cracked_pavement"]],
+        M: [["cracked_road", "road"], ["road", "cracked_road"]],
+        N: [["scorched_earth", "scorched_earth"], ["scorched_earth", "scorched_earth"]],
+        O: [["rubble", "rubble"], ["rubble", "rubble"]],
+        Q: [["rubble", "scorched_earth"], ["scorched_earth", "rubble"]]
     },
     solid: [
         "water", "wall", "wall_left", "wall_right", "wall_base", "wall_base_left", "wall_base_right",

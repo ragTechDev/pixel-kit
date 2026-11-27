@@ -353,3 +353,18 @@ test("the damaged ground tiles are their plain tiles with cracks, debris or soot
     assert.ok(luma(tilePalettes.ash.rubbleBase) < luma(tilePalettes.summer.rubbleBase));
     assert.ok(luma(tilePalettes.ash.scorchBase) < luma(tilePalettes.summer.scorchBase));
 });
+
+test("a street and a ruined block can be laid out from the tilesets, and none of the damaged ground blocks movement", () => {
+    const map = defineMap(townTileset, ["NOQ", "LMJ", "KKK"]);
+    assert.deepEqual([tileAt(map, 0, 0), tileAt(map, 2, 0), tileAt(map, 5, 0), tileAt(map, 5, 1)], ["scorched_earth", "rubble", "scorched_earth", "rubble"]);
+    assert.equal(tileAt(map, 0, 2), "cracked_pavement");
+    assert.equal(tileAt(map, 2, 2), "cracked_road");
+    assert.equal(tileAt(map, 3, 2), "road");
+    assert.equal(tileAt(map, 4, 2), "road");
+    assert.equal(tileAt(map, 0, 4), "brick_pavement");
+    for (let y = 0; y < 6; y += 1) for (let x = 0; x < 6; x += 1) assert.equal(queryCell(map, x, y).solid, false, `(${x}, ${y})`);
+    for (const theme of tileThemes) assert.ok(buildMap(map, theme).width === 6 * 16, theme);
+    const rooms = defineMap(houseTileset, ["bb", "ff"]);
+    assert.equal(tileAt(rooms, 0, 0), "broken_floor");
+    assert.equal(queryCell(rooms, 0, 0).solid, false);
+});
