@@ -48,11 +48,11 @@ export const streetMap = defineMap(townTileset, [
     "pppppppppppppp"
 ], [
     ...at("tree", [9, 10], [1, 3], [20, 4]),
-    ...at("flower", [12, 10], [13, 11], [27, 9], [20, 10])
+    ...at("flower", [18, 11], [19, 10], [27, 9], [20, 10])
 ], [
-    { config: { width: 6, roofColor: "blue", doorColor: "red", chimney: "right" }, x: 3, y: 7 },
+    { config: { width: 6, roofColor: "blue", doorColor: "red", chimney: "right" }, x: 3, y: 6 },
     { config: { width: 7, storeys: 2, roof: "gable", pitch: "steep", wall: "brick", roofColor: "purple", windowStyle: "shuttered", doorColor: "teal", door: "left", props: "barrels" }, x: 10, y: 3 },
-    { config: { width: 5, wall: "timber", roofColor: "green", doorStyle: "arched", windowStyle: "arched", props: "planters", porch: "deck" }, x: 22, y: 7 }
+    { config: { width: 5, wall: "timber", roofColor: "green", doorStyle: "arched", windowStyle: "arched", props: "planters", porch: "deck" }, x: 22, y: 6 }
 ]);
 
 export const worlds = { Town: townMap, House: houseMap, Street: streetMap } as const;

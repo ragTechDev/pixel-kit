@@ -29,9 +29,11 @@ export function drawFacade(f: Frame): Layer[] {
     for (let storey = 0; storey < c.storeys; storey += 1) {
         const top = yw + storey * 32;
         const groundFloor = storey === c.storeys - 1;
+        // Windows start below the shadow the eave casts on the wall (the wall shows from `top`, the roof's edge and its shadow take the first 7 rows).
+        const windowTop = top + (groundFloor ? 14 : 9);
         for (const col of windowColumns(f.tiles, c.windows, groundFloor ? door : undefined)) {
-            layers.push(...placeParts(f, windowParts(c.windowStyle), col * TILE_SIZE + 8, top + 8));
-            if (c.props === "planters" && groundFloor) layers.push(...placeParts(f, flowerBoxParts, col * TILE_SIZE + 8, top + 8));
+            layers.push(...placeParts(f, windowParts(c.windowStyle), col * TILE_SIZE + 8, windowTop));
+            if (c.props === "planters" && groundFloor) layers.push(...placeParts(f, flowerBoxParts, col * TILE_SIZE + 8, windowTop));
         }
     }
 

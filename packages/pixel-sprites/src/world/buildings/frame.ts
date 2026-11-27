@@ -9,11 +9,14 @@ export type Role = "roof" | "wall" | "trim" | "door" | "wood" | "glass" | "gold"
 
 const stone: Ramp = { outline: "#4A4C50", base: "#A9ADB4", shadow: "#868A92", highlight: "#CBCED3" };
 
-/** The size of a building in tiles: its width, its height and how many of those rows are roof. */
+/**
+ * The size of a building in tiles: its width, its height and how many of those rows are roof. The ground floor is three
+ * tiles tall and any upper storey two, so a door, with its step, and the windows all fit under the eave of the roof.
+ */
 export function buildingBox(config?: BuildingConfig): { width: number; height: number; roofTiles: number } {
     const c = resolveBuildingConfig(config);
     const roofTiles = c.pitch === "steep" ? 4 : 3;
-    return { width: c.width, height: roofTiles + c.storeys * 2, roofTiles };
+    return { width: c.width, height: roofTiles + 1 + c.storeys * 2, roofTiles };
 }
 
 /** The measurements one building is drawn to, shared by its roof, wall and facade. */

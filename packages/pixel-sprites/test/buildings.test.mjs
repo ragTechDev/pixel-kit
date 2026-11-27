@@ -72,6 +72,28 @@ test("a roof is seen from above: both slopes show, the left lit and the right in
     }
 });
 
+test("nothing on the facade touches the roof or the shadow under its eave", () => {
+    const facade = { door: "left", doorStyle: "arched", windows: "many", windowStyle: "shuttered", porch: "deck", props: "planters" };
+    const bare = { door: "right", doorStyle: "plain", windows: "none", windowStyle: "plain", porch: "none", props: "none" };
+    for (const roof of roofShapes) {
+        for (const pitch of roofPitches) {
+            for (const storeys of buildingStoreys) {
+                for (const width of buildingWidths) {
+                    for (const wall of buildingWalls) {
+                        const config = { roof, pitch, storeys, width, wall };
+                        const box = buildingBox(config);
+                        // The roof, its edge and the shadow it casts on the wall are the first rows of the wall, then a gap before anything on the wall.
+                        const rows = box.roofTiles * TILE_SIZE + 7;
+                        const above = (extra) => paint(buildBuilding({ ...config, ...extra })).slice(0, rows * box.width * TILE_SIZE);
+                        // A gable has a round window of its own whenever the house has windows, so it is compared with a house that has some.
+                        assert.deepEqual(above(facade), above({ ...bare, ...(roof === "gable" ? { windows: "some" } : {}) }), JSON.stringify(config));
+                    }
+                }
+            }
+        }
+    }
+});
+
 test("unknown values fall back to the defaults and bad colours are dropped", () => {
     const resolved = resolveBuildingConfig({ width: 99, storeys: "2", roof: "toString", pitch: "__proto__", wall: "glass", door: "up", windows: 7, porch: null, roofColor: "javascript:1", wallColor: "#ABC", trimColor: "nope", doorColor: 5 });
     assert.deepEqual(resolved, { ...defaultBuildingConfig, wallColor: "#aabbcc" });
