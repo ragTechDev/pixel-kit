@@ -97,12 +97,51 @@ export const tilePalettes = {
         roofEdge: "#5F6B77",
         sky: "#D5DFE8",
         skyLight: "#E8EFF5"
+    },
+    // Not a season: a city after a war. Everything is drained and sooty, the grass is dead, the water is murky and the sky is smoke.
+    ash: {
+        ...summerColors,
+        roadBase: "#4F4B48",
+        roadCurb: "#6B6560",
+        roadLine: "#B9B2A0",
+        pavementBase: "#8E8782",
+        pavementShade: "#6F6965",
+        pavementLight: "#A8A29C",
+        pavementGrout: "#7A746F",
+        brickBase: "#5A3D3F",
+        brickMortar: "#2F2124",
+        brickLight: "#74545A",
+        grass: "#7C7A5E",
+        grassShade: "#615F48",
+        grassLight: "#9A9776",
+        water: "#5E7480",
+        waterLight: "#8EA1AA",
+        waterShade: "#445761",
+        wall: "#9A9288",
+        wallShade: "#7A7268",
+        wallFoundation: "#5B5449",
+        floor: "#A89B84",
+        floorLine: "#8A7E69",
+        path: "#8A7A66",
+        pathShade: "#6E604F",
+        pathLight: "#A39280",
+        roof: "#6A4A42",
+        roofShade: "#4D342F",
+        roofLight: "#86635A",
+        roofEdge: "#2E1D1A",
+        roofCast: "#7A7268",
+        sky: "#A9A39A",
+        skyLight: "#BDB7AE"
     }
 } as const satisfies Record<string, Palette>;
 
 export type TileTheme = keyof typeof tilePalettes;
 
+/** Every palette: the four seasons, and `ash`, a war-torn city. */
 export const tileThemes = Object.keys(tilePalettes) as TileTheme[];
+
+/** The four seasons, in the order they come round, for a game that changes the weather: `tileThemes` without `ash`. */
+export const tileSeasons = ["spring", "summer", "autumn", "winter"] as const satisfies readonly TileTheme[];
 
 /** The palette used when none is given. */
 export const defaultTileTheme: TileTheme = "summer";

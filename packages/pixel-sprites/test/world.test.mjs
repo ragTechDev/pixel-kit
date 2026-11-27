@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
     buildMap, buildObject, buildTile, defineMap, defineTileSet, houseTileset, mapTileSize,
-    colorRamps, colorableObjectIds, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileIds, tilePalettes, tileThemes, townTileset
+    colorRamps, colorableObjectIds, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
 } from "../dist/index.js";
 
 test("every tile is 16×16, opaque terrain, and only uses palette colours", () => {
@@ -190,7 +190,8 @@ test("tiles match the recorded pixels in the summer (default) palette", () => {
 });
 
 test("every palette names the same colours", () => {
-    assert.deepEqual(tileThemes, ["spring", "summer", "autumn", "winter"]);
+    assert.deepEqual(tileThemes, ["spring", "summer", "autumn", "winter", "ash"]);
+    assert.deepEqual([...tileSeasons], ["spring", "summer", "autumn", "winter"]);
     assert.equal(defaultTileTheme, "summer");
     const names = Object.keys(tilePalettes.summer).sort();
     for (const theme of tileThemes) {
@@ -202,7 +203,7 @@ test("every palette names the same colours", () => {
 test("every season has its own grass and sky", () => {
     for (const key of ["grass", "water", "sky"]) {
         const values = tileThemes.map((theme) => tilePalettes[theme][key]);
-        assert.equal(new Set(values).size, tileThemes.length, `${key} differs between seasons`);
+        assert.equal(new Set(values).size, tileThemes.length, `${key} differs between seasons and ash`);
     }
 });
 
@@ -314,4 +315,16 @@ test("colour is ignored for objects that cannot take it and for colours not offe
     assert.equal(buildObject("counter", undefined, "red"), buildObject("counter"));
     assert.equal(buildObject("tree", undefined, "teal"), buildObject("tree"), "teal is not a tree colour");
     assert.equal(buildObject("flower", undefined, "plaid"), buildObject("flower"));
+});
+
+test("ash is a palette of its own: a drained, sooty city, with burnt trees and flowers, that is not one of the seasons", () => {
+    assert.ok(tileThemes.includes("ash") && !tileSeasons.includes("ash"));
+    for (const key of ["grass", "water", "sky", "pavementBase", "roadBase", "roof", "wall"]) assert.notEqual(tilePalettes.ash[key], tilePalettes.summer[key], key);
+    // Everything in a map takes the palette, and so do the objects that change with the season.
+    const map = defineMap(townTileset, ["gg", "gg"], [{ id: "tree", x: 0, y: 0 }, { id: "flower", x: 1, y: 1 }]);
+    const ash = buildMap(map, "ash");
+    assert.ok(ash.colors.includes(tilePalettes.ash.grass) && !ash.colors.includes(tilePalettes.summer.grass));
+    assert.ok(ash.colors.includes(objectRamps.leaf_ash.base) && ash.colors.includes(objectRamps.flower_ash.base));
+    assert.ok(!ash.colors.includes(objectRamps.leaf.base));
+    assert.deepEqual([...seasonalObjectIds].sort(), ["flower", "tree"]);
 });

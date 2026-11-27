@@ -54,7 +54,7 @@ buildIcon("cottage", { idle: true });`} />
     ),
     worlds: () => (
         <>
-            <p>Tiles recolour with a palette (<code>spring</code>, <code>summer</code> as the default, <code>autumn</code>, <code>winter</code>). Objects stand on terrain, and trees and flowers change with the palette too. A map is one character per block of terrain plus placed objects.</p>
+            <p>Tiles recolour with a palette (<code>spring</code>, <code>summer</code> as the default, <code>autumn</code>, <code>winter</code>, and <code>ash</code> for a war-torn city, which is not a season: <code>tileSeasons</code> lists the four that come round). Objects stand on terrain, and trees and flowers change with the palette too. A map is one character per block of terrain plus placed objects.</p>
             <Demo>{tileThemes.map((t) => <Tile key={t} id="grass" theme={t} pixelSize={4} />)}</Demo>
             <CodeBlock code={`import { World, Tile, WorldObject } from "@ragtechdev/pixel-sprites/react";
 

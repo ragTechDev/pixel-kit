@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { defaultTileTheme, tileThemes } from "@ragtechdev/pixel-sprites";
+import { defaultTileTheme, tileSeasons } from "@ragtechdev/pixel-sprites";
 import gameSource from "../play/game.ts?raw";
 import { createPlay, DESKTOP_VIEW, HANDHELD_VIEW, type Play } from "../play/game";
 import { Handheld } from "../play/Handheld";
@@ -96,7 +96,7 @@ export function PlayPage({ route }: { route: Route }) {
                 <Chips
                     label="Season"
                     value={theme}
-                    options={tileThemes}
+                    options={tileSeasons}
                     nativeLabel={false}
                     onPick={(next) => next && setQuery(route, { theme: next === defaultTileTheme ? undefined : next })}
                 />

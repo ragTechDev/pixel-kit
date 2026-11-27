@@ -361,6 +361,18 @@ test("START changes the season in order, wraps round, and tells the page", () =>
     q.game.input.press("start");
     q.game.advance(frame);
     assert.equal(q.options.theme, "autumn", "no callback is needed");
+    // The war-torn palette is not a season: START never lands on it, and leaves it for spring.
+    const r = play({ theme: "ash" });
+    r.game.input.press("start");
+    r.game.advance(frame);
+    assert.equal(r.options.theme, "spring");
+    for (let i = 0; i < 8; i += 1) {
+        r.game.input.release("start");
+        r.game.advance(frame);
+        r.game.input.press("start");
+        r.game.advance(frame);
+        assert.notEqual(r.options.theme, "ash");
+    }
 });
 
 test("the handheld view is 160 by 144, a classic handheld's screen, and the world still fits it", () => {

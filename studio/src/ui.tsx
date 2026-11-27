@@ -157,7 +157,7 @@ export function VariantBar({ route, themes = false, idle = false, damage = false
                     onPick={(d) => setQuery(route, { damage: d })} />
             )}
             {themes && (
-                <Chips label="Season" value={theme} options={tileThemes} nativeLabel={false}
+                <Chips label="Season" value={theme} options={tileThemes} show={(t) => (t === "ash" ? "wartorn" : t)} nativeLabel={false}
                     onPick={(t) => t && setQuery(route, { theme: t === defaultTileTheme ? undefined : t })} />
             )}
         </>

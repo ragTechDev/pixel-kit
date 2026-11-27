@@ -1,4 +1,4 @@
-import { doorBoxes, mapDrawables, mapTileSize, randomAvatar, tileThemes, walkCycle, TILE_SIZE, type AvatarConfig, type Box } from "@ragtechdev/pixel-sprites";
+import { doorBoxes, mapDrawables, mapTileSize, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 import { createCamera, createGame, createMover, isOpen, overlaps, type Camera, type Direction, type Game, type Mover, type Scene } from "@ragtechdev/pixel-engine";
 import { heroLook, places, start, type Npc, type Place, type PlaceId, type Spawn } from "./maps";
@@ -68,7 +68,7 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
     };
 
     const nextSeason = () => {
-        const next = tileThemes[(tileThemes.indexOf(options.theme as (typeof tileThemes)[number]) + 1) % tileThemes.length];
+        const next = tileSeasons[(tileSeasons.indexOf(options.theme as (typeof tileSeasons)[number]) + 1) % tileSeasons.length];
         options.theme = next;
         options.onTheme?.(next);
     };
