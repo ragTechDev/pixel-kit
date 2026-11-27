@@ -90,6 +90,7 @@ function Town() {
 | core | `createCamera`, `cameraOrigin` | Follows a point, stays inside the world, and centres a world smaller than the view. Whole pixels only. |
 | core | `createWalker`, `isWalkable`, `neighbor` | One tile step at a time, drawn smoothly between tiles. `update` returns true on arrival, the moment to check for a door with `queryCell`. |
 | core | `createMover`, `isOpen`, `overlaps` | Free movement: a pixel at a time, stopping flush against walls (a building's drawn outline, not the edge of its tiles), with the roof rows open so it can walk behind. `isOpen` checks a box against the map's `solidBoxes`. |
+| core | `createCarry` | An avatar picking an object up and holding on to it. It counts the time (bend, lift overhead, show, then carry) and says where the object and the avatar go on each frame, so it carries any picture. It draws nothing. |
 | core | `createScenes` | A stack of scenes. Only the top one updates and renders. |
 | core | `createGame` | The loop, the input and a scene stack together. |
 | `/dom` | `attachKeyboard`, `defaultKeymap`, `start` | Keys to actions (by position, so any keyboard layout works), and a `requestAnimationFrame` runner. |
@@ -111,10 +112,10 @@ Gzipped, each entry including the shared code it imports (`pnpm size` fails if o
 
 | Entry | Gzipped |
 |---|---|
-| core | about 2.1 KB |
-| `/dom` | about 2.7 KB |
-| `/react` | about 2.9 KB |
-| all three | about 3.1 KB |
+| core | about 2.6 KB |
+| `/dom` | about 3.1 KB |
+| `/react` | about 3.4 KB |
+| all three | about 3.5 KB |
 
 The `@ragtechdev/pixel-sprites` functions you import (`queryCell`, `TILE_SIZE`, `solidBoxes` and `mapTileSize` for the walker and the mover) are tree-shaken from that package and counted there.
 

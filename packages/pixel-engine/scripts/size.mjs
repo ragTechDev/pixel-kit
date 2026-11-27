@@ -6,7 +6,8 @@ import { gzipSync } from "node:zlib";
 
 // Gzipped bytes. Raise a budget on purpose, in the same commit that explains why.
 // Raised by about 600 B each for `createMover` (free pixel movement), which is 1562 -> 2159 B for the core entry.
-const BUDGETS = { "index.js": 2250, "dom.js": 2800, "react.js": 3100 };
+// Raised by about 450 B each for `createCarry` (an avatar picking an object up and holding it): the core entry is 2159 -> 2600 B.
+const BUDGETS = { "index.js": 2700, "dom.js": 3250, "react.js": 3550 };
 
 function collect(file, seen = new Set()) {
   if (seen.has(file)) return seen;

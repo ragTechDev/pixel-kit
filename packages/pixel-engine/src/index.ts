@@ -4,5 +4,6 @@ export { actions, createInput, directions, isAction, type Action, type Direction
 export { cameraOrigin, createCamera, type Camera, type Size } from "./camera";
 export { createWalker, isWalkable, neighbor, type Walker, type WalkerOptions, type WalkOptions, type WalkResult } from "./walker";
 export { createMover, isOpen, overlaps, type Mover, type MoverOptions } from "./mover";
+export { createCarry, type Carry, type CarryOptions, type CarryPhase, type CarryPose } from "./carry";
 export { createScenes, type Scene, type SceneStack } from "./scenes";
 export { createGame, type Game, type GameOptions } from "./game";

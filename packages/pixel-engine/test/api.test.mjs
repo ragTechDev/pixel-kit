@@ -7,7 +7,7 @@ import * as react from "../dist/react.js";
 // The published surface. Adding or removing an export should be a deliberate change to this list.
 test("the core entry exports exactly the documented API", () => {
     assert.deepEqual(Object.keys(core).sort(), [
-        "actions", "cameraOrigin", "createCamera", "createGame", "createInput", "createLoop",
+        "actions", "cameraOrigin", "createCamera", "createCarry", "createGame", "createInput", "createLoop",
         "createMover", "createScenes", "createWalker", "directions", "isAction", "isOpen", "isWalkable", "neighbor", "overlaps"
     ]);
 });
