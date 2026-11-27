@@ -57,8 +57,9 @@ export function makeFrame(c: VolumeConfig, xOffset = 0): Frame {
     const W = box.width * TILE_SIZE;
     const H = box.height * TILE_SIZE;
     const yw = box.roofTiles * TILE_SIZE;
-    const rl = 1;
-    const rr = W - 1;
+    // The roof is set in a pixel from the edge of the picture, but where it joins the volume beside it, it goes a pixel further, over the line down the corner.
+    const rl = c.joined?.left ? 0 : 1;
+    const rr = c.joined?.right ? W : W - 1;
     return {
         c,
         W,

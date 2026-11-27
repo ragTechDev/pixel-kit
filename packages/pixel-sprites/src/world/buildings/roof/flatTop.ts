@@ -14,7 +14,7 @@ function flatTopInset(f: Frame, skirt: number): number {
 }
 
 /** How far below the top the outer corner of the left and right slopes is: where the side of the roof starts. */
-export function flatTopDrop(f: Frame, skirt: number): number {
+function flatTopDrop(f: Frame, skirt: number): number {
     return Math.round(flatTopInset(f, skirt) * 0.55);
 }
 

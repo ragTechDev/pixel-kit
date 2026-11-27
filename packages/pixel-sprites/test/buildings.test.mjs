@@ -203,18 +203,17 @@ test("a side wing is a lower, one-storey section beside a two-storey main part, 
     assert.equal(queryCell(map, 1, 2 + footprint.length - 1).solid, true);
 });
 
-test("a side wing is joined to the main part: the ground floor wall is one wall, with no seam across the join", () => {
-    for (const [wing, join] of [["left", 3 * TILE_SIZE], ["right", 5 * TILE_SIZE]]) {
+test("a side wing is joined to the main part: the ground floor wall is one wall, and the only dark line across the join is the corner line", () => {
+    // The corner line is one dark pixel, with a shadow-tone pixel beside it on the lower part's side. Two columns either side of those, nothing is dark.
+    for (const [wing, join, away] of [["left", 3 * TILE_SIZE, [-4, -3, 1, 2]], ["right", 5 * TILE_SIZE, [-3, -2, 3, 4]]]) {
         for (const wall of ["clapboard", "brick", "stone", "timber"]) {
             const config = { wing, width: 8, roof: "flat", wall, wallColor: "yellow" };
             const raster = buildBuilding(config);
             const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
-            const outline = [colorRamps.yellow.outline];
-            // Down the ground floor wall, on both sides of where the two parts meet, nothing is the outline colour: it is not a dark line.
-            // (Between the ground floor windows and the foundation, so a beam or a window frame is not what is measured.)
+            // Between the ground floor windows and the foundation, so a beam or a window frame is not what is measured.
             let dark = 0;
-            for (let y = raster.height - 22; y < raster.height - 6; y += 1) for (const x of [join - 1, join]) if (outline.includes(at(x, y))) dark += 1;
-            assert.equal(dark, 0, `${wing} ${wall}: a dark seam of ${dark} pixels`);
+            for (let y = raster.height - 22; y < raster.height - 6; y += 1) for (const dx of away) if (at(join + dx, y) === colorRamps.yellow.outline) dark += 1;
+            assert.equal(dark, 0, `${wing} ${wall}: a dark seam of ${dark} pixels beside the corner line`);
         }
     }
 });
@@ -238,31 +237,34 @@ test("the roof of a side wing is complete at the end where it joins the main par
     }
 });
 
-test("where a side wing joins, the taller part's corner is a line straight down beside the lower roof, and the lower roof runs up to it", () => {
+test("where a side wing joins, the taller part's corner is a line straight down the wall, right under the lower roof, which goes a pixel past it", () => {
     for (const [wing, dark, shade] of [["left", 3 * TILE_SIZE - 1, 3 * TILE_SIZE - 2], ["right", 5 * TILE_SIZE, 5 * TILE_SIZE + 1]]) {
         for (const roof of roofShapes) {
             const config = { wing, width: 8, roof, wall: "clapboard", wallColor: "yellow", roofColor: "purple" };
             const raster = buildBuilding(config);
             const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
             const lowTop = lowTopOf(roof);
-            // The line is unbroken for as many rows as the lower roof has at its side, and one pixel of the wall's shadow tone is beside it.
+            // Where the lower roof's lower edge is, in the picture.
+            const eave = lowTop + buildingBox({ roof: lowerRoof[roof], wing: "none", storeys: 1 }).roofTiles * TILE_SIZE + 4;
+            // Under the roof the line is unbroken, with one pixel of the wall's shadow tone beside it.
             let line = 0;
             let beside = 0;
-            for (let y = lowTop + 24; y < lowTop + 34; y += 1) {
+            for (let y = eave + 4; y < eave + 24; y += 1) {
                 if (at(dark, y) === colorRamps.yellow.outline) line += 1;
                 if (at(shade, y) === colorRamps.yellow.shadow) beside += 1;
             }
-            assert.equal(line, 10, `${wing} ${roof}: the line is broken (${line} of 10 rows)`);
-            assert.equal(beside, 10, `${wing} ${roof}: the shadow tone beside it is broken (${beside} of 10 rows)`);
+            assert.equal(line, 20, `${wing} ${roof}: the line is broken (${line} of 20 rows)`);
+            assert.equal(beside, 20, `${wing} ${roof}: the shadow tone beside it is broken (${beside} of 20 rows)`);
+            // It stops at the foundation, and starts under the roof: above the eave, beside the roof, there is no line.
+            for (let y = lowTop + 8; y < eave - 6; y += 1) assert.notEqual(at(dark, y), colorRamps.yellow.outline, `${wing} ${roof}: the line goes up the side of the roof at row ${y}`);
         }
-        // It runs straight down: the same column all the way, from the side of the taller roof to the lower roof's eave.
-        const flat = buildBuilding({ wing, width: 8, roof: "flat", wall: "clapboard", wallColor: "yellow", roofColor: "grey" });
-        const colour = (x, y) => flat.colors[flat.px[y * flat.width + x]];
-        for (let y = 2 * TILE_SIZE; y < 2 * TILE_SIZE + 3 * TILE_SIZE; y += 1) assert.equal(colour(dark, y), colorRamps.yellow.outline, `${wing}: the line is straight at row ${y}`);
     }
-    // On a flat lower roof there is no parapet between the floor and the corner: no coping stone (the roof's base colour) just beside it.
+    // On a flat lower roof there is no parapet between the floor and the corner: no coping stone (the roof's base colour) just beside it, and
+    // the roof goes a pixel past the line: at the line's own column, beside the roof, it is the roof (not the wall's line colours).
     const flat = buildBuilding({ wing: "left", width: 8, roof: "flat", wall: "clapboard", wallColor: "yellow", roofColor: "grey" });
-    for (const x of [3 * TILE_SIZE - 6, 3 * TILE_SIZE - 5, 3 * TILE_SIZE - 4]) assert.notEqual(flat.colors[flat.px[(2 * TILE_SIZE + 30) * flat.width + x]], colorRamps.grey.base, `no parapet at x=${x}: the floor runs up to the corner`);
+    const at = (x, y) => flat.colors[flat.px[y * flat.width + x]];
+    for (const x of [3 * TILE_SIZE - 6, 3 * TILE_SIZE - 5, 3 * TILE_SIZE - 4]) assert.notEqual(at(x, 2 * TILE_SIZE + 30), colorRamps.grey.base, `no parapet at x=${x}: the floor runs up to the corner`);
+    for (let y = 2 * TILE_SIZE + 12; y < 2 * TILE_SIZE + 30; y += 1) assert.ok(![colorRamps.yellow.outline, colorRamps.yellow.shadow].includes(at(3 * TILE_SIZE - 1, y)), `the flat roof goes past the line at row ${y}`);
 });
 
 test("a chimney is not on anything else on the roof: rooftop equipment keeps clear of it", () => {

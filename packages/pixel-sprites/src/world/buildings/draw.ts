@@ -4,7 +4,7 @@ import { TILE_SIZE } from "../size";
 import { buildingKey, resolveBuildingConfig, type BuildingConfig, type ResolvedBuildingConfig, type VolumeConfig } from "./config";
 import { doorColumn, drawFacade } from "./facade";
 import { makeFrame, volumeBox } from "./frame";
-import { drawChimney, drawRoof, roofSideTop, type RoofKind } from "./roof";
+import { drawChimney, drawRoof, type RoofKind } from "./roof";
 import { addRect, flat, shape } from "./shapes";
 import { drawWall } from "./wall";
 import { buildingBox, buildingVolumes, type Volume } from "./volumes";
@@ -69,17 +69,17 @@ function drawVolume(c: VolumeConfig, roof: RoofKind, door: boolean, x: number): 
 }
 
 /**
- * The corner of a taller volume where it comes down beside the lower roof: a thin line straight down, from where the side of the
- * taller roof starts to the lower roof's eave, a dark line along the join with a line of the wall's shadow tone next to it, on the
- * side of the lower roof.
+ * The corner where a taller volume comes down beside a lower one: a thin line straight down the wall, starting right under the
+ * lower roof, which goes a pixel past it, to the foundation. It is a dark line along the join with a line of the wall's shadow tone
+ * next to it, on the side of the lower volume.
  */
 function drawSideLine(c: ResolvedBuildingConfig, tall: Volume, low: Volume, side: "left" | "right"): Layer[] {
     const box = buildingBox(c);
     const tallFrame = makeFrame(tall.config, tall.x * TILE_SIZE);
     const lowFrame = makeFrame(low.config, low.x * TILE_SIZE);
     const join = side === "left" ? tall.x * TILE_SIZE : (tall.x + tall.config.width) * TILE_SIZE;
-    const y0 = tall.y * TILE_SIZE + roofSideTop(tallFrame, tall.roof);
-    const y1 = low.y * TILE_SIZE + lowFrame.yb;
+    const y0 = low.y * TILE_SIZE + lowFrame.yb;
+    const y1 = low.y * TILE_SIZE + lowFrame.H - 4;
     const dark = side === "left" ? join - 1 : join;
     const shade = side === "left" ? join - 2 : join + 1;
     const here = () => shape(box.width * TILE_SIZE, box.height * TILE_SIZE);
