@@ -32,7 +32,7 @@ export function useRoute(): Route {
 
 /** The view options that stay in the address, so a link shares what you were looking at. */
 export const tileGroupNames = Object.keys(tileColorGroups) as TileColorGroup[];
-const KEPT = ["size", "bits", "palette", "theme", "idle", "color", ...tileGroupNames.map((g) => `tile-${g}`)] as const;
+const KEPT = ["size", "bits", "palette", "theme", "idle", "color", "damage", ...tileGroupNames.map((g) => `tile-${g}`)] as const;
 
 export function href(path: string[], from: Route, extra: Record<string, string | undefined> = {}): string {
     const query = new URLSearchParams();

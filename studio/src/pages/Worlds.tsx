@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PixelImage } from "@ragtechdev/pixel-sprites/react";
-import { TILE_SIZE, defaultTileTheme, buildMap, mapTileSize, toMapVariant } from "@ragtechdev/pixel-sprites";
+import { TILE_SIZE, defaultTileTheme, buildMap, defineMap, mapTileSize, toMapVariant } from "@ragtechdev/pixel-sprites";
 import { useWidth } from "../hooks";
-import { themeOf, tileColorsOf, variantOf, type Route } from "../router";
+import { damageOf, themeOf, tileColorsOf, variantOf, type Route } from "../router";
 import { CustomColours } from "../CustomColours";
 import { recolor, type ColorMap } from "../recolor";
 import { Chips, CodeBlock, TileColours, VariantBar } from "../ui";
@@ -17,7 +17,13 @@ export function WorldsPage({ route }: { route: Route }) {
     const [stage, stageWidth] = useWidth<HTMLDivElement>();
     const theme = themeOf(route);
     const variant = variantOf(route);
-    const map = worlds[name];
+    const damage = damageOf(route);
+    // Every building and object on the map, damaged the same way: the map is made again with `damage` on each.
+    const whole = worlds[name];
+    const map = useMemo(
+        () => damage === undefined ? whole : defineMap(whole.tileset, whole.rows, whole.objects.map((o) => ({ ...o, damage })), whole.buildings.map((b) => ({ ...b, config: { ...b.config, damage } }))),
+        [whole, damage]
+    );
     const colors = tileColorsOf(route);
     const full = buildMap(map, theme, colors);
     const mapped = toMapVariant(full, variant);
@@ -46,7 +52,7 @@ export function WorldsPage({ route }: { route: Route }) {
                 <div className="tools" style={{ marginBottom: 8 }}>
                     <Chips label="Map" value={name} options={Object.keys(worlds) as WorldName[]} onPick={(n) => n && setName(n)} nativeLabel={false} />
                 </div>
-                <VariantBar route={route} themes native={{ width: 16, height: 16 }} sizeLabel="Pixels per tile" />
+                <VariantBar route={route} themes damage native={{ width: 16, height: 16 }} sizeLabel="Pixels per tile" />
                 <TileColours route={route} />
                 <div className="tools" style={{ marginBottom: 0 }}>
                     <Chips label="Zoom" value={zoom} options={[1, 2, 3, 4] as const} show={(z) => `${z}x`} nativeLabel={`Fit (${fitted}x)`} onPick={setZoom} />
@@ -72,7 +78,7 @@ export function WorldsPage({ route }: { route: Route }) {
                 <CodeBlock code={`import { World } from "@ragtechdev/pixel-sprites/react";
 import { defineMap, townTileset } from "@ragtechdev/pixel-sprites";
 
-const map = defineMap(townTileset, ["ggg", "gpg"], [{ id: "tree", x: 0, y: 0 }]);
+const map = defineMap(townTileset, ["ggg", "gpg"], [{ id: "tree", x: 0, y: 0${damage ? `, damage: "${damage}"` : ""} }]);
 
 <World map={map}${[theme === defaultTileTheme ? "" : `theme="${theme}"`, colors && `colors={{ ${Object.entries(colors).map(([g, hex]) => `${g}: "${hex}"`).join(", ")} }}`, ...options, `pixelSize={${pixelSize}}`].filter(Boolean).map((p) => ` ${p}`).join("")} />`} />
             </div>

@@ -4,7 +4,6 @@ import {
     buildBuilding,
     buildMap,
     buildingColors,
-    buildingDamage,
     buildingDepths,
     buildingMap,
     buildingProps,
@@ -39,7 +38,7 @@ import { useWidth } from "../hooks";
 import { CustomColours } from "../CustomColours";
 import { recolor, type ColorMap } from "../recolor";
 import { themeOf, variantOf, type Route } from "../router";
-import { CodeBlock, SaveMenu, VariantBar, downloadPng, downloadSvg } from "../ui";
+import { Chips, CodeBlock, SaveMenu, VariantBar, downloadPng, downloadSvg } from "../ui";
 
 type ColourField = "roofColor" | "wallColor" | "trimColor" | "doorColor";
 type Field = Exclude<keyof BuildingConfig, ColourField>;
@@ -95,8 +94,7 @@ const TABS: Tab[] = [
     ], colours: [{ field: "trimColor", title: "Trim colour" }] },
     { id: "extras", label: "Extras", sections: [
         { field: "chimney", title: "Chimney", options: chimneys },
-        { field: "props", title: "Front", hint: "Barrels beside the door, or flower boxes under the ground floor windows.", options: buildingProps },
-        { field: "damage", title: "War damage", hint: "Half has lost a corner and part of its roof; a ruin is a broken, blackened shell. The building still blocks the same tiles.", options: buildingDamage }
+        { field: "props", title: "Front", hint: "Barrels beside the door, or flower boxes under the ground floor windows.", options: buildingProps }
     ] }
 ];
 
@@ -226,6 +224,10 @@ export function BuildingsPage({ route }: { route: Route }) {
 
             <div className="creator">
                 <div className="stage-col">
+                    <div className="tools" style={{ marginBottom: 0 }}>
+                        <Chips label="War damage" value={look.damage === "none" ? undefined : look.damage} options={["half", "ruin"] as const} nativeLabel="None"
+                            onPick={(d) => choose("damage", d ?? "none")} />
+                    </div>
                     <section className="panel stage-card" aria-label="Your building">
                         <div ref={stage} className="stage checker" style={{ minHeight: 320, padding: 8 } as CSSProperties}>
                             <PixelImage raster={shown} pixelSize={px} title="Your building" />
