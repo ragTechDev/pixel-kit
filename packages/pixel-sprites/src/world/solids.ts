@@ -1,5 +1,5 @@
 import { composeSprites, layerBounds } from "../core/compose";
-import { objectInfo, objectLayers } from "./objects/objects";
+import { OBJECT_FOOT, objectInfo, objectLayers } from "./objects/objects";
 import { buildingVolumes } from "./buildings/volumes";
 import { resolveBuildingConfig } from "./buildings/config";
 import { doorColumn } from "./buildings/facade";
@@ -95,9 +95,10 @@ function compute(map: TileMap): Boxes {
             solid.push(area);
             continue;
         }
-        // An object with a foot blocks only the lowest rows of what is drawn, as wide as the drawing is there.
-        if (info.foot !== undefined && y1 - y0 > info.foot) {
-            y0 = y1 - info.foot;
+        // A standing object blocks only the lowest rows of what is drawn (its foot), as wide as the drawing is there, so a mover can stand behind it.
+        const foot = info.foot ?? OBJECT_FOOT;
+        if (y1 - y0 > foot) {
+            y0 = y1 - foot;
             x0 = Infinity;
             x1 = -Infinity;
             for (let sy = y0 - bounds.y; sy < y1 - bounds.y; sy += 1) {

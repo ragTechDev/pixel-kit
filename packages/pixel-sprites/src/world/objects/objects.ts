@@ -14,6 +14,9 @@ import { objectRamps, type ObjectRampId } from "./ramps";
 import { bushCount, cropFieldParts, cropIds, isBushCrop, maxProduce, vegIds } from "./vegetables";
 import { fruitIds, maxFruit, fruitTreeParts, resolveFruitTree, type FruitTreeOptions } from "./fruitTree";
 
+/** How many pixels at the bottom of what is drawn block movement, for every standing object that does not set its own `foot`. */
+export const OBJECT_FOOT = 8;
+
 export interface ObjectInfo {
     /** Footprint width in tiles. */
     readonly width: number;
@@ -24,8 +27,9 @@ export interface ObjectInfo {
     /** One string per tile row. `#` blocks movement, `.` is open. */
     readonly footprint: readonly string[];
     /**
-     * Only the lowest this many pixels of what is drawn in the blocking cells block movement, so a character can walk in behind the rest
-     * of the object (a bush's leaves, or the other side of a counter) and fit between plants. The default is all of what is drawn there.
+     * Only the lowest this many pixels of what is drawn in the blocking cells block movement, so a character can stand right behind
+     * the object, covered by it (see `mapDrawables`), and walk in behind a bush's leaves. Every standing object has the same depth,
+     * `OBJECT_FOOT`, unless it sets its own here.
      */
     readonly foot?: number;
     /** A warp, such as a door. */
@@ -40,23 +44,21 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
     ...(Object.fromEntries(fruitIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<FruitId, ObjectInfo>),
     // A crop blocks only its base, like a tree trunk: a character stops flush against the foot of a cabbage and walks in behind its leaves, or
     // between two plants. Corn is two tiles tall and its stalk blocks at the bottom tile.
-    ...(Object.fromEntries(cropIds.map((id) => [id, id === "crop_corn" ? { width: 1, height: 2, layer: "standing", footprint: [".", "#"], foot: 4 } : { width: 1, height: 1, layer: "standing", footprint: ["#"], foot: 4 }])) as unknown as Record<CropId, ObjectInfo>),
+    ...(Object.fromEntries(cropIds.map((id) => [id, id === "crop_corn" ? { width: 1, height: 2, layer: "standing", footprint: [".", "#"] } : { width: 1, height: 1, layer: "standing", footprint: ["#"] }])) as unknown as Record<CropId, ObjectInfo>),
     ...(Object.fromEntries(vegIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<VegId, ObjectInfo>),
     fence: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     door: { width: 1, height: 1, layer: "standing", footprint: ["."], door: true },
     window: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
-    // A counter, a till and a table block only the front of what is drawn, so a character can stand right behind one with its legs
-    // hidden by it (`foot`: the lowest 12 pixels, so the blocked part starts at the back edge of the top).
-    counter: { width: 2, height: 1, layer: "standing", footprint: ["##"], foot: 12, counter: true },
+        counter: { width: 2, height: 1, layer: "standing", footprint: ["##"], counter: true },
     bookshelf: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
     rug: { width: 2, height: 2, layer: "ground", footprint: ["..", ".."] },
     flower: { width: 1, height: 1, layer: "ground", footprint: ["."] },
-    table: { width: 2, height: 1, layer: "standing", footprint: ["##"], foot: 12 },
+    table: { width: 2, height: 1, layer: "standing", footprint: ["##"] },
     chair: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     stove: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     sink: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     fridge: { width: 2, height: 2, layer: "standing", footprint: ["##", "##"] },
-    cash_register: { width: 1, height: 1, layer: "standing", footprint: ["#"], foot: 11, counter: true },
+    cash_register: { width: 1, height: 1, layer: "standing", footprint: ["#"], counter: true },
     grocery_shelf: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
     produce_crate: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     chalkboard: { width: 1, height: 1, layer: "standing", footprint: ["#"] }

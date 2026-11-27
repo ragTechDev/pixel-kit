@@ -5,6 +5,7 @@ import test from "node:test";
 import {
     buildMap, buildObject, buildTile, defineMap, defineTileSet, solidBoxes, houseTileset, mapTileSize,
     colorRamps, colorableObjectIds, bushVegetables, produceLimits, cropIds, rootVegetables, treeCrops, treeStages, vegIds, vegetables, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
+    , OBJECT_FOOT
 } from "../dist/index.js";
 
 test("every tile is 16×16, opaque terrain, and only uses palette colours", () => {
@@ -466,7 +467,7 @@ test("a field is a map: soil tiles with crops on them, and picked vegetables on 
     // It blocks only its foot, so a character can walk in behind the rest of the plant.
     for (const v of vegetables) {
         const [box] = solidBoxes(defineMap(townTileset, ["gg"], [{ id: `crop_${v}`, x: 0, y: 0 }]));
-        assert.ok(box.height <= 4, `${v} blocks only its lowest ${box.height} px`);
+        assert.ok(box.height <= OBJECT_FOOT, `${v} blocks only its lowest ${box.height} px`);
     }
 });
 

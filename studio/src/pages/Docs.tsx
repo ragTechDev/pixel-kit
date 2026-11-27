@@ -407,7 +407,7 @@ hero.x; hero.y;   // world pixels, for drawing
 hero.feet;        // the colliding box; its bottom edge is the line it stands on`} />
             <p>
                 <code>isOpen(map, box, also)</code> is false off the map and on anything in <code>solidBoxes(map)</code>, plus any boxes you pass as <code>also</code>, such as a character.
-                Terrain and water fill whole tiles. A standing object is solid where it is drawn on its blocking cells, so a tree is its trunk. A building is solid where its wall is drawn, from the outline on each side to the line it stands on, and the foot of its door is open, so a mover can walk in without lining up to the pixel (<code>assist</code> nudges it round a corner, and is off by default).
+                Terrain and water fill whole tiles. A standing object is solid where it is drawn on its blocking cells, down to its lowest 8 pixels (<code>OBJECT_FOOT</code>): a tree is its trunk, and a mover can stand right behind a counter, a table or a fence and be covered by it. A building is solid where its wall is drawn, from the outline on each side to the line it stands on, and the foot of its door is open, so a mover can walk in without lining up to the pixel (<code>assist</code> nudges it round a corner, and is off by default).
             </p>
             <h2>Behind a building</h2>
             <p>

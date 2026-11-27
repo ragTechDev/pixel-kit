@@ -203,9 +203,9 @@ test("crops block only their base: the hero walks in behind a tomato's leaves, b
     put(p, 1, 11, "down");
     hold(p, "down", 1);
     const base = maps.solidBoxes(p.map()).find((b) => b.x >= 16 && b.x < 32 && b.y >= 12 * 16 && b.y < 13 * 16);
-    assert.ok(base && base.height <= 4, "the box is just the foot of the plant");
+    assert.ok(base && base.height <= 8, "the box is just the foot of the plant");
     assert.equal(p.hero.feet.y + p.hero.feet.height, base.y, "right up to where its base is drawn");
-    assert.ok(p.hero.feet.y > 12 * 16 - 4, "which is inside the plant's own tile, behind its leaves");
+    assert.ok(p.hero.feet.y > 12 * 16 - 8, "which is inside the plant's own tile, behind its leaves");
     // The empty tile at (3,12) between the tomatoes and the corn is a way through.
     put(p, 3, 11, "down");
     hold(p, "down", 1.5);
