@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@ragtechdev/pixel-engine": "^0.1.0",
-    "@ragtechdev/pixel-sprites": "^0.10.0"
+    "@ragtechdev/pixel-sprites": "^0.11.0"
   },
   "devDependencies": {
     "typescript": "^6.0.3",
