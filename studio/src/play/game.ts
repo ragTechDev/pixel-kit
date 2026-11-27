@@ -1,4 +1,4 @@
-import { defineMap, doorBoxes, mapDrawables, mapTileSize, objectInfo, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box, type ObjectId, type PlacedObject, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
+import { bushVegetables, defineMap, doorBoxes, mapDrawables, mapTileSize, objectInfo, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box, type ObjectId, type PlacedObject, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 import { createCamera, createCarry, createGame, createMover, isOpen, overlaps, type Camera, type Direction, type Game, type Mover, type Scene } from "@ragtechdev/pixel-engine";
 import { heroLook, places, start, type Npc, type Place, type PlaceId, type Spawn } from "./maps";
@@ -51,10 +51,12 @@ export interface Play {
 }
 
 /**
- * What a crop or a tree gives when it is picked, and what is left in its place. A crop in a field gives its vegetable and is gone;
- * a mature fruit tree bearing fruit gives its fruit and bears nothing until a game says it does again.
+ * What a crop or a tree gives when it is picked, and what is left in its place. A crop in a field gives its vegetable and is gone, except a
+ * bush (tomato, corn), which stays, bare; a mature fruit tree bearing fruit gives its fruit and bears nothing until a game says it does again.
  */
 function harvest(o: PlacedObject): { item: ObjectId; left: PlacedObject | null } | undefined {
+    // A bush (tomato, corn) stays in the field, bare, and has nothing more to give; the other crops come up whole.
+    if (o.id.startsWith("crop_") && (bushVegetables as readonly string[]).includes(o.id.slice(5))) return o.bearing === "none" ? undefined : { item: `veg_${o.id.slice(5)}` as ObjectId, left: { ...o, bearing: "none" } };
     if (o.id.startsWith("crop_")) return { item: `veg_${o.id.slice(5)}` as ObjectId, left: null };
     if (o.id === "fruit_tree" && (o.stage ?? "mature") === "mature" && o.bearing === "fruit") return { item: `fruit_${o.crop ?? "apple"}` as ObjectId, left: { ...o, bearing: "none" } };
     return undefined;
@@ -103,13 +105,16 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
             return npc !== undefined;
         };
         // The crop or tree in front of the hero that has something to pick, with the tile it covers.
+        // Right up against a plant is a few pixels from its tile's edge, and from further back it is a stride away: look at both.
         const pickableAhead = () => {
-            const point = hero.ahead(12);
-            const tx = Math.floor(point.x / TILE_SIZE);
-            const ty = Math.floor(point.y / TILE_SIZE);
+            const points = [hero.ahead(4), hero.ahead(12)];
             return mapNow().objects.find((o) => {
                 const { width, height } = objectInfo[o.id];
-                return harvest(o) && tx >= o.x && tx < o.x + width && ty >= o.y && ty < o.y + height;
+                return harvest(o) && points.some((p) => {
+                    const tx = Math.floor(p.x / TILE_SIZE);
+                    const ty = Math.floor(p.y / TILE_SIZE);
+                    return tx >= o.x && tx < o.x + width && ty >= o.y && ty < o.y + height;
+                });
             });
         };
         // The avatar's picture and where it is drawn, for the pose of whatever it carries (and where something is picked up from).
@@ -120,10 +125,10 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
         const pickUp = (o: PlacedObject) => {
             const found = harvest(o)!;
             const { width, height } = trimmedObject(found.item);
-            // A crop lies where it grew; fruit comes off the crown of the tree.
+            // A crop is picked from the middle of the plant; fruit comes off the crown of the tree.
             const info = objectInfo[o.id];
             const centreX = (o.x + info.width / 2) * TILE_SIZE;
-            const centreY = o.id === "fruit_tree" ? (o.y + 1) * TILE_SIZE - 4 : (o.y + info.height) * TILE_SIZE - TILE_SIZE / 2;
+            const centreY = o.id === "fruit_tree" ? (o.y + 1) * TILE_SIZE - 4 : (o.y + info.height / 2) * TILE_SIZE;
             const box = heroBox();
             if (!carry.pickUp(found.item, { x: Math.round(centreX - width / 2 - box.x), y: Math.round(centreY - height / 2 - box.y) })) return;
             const map = mapNow();

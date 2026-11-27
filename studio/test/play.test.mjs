@@ -175,17 +175,23 @@ test("a fruit tree blocks only its foot, and a row of a field can be walked alon
     assert.deepEqual(at(p), [0, 11], "along the whole open row");
 });
 
-test("crops block where they are drawn: the hero stops flush against a tomato, and walks behind the leaves of corn", () => {
+test("crops block only their base: the hero walks in behind a tomato's leaves, between plants and along the back of the row", () => {
     const p = play();
-    // The tomato at (1,12) is a solid plant.
+    // The tomato at (1,12): the hero walks in under its leaves and stops flush against its base.
     put(p, 1, 11, "down");
     hold(p, "down", 1);
-    const bush = maps.solidBoxes(p.map()).find((b) => b.x >= 16 && b.x < 32 && b.y >= 12 * 16 && b.y < 13 * 16);
-    assert.ok(bush && p.hero.feet.y + p.hero.feet.height === bush.y, "right up to where it is drawn, not a tile away");
-    // The corn at (3,12) is two tiles tall and solid only at its foot, so the hero walks in behind its leaves and stops at its base.
+    const base = maps.solidBoxes(p.map()).find((b) => b.x >= 16 && b.x < 32 && b.y >= 12 * 16 && b.y < 13 * 16);
+    assert.ok(base && base.height <= 4, "the box is just the foot of the plant");
+    assert.equal(p.hero.feet.y + p.hero.feet.height, base.y, "right up to where its base is drawn");
+    assert.ok(p.hero.feet.y > 12 * 16 - 4, "which is inside the plant's own tile, behind its leaves");
+    // The empty tile at (3,12) between the tomatoes and the corn is a way through.
     put(p, 3, 11, "down");
-    hold(p, "down", 1);
-    assert.deepEqual(at(p), [3, 12], "walked in under the leaves");
+    hold(p, "down", 1.5);
+    assert.ok(p.hero.y >= 13 * 16 - 4, "walked between the tomatoes and the corn and out the other side, to the water's edge");
+    // Behind the row, the whole way along it.
+    p.hero.teleport(5 * 16, 12 * 16 - 8, "left");
+    hold(p, "left", 2);
+    assert.equal(p.hero.feet.x, 0, "behind carrot, tomatoes and corn alike, all the way to the map edge");
 });
 
 const tap = (p, action) => {
@@ -214,6 +220,34 @@ test("A in front of a crop picks it: the hero holds the vegetable, and the crop 
     hold(p, "right", 0.2);
     assert.ok(p.hero.x > before, "free to walk once it is held");
     assert.equal(p.carrying(), "veg_carrot");
+});
+
+test("picking a tomato or corn leaves the bare plant in the field, and it has nothing more to give", () => {
+    const p = play();
+    const plant = (id) => p.map().objects.find((o) => o.id === id && o.x === 1 && o.y === 12);
+    put(p, 1, 11, "down");
+    hold(p, "down", 1);
+    tap(p, "a");
+    assert.equal(p.carrying(), "veg_tomato", "the tomato is picked");
+    assert.ok(plant("crop_tomato"), "and the plant is still there");
+    assert.equal(plant("crop_tomato").bearing, "none", "bare");
+    wait(p, 1.2);
+    tap(p, "a"); // puts the tomato down: nothing in front is left to pick
+    assert.equal(p.carrying(), undefined);
+    tap(p, "a");
+    assert.equal(p.carrying(), undefined, "a bare plant gives nothing");
+    // Corn is the same: it keeps its stalk. The hero walks in behind its leaves to its foot.
+    put(p, 4, 11, "down");
+    hold(p, "down", 1);
+    tap(p, "a");
+    assert.equal(p.carrying(), "veg_corn");
+    const corn = p.map().objects.find((o) => o.id === "crop_corn" && o.x === 4);
+    assert.equal(corn.bearing, "none");
+    // A carrot is taken up whole.
+    put(p, 0, 9, "down");
+    wait(p, 1.2);
+    tap(p, "a");
+    assert.equal(p.map().objects.some((o) => o.id === "crop_carrot" && o.x === 0 && o.y === 10), true, "hands are full, so the carrot stays");
 });
 
 test("a held vegetable is drawn with the hero, over its head while it is lifted", () => {
