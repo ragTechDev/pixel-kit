@@ -25,7 +25,7 @@ import {
     roofPitches,
     roofShapes,
     toMapVariant,
-    windowCounts,
+    maxWindows,
     windowStyles,
     type MaterialColor,
     roofMaterials,
@@ -48,6 +48,8 @@ interface Section {
     title: string;
     hint?: string;
     options: readonly (string | number)[];
+    /** A number to type instead of a choice of pictures, up to the most that fit. */
+    count?: (look: ResolvedBuildingConfig) => number;
     /** Only shown for some buildings, such as the choices for a wing when there is one. */
     when?: (look: ResolvedBuildingConfig) => boolean;
 }
@@ -87,7 +89,7 @@ const TABS: Tab[] = [
         { field: "porch", title: "Doorstep", hint: "Steps or a wooden deck across the front.", options: porches }
     ], colours: [{ field: "doorColor", title: "Door colour" }] },
     { id: "windows", label: "Windows", sections: [
-        { field: "windows", title: "How many", hint: "Windows come in mirrored pairs from the corners in.", options: windowCounts },
+        { field: "windows", title: "How many", hint: "On each storey, spaced evenly along the wall. The most that fit depends on the width and the style; asking for more gives the most. The ground floor has the same number, spaced either side of the door.", options: [], count: (look) => maxWindows(look.width, look.windowStyle, look.door) },
         { field: "windowStyle", title: "Style", hint: "Shutters are painted the door colour.", options: windowStyles }
     ], colours: [{ field: "trimColor", title: "Trim colour" }] },
     { id: "extras", label: "Extras", sections: [
@@ -124,6 +126,20 @@ function OptionGrid({ section, look, choose }: { section: Section; look: Resolve
                     <span>{words(id)}</span>
                 </button>
             ))}
+        </div>
+    );
+}
+
+function CountInput({ section, look, choose }: { section: Section; look: ResolvedBuildingConfig; choose: (field: Field, value: string | number) => void }) {
+    const most = section.count!(look);
+    const value = look[section.field] as number;
+    const set = (n: number) => choose(section.field, Number.isFinite(n) ? Math.max(0, Math.min(most, Math.round(n))) : 0);
+    return (
+        <div className="count-input">
+            <button className="btn" aria-label={`Fewer ${section.title.toLowerCase()}`} disabled={value <= 0} onClick={() => set(value - 1)}>−</button>
+            <input type="number" min={0} max={most} value={Math.min(value, most)} aria-label={section.title} onChange={(e) => set(e.target.valueAsNumber)} />
+            <button className="btn" aria-label={`More ${section.title.toLowerCase()}`} disabled={value >= most} onClick={() => set(value + 1)}>+</button>
+            <span className="muted">of up to {most}</span>
         </div>
     );
 }
@@ -232,7 +248,7 @@ export function BuildingsPage({ route }: { route: Route }) {
                         <div key={section.field} className="opt-section">
                             <div className="h opt-title">{section.title}</div>
                             {section.hint && <p className="muted opt-note">{section.hint}</p>}
-                            <OptionGrid section={section} look={look} choose={choose} />
+                            {section.count ? <CountInput section={section} look={look} choose={choose} /> : <OptionGrid section={section} look={look} choose={choose} />}
                         </div>
                     ))}
                     {tab.colours?.map((colour) => (

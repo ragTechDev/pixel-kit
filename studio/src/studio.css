@@ -405,3 +405,6 @@ html:has(.play-handheld) { overscroll-behavior-y: none; }
   .docs-nav[data-open] .docs-topics { display: block; }
   .docs-group a { padding: 11px 8px; font-size: 14px; }
 }
+
+.count-input { display: flex; align-items: center; gap: 8px; }
+.count-input input { width: 64px; padding: 6px 8px; text-align: center; font: inherit; color: inherit; background: var(--panel); border: 2px solid var(--ink); border-radius: 0; }
