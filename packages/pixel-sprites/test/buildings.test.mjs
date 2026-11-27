@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
     TILE_SIZE, colorRamps, buildBuilding, buildMap, buildingDepths, buildingWings, buildingRooftops, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
-    chimneys, objectRamps, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes,
+    chimneys, objectRamps, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes, roofMaterials,
     townTileset, windowCounts, windowStyles
 } from "../dist/index.js";
 
@@ -13,7 +13,7 @@ const lowerRoof = { gable: "gable", hip: "hip", hipFlat: "hip", mansard: "hip", 
 const lowTopOf = (roof, width = 8) => (buildingBox({ roof, width, wing: "left", storeys: 2, wingStoreys: 1 }).height - buildingBox({ roof: lowerRoof[roof], width, storeys: 1 }).height) * TILE_SIZE;
 
 test("every choice draws a building a whole number of tiles wide and tall, standing on the bottom row", () => {
-    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, rooftop: buildingRooftops, wingStoreys: buildingStoreys, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
+    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, roofMaterial: roofMaterials, rooftop: buildingRooftops, wingStoreys: buildingStoreys, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
     for (const [field, options] of Object.entries(lists)) {
         for (const option of options) {
             const config = { [field]: option };
@@ -489,4 +489,31 @@ test("object colours change the picture, and only valid colours are accepted", (
     assert.equal(defineMap(townTileset, ["gg"], [{ id: "door", x: 0, y: 0, color: "#ABC" }]).objects[0].color, "#aabbcc");
     const door = (color) => paint(buildMap(defineMap(townTileset, ["gg"], [{ id: "door", x: 0, y: 0, color }])));
     assert.notDeepEqual(door("red"), door(undefined));
+});
+
+test("a roof covering and a wall take their natural colour unless one is given", () => {
+    assert.equal(defaultBuildingConfig.roofColor, "natural");
+    assert.equal(defaultBuildingConfig.wallColor, "natural");
+    assert.equal(resolveBuildingConfig({ roofColor: "natural", wallColor: "natural" }).roofColor, "natural");
+    // "natural" is only for the roof and the walls.
+    assert.equal(resolveBuildingConfig({ trimColor: "natural", doorColor: "natural" }).trimColor, defaultBuildingConfig.trimColor);
+    assert.equal(resolveBuildingConfig({ roofMaterial: "slate" }).roofMaterial, defaultBuildingConfig.roofMaterial);
+
+    const colorsOf = (config) => new Set(paint(buildBuilding(config)));
+    // Each covering is its own picture, in its own colour: slate, terracotta, straw, wood.
+    const pictures = roofMaterials.map((roofMaterial) => paint(buildBuilding({ roofMaterial }))).map((p) => p.join());
+    assert.equal(new Set(pictures).size, roofMaterials.length);
+    const base = { shingle: "#5F6670", ceramic: "#C8622F", thatch: "#C9A85C", wood: "#8A6240" };
+    for (const roofMaterial of roofMaterials) assert.ok(colorsOf({ roofMaterial }).has(base[roofMaterial]), roofMaterial);
+    // A colour replaces the natural one, and the covering's pattern stays.
+    assert.ok(!colorsOf({ roofMaterial: "ceramic", roofColor: "blue" }).has("#C8622F"));
+    assert.ok(colorsOf({ roofMaterial: "ceramic", roofColor: "blue" }).has(colorRamps.blue.base));
+    assert.notDeepEqual(paint(buildBuilding({ roofMaterial: "thatch", roofColor: "blue" })), paint(buildBuilding({ roofMaterial: "wood", roofColor: "blue" })));
+    // Each wall material has its own natural colour (brick is red, stone grey), and a colour replaces it.
+    assert.ok(colorsOf({ wall: "brick" }).has("#A64B3A"));
+    assert.ok(colorsOf({ wall: "timber" }).has("#EDE3CC"));
+    assert.ok(!colorsOf({ wall: "brick", wallColor: "yellow" }).has("#A64B3A"));
+    assert.ok(colorsOf({ wall: "brick", wallColor: "yellow" }).has(colorRamps.yellow.base));
+    // A flat roof has no covering to choose.
+    assert.deepEqual(paint(buildBuilding({ roof: "flat", roofMaterial: "thatch" })), paint(buildBuilding({ roof: "flat", roofMaterial: "wood" })));
 });

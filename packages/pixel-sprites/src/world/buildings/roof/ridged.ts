@@ -18,8 +18,8 @@ function slopes(f: Frame, ridge: number, layers: Layer[]): Point {
     const peak: Point = [ridge, TOP];
     const left = addPolygon(f.here(), [[rl, yb], apex, peak, [rl, yb - back]]);
     const right = addPolygon(f.here(), [[rr, yb], apex, peak, [rr, yb - back]]);
-    layers.push(...paint(left, ramps.roof, rimmed(left, columns(), { top: LIGHT, left: SHADOW, right: LIGHT })));
-    layers.push(...paint(right, shaded(ramps.roof), rimmed(right, columns(), { top: LIGHT, right: SHADOW, left: LIGHT })));
+    layers.push(...paint(left, ramps.roof, rimmed(left, columns(f.c.roofMaterial), { top: LIGHT, left: SHADOW, right: LIGHT })));
+    layers.push(...paint(right, shaded(ramps.roof), rimmed(right, columns(f.c.roofMaterial), { top: LIGHT, right: SHADOW, left: LIGHT })));
     return apex;
 }
 
@@ -41,7 +41,7 @@ export function drawHip(f: Frame): Layer[] {
     const layers: Layer[] = [];
     const apex = slopes(f, f.mid, layers);
     const face = addPolygon(f.here(), [[rl, yb], [rr, yb], apex]);
-    layers.push(...paint(face, ramps.roof, rimmed(face, rows(), { bottom: SHADOW })));
+    layers.push(...paint(face, ramps.roof, rimmed(face, rows(f.c.roofMaterial), { bottom: SHADOW })));
     return layers;
 }
 
@@ -52,7 +52,7 @@ export function drawSideGable(f: Frame): Layer[] {
     const back = addPolygon(f.here(), [[rl, TOP], [rr, TOP], [rr, ridge], [rl, ridge]]);
     const front = addPolygon(f.here(), [[rl, ridge], [rr, ridge], [rr, yb], [rl, yb]]);
     return [
-        ...paint(back, shaded(ramps.roof), rimmed(back, rows(), { top: LIGHT })),
-        ...paint(front, ramps.roof, rimmed(front, rows(), { top: LIGHT, bottom: SHADOW }))
+        ...paint(back, shaded(ramps.roof), rimmed(back, rows(f.c.roofMaterial), { top: LIGHT })),
+        ...paint(front, ramps.roof, rimmed(front, rows(f.c.roofMaterial), { top: LIGHT, bottom: SHADOW }))
     ];
 }

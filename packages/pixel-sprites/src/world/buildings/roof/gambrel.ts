@@ -10,7 +10,7 @@ export function drawGambrel(f: Frame): Layer[] {
     const upper = addPolygon(f.here(), [[rl + 3, TOP], [rr - 3, TOP], [rr, split], [rl, split]]);
     const lower = addPolygon(f.here(), [[rl, split], [rr, split], [rr, yb], [rl, yb]]);
     return [
-        ...paint(upper, lit(ramps.roof), rimmed(upper, rows(), { top: LIGHT, left: LIGHT, right: SHADOW })),
-        ...paint(lower, shaded(ramps.roof), rimmed(lower, rows(), { top: LIGHT, bottom: SHADOW }))
+        ...paint(upper, lit(ramps.roof), rimmed(upper, rows(f.c.roofMaterial), { top: LIGHT, left: LIGHT, right: SHADOW })),
+        ...paint(lower, shaded(ramps.roof), rimmed(lower, rows(f.c.roofMaterial), { top: LIGHT, bottom: SHADOW }))
     ];
 }

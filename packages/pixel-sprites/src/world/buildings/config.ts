@@ -32,6 +32,11 @@ export const buildingWings = ["none", "front", "left", "right"] as const;
 export const roofPitches = ["low", "steep"] as const;
 /** How long the building is from front to back. The picture is from above, so a longer building is a roof that goes further up: one more tile for each step. */
 export const buildingDepths = ["short", "medium", "long", "longest"] as const;
+/**
+ * What the roof is covered with, on every roof but a flat one (which is a floor inside a parapet): `shingle` (slate-grey
+ * overlapping rows), `ceramic` (terracotta barrel tiles), `thatch` (straw) or `wood` (shakes, rows of planks).
+ */
+export const roofMaterials = ["shingle", "ceramic", "thatch", "wood"] as const;
 /** What the walls are made of. A timber wall is plaster between wooden beams. */
 export const buildingWalls = ["clapboard", "brick", "stone", "timber"] as const;
 /** Which tile column the door is in. */
@@ -53,6 +58,7 @@ export type BuildingStoreys = (typeof buildingStoreys)[number];
 export type RoofShape = (typeof roofShapes)[number];
 export type BuildingRooftop = (typeof buildingRooftops)[number];
 export type BuildingWing = (typeof buildingWings)[number];
+export type RoofMaterial = (typeof roofMaterials)[number];
 export type RoofPitch = (typeof roofPitches)[number];
 export type BuildingDepth = (typeof buildingDepths)[number];
 export type BuildingWall = (typeof buildingWalls)[number];
@@ -64,6 +70,8 @@ export type Porch = (typeof porches)[number];
 export type Chimney = (typeof chimneys)[number];
 export type BuildingProps = (typeof buildingProps)[number];
 export type BuildingColor = ColorName | HexColor;
+/** The colour of a roof or wall: a common colour, a hex colour, or `"natural"`, the colour of the material itself (slate, terracotta, straw, brick and so on). */
+export type MaterialColor = BuildingColor | "natural";
 
 /**
  * A building is chosen from fixed lists, like an avatar, and drawn from them. It is seen from the front
@@ -80,6 +88,8 @@ export interface BuildingConfig {
     rooftop?: BuildingRooftop;
     pitch?: RoofPitch;
     depth?: BuildingDepth;
+    /** What the roof is covered with. Does not apply to a flat roof. */
+    roofMaterial?: RoofMaterial;
     wall?: BuildingWall;
     door?: DoorPosition;
     doorStyle?: DoorStyle;
@@ -88,8 +98,9 @@ export interface BuildingConfig {
     porch?: Porch;
     chimney?: Chimney;
     props?: BuildingProps;
-    roofColor?: BuildingColor;
-    wallColor?: BuildingColor;
+    /** A colour to paint the roof or walls, replacing the material's natural colour. The default is `"natural"`. */
+    roofColor?: MaterialColor;
+    wallColor?: MaterialColor;
     trimColor?: BuildingColor;
     doorColor?: BuildingColor;
 }
@@ -114,6 +125,7 @@ export const defaultBuildingConfig: ResolvedBuildingConfig = {
     rooftop: "none",
     pitch: "low",
     depth: "short",
+    roofMaterial: "shingle",
     wall: "clapboard",
     door: "centre",
     doorStyle: "plain",
@@ -122,16 +134,17 @@ export const defaultBuildingConfig: ResolvedBuildingConfig = {
     porch: "steps",
     chimney: "none",
     props: "none",
-    roofColor: "red",
-    wallColor: "white",
+    roofColor: "natural",
+    wallColor: "natural",
     trimColor: "brown",
     doorColor: "blue"
 };
 
 const oneOf = <T,>(list: readonly T[], value: unknown, fallback: T): T => (list.includes(value as T) ? (value as T) : fallback);
 
-function colour(value: unknown, fallback: BuildingColor): BuildingColor {
+function colour<F extends MaterialColor>(value: unknown, fallback: F, allowNatural = false): BuildingColor | F {
     if (typeof value !== "string") return fallback;
+    if (allowNatural && value === "natural") return "natural" as F;
     return Object.prototype.hasOwnProperty.call(colorRamps, value) ? (value as ColorName) : parseHex(value) ?? fallback;
 }
 
@@ -148,6 +161,7 @@ export function resolveBuildingConfig(config: BuildingConfig = {}): ResolvedBuil
         rooftop: oneOf(buildingRooftops, c.rooftop, d.rooftop),
         pitch: oneOf(roofPitches, c.pitch, d.pitch),
         depth: oneOf(buildingDepths, c.depth, d.depth),
+        roofMaterial: oneOf(roofMaterials, c.roofMaterial, d.roofMaterial),
         wall: oneOf(buildingWalls, c.wall, d.wall),
         door: oneOf(doorPositions, c.door, d.door),
         doorStyle: oneOf(doorStyles, c.doorStyle, d.doorStyle),
@@ -156,8 +170,8 @@ export function resolveBuildingConfig(config: BuildingConfig = {}): ResolvedBuil
         porch: oneOf(porches, c.porch, d.porch),
         chimney: oneOf(chimneys, c.chimney, d.chimney),
         props: oneOf(buildingProps, c.props, d.props),
-        roofColor: colour(c.roofColor, d.roofColor),
-        wallColor: colour(c.wallColor, d.wallColor),
+        roofColor: colour(c.roofColor, d.roofColor, true),
+        wallColor: colour(c.wallColor, d.wallColor, true),
         trimColor: colour(c.trimColor, d.trimColor),
         doorColor: colour(c.doorColor, d.doorColor)
     };
@@ -189,6 +203,7 @@ export function randomBuilding(seed: number = Math.floor(Math.random() * 4294967
         rooftop: pick(buildingRooftops),
         pitch: pick(roofPitches),
         depth: pick(buildingDepths),
+        roofMaterial: pick(roofMaterials),
         wall: pick(buildingWalls),
         door: pick(doorPositions),
         doorStyle: pick(doorStyles),
@@ -197,8 +212,8 @@ export function randomBuilding(seed: number = Math.floor(Math.random() * 4294967
         porch: pick(porches),
         chimney: pick(chimneys),
         props: pick(buildingProps),
-        roofColor: pick(colours),
-        wallColor: pick(["white", "yellow", "pink", "grey", "teal", "blue"] as const),
+        roofColor: pick<MaterialColor>(["natural", "natural", ...colours]),
+        wallColor: pick<MaterialColor>(["natural", "natural", "white", "yellow", "pink", "grey", "teal", "blue"]),
         trimColor: pick(["white", "brown", "grey"] as const),
         doorColor: pick(colours)
     };

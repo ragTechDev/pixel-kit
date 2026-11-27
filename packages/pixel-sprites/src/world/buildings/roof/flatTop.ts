@@ -37,12 +37,12 @@ function drawFlatTop(f: Frame, skirt: number): { layers: Layer[]; area: Area } {
     const rightBand = addPolygon(f.here(), [...rightEdge, [r, TOP], [rr, TOP + drop]]);
     const front = addPolygon(f.here(), [...leftEdge, ...[...rightEdge].reverse()]);
     const flat = addRect(f.here(), l, TOP, r, yf);
-    layers.push(...paint(leftBand, ramps.roof, rimmed(leftBand, columns(), { top: LIGHT, left: SHADOW })));
-    layers.push(...paint(rightBand, shaded(ramps.roof), rimmed(rightBand, columns(), { top: LIGHT, right: SHADOW })));
+    layers.push(...paint(leftBand, ramps.roof, rimmed(leftBand, columns(f.c.roofMaterial), { top: LIGHT, left: SHADOW })));
+    layers.push(...paint(rightBand, shaded(ramps.roof), rimmed(rightBand, columns(f.c.roofMaterial), { top: LIGHT, right: SHADOW })));
     // The skirt is set off from the steep slope above it by a line of shadow.
-    const courses = skirt ? (x: number, y: number) => (y === yb - skirt ? SHADOW : rows()(x, y)) : rows();
+    const courses = skirt ? (x: number, y: number) => (y === yb - skirt ? SHADOW : rows(f.c.roofMaterial)(x, y)) : rows(f.c.roofMaterial);
     layers.push(...paint(front, ramps.roof, rimmed(front, courses, { top: LIGHT, bottom: SHADOW })));
-    layers.push(...paint(flat, lit(ramps.roof), rimmed(flat, rows(), { top: LIGHT, left: LIGHT, right: SHADOW, bottom: SHADOW })));
+    layers.push(...paint(flat, lit(ramps.roof), rimmed(flat, rows(f.c.roofMaterial), { top: LIGHT, left: LIGHT, right: SHADOW, bottom: SHADOW })));
     return { layers, area: { x0: l + 3, y0: TOP + 3, x1: r - 3, y1: yf - 3 } };
 }
 

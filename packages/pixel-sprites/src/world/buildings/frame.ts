@@ -1,7 +1,7 @@
 import type { Ramp } from "../../core/sprite";
 import { objectRamps } from "../objects/ramps";
 import { TILE_SIZE } from "../size";
-import { buildingDepths, type VolumeConfig } from "./config";
+import { buildingDepths, type BuildingWall, type MaterialColor, type RoofMaterial, type VolumeConfig } from "./config";
 import { rampOf, shape, type Shape } from "./shapes";
 
 /** The ramps a building is drawn in: its own colours, and the fixed ones for materials. */
@@ -11,6 +11,27 @@ const stone: Ramp = { outline: "#4A4C50", base: "#A9ADB4", shadow: "#868A92", hi
 const metal: Ramp = { outline: "#3C4046", base: "#C3C8CE", shadow: "#8E949C", highlight: "#E8EBEE" };
 const soil: Ramp = { outline: "#2B1A10", base: "#47301F", shadow: "#36251A", highlight: "#5C4029" };
 const solar: Ramp = { outline: "#142038", base: "#2E4A7C", shadow: "#213A63", highlight: "#5B7FB8" };
+
+/** The colour of each roof material as it comes: slate, terracotta, straw and weathered wood. */
+export const naturalRoofs: Record<RoofMaterial, Ramp> = {
+    shingle: { outline: "#2E3238", base: "#5F6670", shadow: "#474D55", highlight: "#7C848E" },
+    ceramic: { outline: "#4A2318", base: "#C8622F", shadow: "#9A4824", highlight: "#DE8554" },
+    thatch: { outline: "#4A3A1C", base: "#C9A85C", shadow: "#A08440", highlight: "#E0C985" },
+    wood: { outline: "#3A2616", base: "#8A6240", shadow: "#664630", highlight: "#A98462" }
+};
+
+/** The colour of each wall material as it comes: painted-wood tan, brick red, grey stone and cream plaster. */
+export const naturalWalls: Record<BuildingWall, Ramp> = {
+    clapboard: { outline: "#3E2A1C", base: "#C4A072", shadow: "#9C7C54", highlight: "#D8BC94" },
+    brick: { outline: "#3B1D17", base: "#A64B3A", shadow: "#7E3A2E", highlight: "#BC6A57" },
+    stone,
+    timber: { outline: "#5A5348", base: "#EDE3CC", shadow: "#C4BAA2", highlight: "#F5EEDD" }
+};
+
+/** A flat roof has no covering: its parapet and floor are concrete. */
+const flatRoof: Ramp = { outline: "#383A3D", base: "#8C9099", shadow: "#65686E", highlight: "#AFB1B8" };
+
+const painted = (color: MaterialColor, natural: Ramp): Ramp => (color === "natural" ? natural : rampOf(color));
 
 /**
  * The size in tiles of one volume of a building (a building is one volume, or two with a wing): its width, its height and
@@ -77,8 +98,8 @@ export function makeFrame(c: VolumeConfig, xOffset = 0): Frame {
         wx1: W - (c.joined?.right ? 0 : 4),
         ground: H - 1,
         ramps: {
-            roof: rampOf(c.roofColor),
-            wall: rampOf(c.wallColor),
+            roof: painted(c.roofColor, c.roof === "flat" ? flatRoof : naturalRoofs[c.roofMaterial]),
+            wall: painted(c.wallColor, naturalWalls[c.wall]),
             trim: rampOf(c.trimColor),
             door: rampOf(c.doorColor),
             wood: objectRamps.wood,

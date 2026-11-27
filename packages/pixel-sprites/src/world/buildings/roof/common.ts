@@ -1,5 +1,5 @@
 import type { Ramp } from "../../../core/sprite";
-import type { RoofShape } from "../config";
+import type { RoofMaterial, RoofShape } from "../config";
 import { filled, LIGHT, mod, SHADOW, type Pattern, type Shape } from "../shapes";
 
 // The roof is seen from above and in front. Every roof shares these measurements: the eave is a straight line across
@@ -24,17 +24,45 @@ export const shaded = (r: Ramp): Ramp => ({ outline: r.outline, base: r.shadow, 
 /** A ramp for a flat plane that catches the light: its tones one step lighter. */
 export const lit = (r: Ramp): Ramp => ({ outline: r.outline, base: r.highlight, shadow: r.base, highlight: r.highlight });
 
-/** Rows of shingles running along the eave, each row staggered. */
-export const rows =
-    (): Pattern =>
-    (x, y) =>
-        mod(y, 4) === 3 ? SHADOW : (x + (Math.floor(y / 4) % 2) * 4) % 8 === 0 ? SHADOW : 0;
+/** A cheap deterministic scatter of small whole numbers, for the strands of thatch. */
+const scatter = (a: number, b: number): number => {
+    let h = Math.imul(a * 73856093 + 19, 0x9e3779b1) ^ Math.imul(b * 19349663 + 7, 0x85ebca6b);
+    h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
+    return (h ^ (h >>> 13)) >>> 0;
+};
 
-/** Rows of shingles running front to back, for a slope whose eave is its side. */
-export const columns =
-    (): Pattern =>
+/**
+ * What a roof covering paints at a point, where `u` runs along the eave and `v` down the slope: courses of staggered shingles,
+ * barrel tiles that run down the slope, straw in loose strands, or planks of shakes in staggered courses.
+ */
+const coverings: Record<RoofMaterial, Pattern> = {
+    shingle: (u, v) => (mod(v, 4) === 3 ? SHADOW : (u + (Math.floor(v / 4) % 2) * 4) % 8 === 0 ? SHADOW : 0),
+    ceramic: (u, v) => {
+        const along = mod(u + (Math.floor(v / 8) % 2) * 3, 6);
+        return mod(v, 8) === 7 ? SHADOW : along === 5 ? SHADOW : along === 0 ? LIGHT : 0;
+    },
+    thatch: (u, v) => {
+        if (mod(v, 10) === 9) return u % 2 === 0 ? SHADOW : 0;
+        const strand = scatter(u, Math.floor((v + (scatter(u, 0) % 5)) / 5)) % 8;
+        return strand < 2 ? SHADOW : strand > 5 ? LIGHT : 0;
+    },
+    wood: (u, v) => {
+        const along = mod(u + Math.floor(v / 6) * 2, 5);
+        return mod(v, 6) === 5 ? SHADOW : along === 4 ? SHADOW : mod(v, 6) === 0 && along < 3 ? LIGHT : 0;
+    }
+};
+
+/** The covering along the eave: its courses run across the slope, as on a front face. */
+export const rows =
+    (material: RoofMaterial): Pattern =>
     (x, y) =>
-        mod(x, 4) === 3 ? SHADOW : (y + (Math.floor(x / 4) % 2) * 4) % 8 === 0 ? SHADOW : 0;
+        coverings[material](x, y);
+
+/** The covering on a slope whose eave is its side: the same, turned. */
+export const columns =
+    (material: RoofMaterial): Pattern =>
+    (x, y) =>
+        coverings[material](y, x);
 
 /** A band two or three pixels wide along the edges of a shape that face `side`: lit along the top and the ridge, in shadow along an eave. */
 export function rimmed(s: Shape, texture: Pattern, rims: Partial<Record<Side, number>>): Pattern {
