@@ -33,7 +33,14 @@ const summerColors = {
     roofEdge: "#5E2F28",
     roofCast: "#A09585", // shadow an eave casts on the wall below it
     sky: "#BFDDEB",
-    skyLight: "#D3E9F3"
+    skyLight: "#D3E9F3",
+    scorchBase: "#5A4F45",
+    scorchShade: "#463D35",
+    scorchLight: "#6E6256",
+    crackLine: "#3A3430",
+    rubbleBase: "#887F75",
+    rubbleShade: "#45403A",
+    rubbleLight: "#B0A79A"
 } as const;
 
 export type TileColor = keyof typeof summerColors;
@@ -131,7 +138,14 @@ export const tilePalettes = {
         roofEdge: "#2E1D1A",
         roofCast: "#7A7268",
         sky: "#A9A39A",
-        skyLight: "#BDB7AE"
+        skyLight: "#BDB7AE",
+        scorchBase: "#4A423B",
+        scorchShade: "#38322C",
+        scorchLight: "#5C534A",
+        crackLine: "#2B2623",
+        rubbleBase: "#756E66",
+        rubbleShade: "#38342F",
+        rubbleLight: "#968E83"
     }
 } as const satisfies Record<string, Palette>;
 

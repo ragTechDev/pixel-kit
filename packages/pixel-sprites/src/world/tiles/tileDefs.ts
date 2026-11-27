@@ -1,4 +1,12 @@
 import type { PixelMask } from "../../core/maskUtils";
+import { brokenFloorCrackMask } from "../masks/tiles/brokenFloor/crack.mask";
+import { brokenFloorDebrisMask } from "../masks/tiles/brokenFloor/debris.mask";
+import { crackedPavementCrackMask } from "../masks/tiles/crackedPavement/crack.mask";
+import { crackedRoadCrackMask } from "../masks/tiles/crackedRoad/crack.mask";
+import { rubbleLightMask } from "../masks/tiles/rubble/light.mask";
+import { rubbleShadeMask } from "../masks/tiles/rubble/shade.mask";
+import { scorchedEarthLightMask } from "../masks/tiles/scorchedEarth/light.mask";
+import { scorchedEarthShadeMask } from "../masks/tiles/scorchedEarth/shade.mask";
 import { beigePavementGroutMask } from "../masks/tiles/beigePavement/grout.mask";
 import { beigePavementLightMask } from "../masks/tiles/beigePavement/light.mask";
 import { beigePavementShadeMask } from "../masks/tiles/beigePavement/shade.mask";
@@ -147,6 +155,18 @@ export const tileDefs: Record<TileId, TileDef> = {
         [beigePavementGroutMask, "pavementGrout"]
     ),
     brick_pavement: material("brickBase", [brickPavementMortarMask, "brickMortar"], [brickPavementLightMask, "brickLight"]),
+    // The same road and pavement with a crack across them (and a pothole in the road).
+    cracked_road: material("roadBase", [roadCurbMask, "roadCurb"], [roadLineMask, "roadLine"], [crackedRoadCrackMask, "crackLine"]),
+    cracked_pavement: material(
+        "pavementBase",
+        [beigePavementShadeMask, "pavementShade"],
+        [beigePavementLightMask, "pavementLight"],
+        [beigePavementGroutMask, "pavementGrout"],
+        [crackedPavementCrackMask, "crackLine"]
+    ),
+    scorched_earth: material("scorchBase", [scorchedEarthShadeMask, "scorchShade"], [scorchedEarthLightMask, "scorchLight"]),
+    rubble: material("rubbleBase", [rubbleShadeMask, "rubbleShade"], [rubbleLightMask, "rubbleLight"]),
+    broken_floor: material("floor", [floorMask, "floorLine"], [brokenFloorCrackMask, "crackLine"], [brokenFloorDebrisMask, "rubbleLight"]),
     grass: material("grass", [grassShadeMask, "grassShade"], [grassLightMask, "grassLight"]),
     tall_grass: material("grass", [tallGrassShadeMask, "grassShade"], [tallGrassLightMask, "grassLight"]),
     path: material("path", [pathShadeMask, "pathShade"], [pathLightMask, "pathLight"]),

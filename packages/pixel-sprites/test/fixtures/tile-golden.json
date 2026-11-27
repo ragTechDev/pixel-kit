@@ -31,5 +31,10 @@
   "wall_base": "e3a3253747d3aa94",
   "wall_base_left": "02bda3f7aed92ca1",
   "wall_base_right": "926709d7e0683a85",
-  "sky": "3d82f3d3ae93fd34"
+  "sky": "3d82f3d3ae93fd34",
+  "cracked_road": "b4e0c2c7c799b779",
+  "cracked_pavement": "731c14f154fe5f08",
+  "scorched_earth": "d81d63b18a274a2d",
+  "rubble": "3fd261d01ca0dce1",
+  "broken_floor": "11e85a60bea69790"
 }

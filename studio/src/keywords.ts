@@ -50,7 +50,12 @@ const tileBase: Record<string, string> = {
     floor: "indoor room boards tiles",
     sky: "air clouds backdrop background",
     roof: "building house shingles tiles top",
-    shore: "beach coast edge bank water sand"
+    shore: "beach coast edge bank water sand",
+    cracked_road: "street asphalt tarmac pothole broken damaged war",
+    cracked_pavement: "sidewalk footpath paving stone broken damaged war",
+    scorched_earth: "burnt burned charred ash ground dirt damaged war fire",
+    rubble: "debris stones bricks ruins collapsed broken damaged war",
+    broken_floor: "indoor room boards cracked debris damaged war"
 };
 
 const edgeParts = new Set(["top", "bottom", "left", "right"]);

@@ -328,3 +328,28 @@ test("ash is a palette of its own: a drained, sooty city, with burnt trees and f
     assert.ok(!ash.colors.includes(objectRamps.leaf.base));
     assert.deepEqual([...seasonalObjectIds].sort(), ["flower", "tree"]);
 });
+
+test("the damaged ground tiles are their plain tiles with cracks, debris or soot, drawn in the palette's own names", () => {
+    const grids = (id, theme) => [...buildTile(id, theme).px].map((i) => buildTile(id, theme).colors[i]);
+    const crack = (theme) => tilePalettes[theme].crackLine;
+    // A cracked road and pavement are the plain tile with crack pixels laid over it, so everything else stays where it was.
+    for (const [damaged, plain] of [["cracked_road", "road"], ["cracked_pavement", "beige_pavement"], ["broken_floor", "floor"]]) {
+        for (const theme of ["summer", "ash"]) {
+            const a = grids(damaged, theme);
+            const b = grids(plain, theme);
+            const different = a.filter((c, i) => c !== b[i]);
+            assert.ok(different.length >= 12, `${damaged} in ${theme} is visibly broken`);
+            assert.ok(different.length < 100, `${damaged} in ${theme} is still the same tile`);
+            assert.ok(a.includes(crack(theme)), `${damaged} has cracks in ${theme}`);
+        }
+    }
+    // Scorched earth and rubble are ground of their own, in tones that are not the grass or the pavement's, and the war palette is darker.
+    for (const id of ["scorched_earth", "rubble"]) {
+        const colors = buildTile(id).colors.slice(1);
+        assert.ok(colors.length >= 3, id);
+        for (const key of ["grass", "pavementBase", "roadBase"]) assert.ok(!colors.includes(tilePalettes.summer[key]), `${id} is not ${key}`);
+    }
+    const luma = (hex) => [1, 3, 5].reduce((sum, i, k) => sum + parseInt(hex.slice(i, i + 2), 16) * [0.3, 0.59, 0.11][k], 0);
+    assert.ok(luma(tilePalettes.ash.rubbleBase) < luma(tilePalettes.summer.rubbleBase));
+    assert.ok(luma(tilePalettes.ash.scorchBase) < luma(tilePalettes.summer.scorchBase));
+});

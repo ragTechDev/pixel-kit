@@ -1,9 +1,11 @@
 /** Road and pavement tiles (`src/world/masks/tiles`). */
-export type RoadTileId = "road" | "beige_pavement" | "brick_pavement";
+export type RoadTileId = "road" | "beige_pavement" | "brick_pavement" | "cracked_road" | "cracked_pavement";
 
 /** Terrain tiles for towns and interiors (`src/world/masks/tiles`). */
 export type TownTileId =
     | "grass" | "tall_grass" | "path" | "water" | "shore" | "wall" | "floor" | "sky"
+    // Ground that a war has been over: burnt earth, a field of rubble, and a floor broken up.
+    | "scorched_earth" | "rubble" | "broken_floor"
     // Roof nine-patch: ridge (top), eave (bottom), rake edges (left, right).
     | "roof_top_left" | "roof_top" | "roof_top_right"
     | "roof_left" | "roof" | "roof_right"
