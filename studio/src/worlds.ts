@@ -25,9 +25,9 @@ export const townMap = defineMap(townTileset, [
     "gggggggggg",
     "gggggggggg",
     "gggpggggtt",
-    "uxypgABCgt",
-    "vvvpgDEFgt",
-    "vvvpgGHIgt",
+    "uxypgggggt",
+    "vvvpgggggt",
+    "vvvpHHHIgt",
     "gggpsssssg",
     "gggpwwwwwg"
 ], [
@@ -37,7 +37,7 @@ export const townMap = defineMap(townTileset, [
     ...orchard,
     ...field
 // The buildings: their walls and roof are solid and the tile at the foot of each door is the way in. The house is in the middle,
-// and a brick shop stands on the pavement, with a tile of it left in front of the door.
+// and a brick shop stands on the right. A beige path of pavement runs from the dirt path along the front of the shop to its door.
 ], [
     { config: { width: 8, roof: "gable", roofMaterial: "ceramic", windows: 2, chimney: "right" }, x: 4, y: 1 },
     { config: { width: 6, roof: "gable", wall: "brick", roofMaterial: "shingle", windows: 2, chimney: "left", doorColor: "red" }, x: 10, y: 8 }
