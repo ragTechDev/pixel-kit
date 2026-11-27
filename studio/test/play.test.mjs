@@ -700,3 +700,31 @@ test("every character stands on open floor, and every door has open floor in fro
         assert.equal(blocked(place.arrive.x, place.arrive.y), false, `${place.id}: arriving at (${place.arrive.x}, ${place.arrive.y})`);
     }
 });
+
+test("the hero can walk behind the counter, into the kitchen and to the grocer's shelves behind the till", () => {
+    // A search over the tiles the hero's feet fit on, from where it arrives: whatever it reaches, a player can walk to.
+    for (const [id, behind] of [["restaurant", [[6, 3], [4, 3]]], ["grocer", [[8, 3], [8, 2]]]]) {
+        const place = maps.places[id];
+        const p = play();
+        const solid = maps.solidBoxes(place.map);
+        const free = (tx, ty) => {
+            p.hero.teleport(tx * 16, ty * 16, "down");
+            const f = p.hero.feet;
+            const hit = (b) => f.x < b.x + b.width && f.x + f.width > b.x && f.y < b.y + b.height && f.y + f.height > b.y;
+            return tx >= 0 && ty >= 0 && tx < 16 && ty < 12 && !solid.some(hit) && !place.npcs.some((n) => n.x === tx && n.y === ty);
+        };
+        const seen = new Set([`${place.arrive.x},${place.arrive.y}`]);
+        const queue = [[place.arrive.x, place.arrive.y]];
+        for (let i = 0; i < queue.length; i += 1) {
+            const [x, y] = queue[i];
+            for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                const key = `${x + dx},${y + dy}`;
+                if (!seen.has(key) && free(x + dx, y + dy)) {
+                    seen.add(key);
+                    queue.push([x + dx, y + dy]);
+                }
+            }
+        }
+        for (const [x, y] of behind) assert.ok(seen.has(`${x},${y}`), `${id}: (${x}, ${y}) can be reached on foot`);
+    }
+});

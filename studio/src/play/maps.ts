@@ -43,9 +43,9 @@ export const grocerMap = defineMap(houseTileset, [
     ...at("chalkboard", [7, 1]),
     ...at("grocery_shelf", [1, 2], [2, 2], [3, 2], [12, 2], [13, 2], [14, 2]),
     ...at("fridge", [5, 2], [9, 2]),
-    // The checkout, between the two fridges: the shopkeeper stands behind it.
-    ...at("counter", [6, 4]),
-    ...at("cash_register", [8, 4]),
+    // The checkout, between the two fridges: the shopkeeper stands behind it, and there is a gap at the right end to step through.
+    ...at("counter", [5, 4]),
+    ...at("cash_register", [7, 4]),
     ...at("produce_crate", [2, 6], [3, 6], [4, 6], [11, 6], [12, 6], [13, 6]),
     ...at("grocery_shelf", [2, 8], [3, 8], [12, 8], [13, 8]),
     ...at("rug", [7, 7]),
@@ -101,7 +101,7 @@ export const places: Record<PlaceId, Place> = {
         id: "restaurant",
         map: restaurantMap,
         // The cook at the stoves, and a waiter in the dining room.
-        npcs: [{ x: 5, y: 3, look: randomAvatar() }, { x: 8, y: 5, look: randomAvatar() }],
+        npcs: [{ x: 3, y: 3, look: randomAvatar() }, { x: 8, y: 5, look: randomAvatar() }],
         arrive: { x: 7, y: 9, facing: "up" },
         exits: [{ x: 7, y: 10, to: "town" }]
     },
