@@ -13,6 +13,7 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-engin
 ## Unreleased
 
 ### Added
+- **`createPopups`: a picture that appears on top of another for a moment.** `show(item, anchor, size, key)` puts an item, `size` pixels big, centred above a rectangle (or above a function, so it follows something that moves), and `active` gives where to draw each one now: it floats up a few pixels and fades out (`alpha`). `update(dt)` removes the ones that are done, and showing again with the same `key` restarts a popup instead of stacking another. It draws nothing and takes any item, so an icon, an object or an avatar can appear over another. Core grows from about 2.6 KB to 2.8 KB gzipped, and the budgets are raised to match.
 - **`createCarry`: an avatar picking an object up and holding on to it.** `pickUp(item, from)` starts it, `update(dt)` moves it on, and `pose(avatar, thing, facing)` says where the object goes and how far the avatar crouches on each frame, through four phases: `reach` (bend down), `lift` (the object rises from where it lay to above the head), `show` (held up for a moment) and `hold` (carried low in front, out toward where it faces, and behind the avatar when its back is turned). `busy` is true until the object is held, so a game can keep the avatar still, and `drop()` puts it down. It draws nothing and holds whatever the game hands it, so any picture can be carried. Core grows from about 2.1 KB to 2.6 KB gzipped, and the budgets are raised to match.
 
 ## [0.2.0] - 2026-11-27

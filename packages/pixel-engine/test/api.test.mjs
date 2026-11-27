@@ -8,7 +8,7 @@ import * as react from "../dist/react.js";
 test("the core entry exports exactly the documented API", () => {
     assert.deepEqual(Object.keys(core).sort(), [
         "actions", "cameraOrigin", "createCamera", "createCarry", "createGame", "createInput", "createLoop",
-        "createMover", "createScenes", "createWalker", "directions", "isAction", "isOpen", "isWalkable", "neighbor", "overlaps"
+        "createMover", "createPopups", "createScenes", "createWalker", "directions", "isAction", "isOpen", "isWalkable", "neighbor", "overlaps"
     ]);
 });
 
