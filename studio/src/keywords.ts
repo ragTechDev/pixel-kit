@@ -59,7 +59,16 @@ export const objectKeywords: Record<ObjectId, string> = {
     counter: "shop desk bar stall table store",
     bookshelf: "books library shelf furniture reading",
     rug: "carpet mat floor decoration",
-    flower: "flowers plant garden petals nature bloom"
+    flower: "flowers plant garden petals nature bloom",
+    table: "restaurant dining cafe cloth plates furniture eat",
+    chair: "seat restaurant dining cafe furniture sit",
+    stove: "kitchen cooker range oven cook pot restaurant",
+    sink: "kitchen basin tap wash restaurant",
+    fridge: "kitchen refrigerator freezer cold food grocer restaurant",
+    cash_register: "till shop grocer store checkout pay counter",
+    grocery_shelf: "grocer store shop supermarket jars cans boxes goods shelving",
+    produce_crate: "grocer market fruit vegetables apples oranges greens stall store",
+    chalkboard: "menu sign prices board restaurant cafe blackboard"
 };
 
 const tileBase: Record<string, string> = {

@@ -48,7 +48,16 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
     counter: { width: 2, height: 1, layer: "standing", footprint: ["##"], counter: true },
     bookshelf: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
     rug: { width: 2, height: 2, layer: "ground", footprint: ["..", ".."] },
-    flower: { width: 1, height: 1, layer: "ground", footprint: ["."] }
+    flower: { width: 1, height: 1, layer: "ground", footprint: ["."] },
+    table: { width: 2, height: 1, layer: "standing", footprint: ["##"] },
+    chair: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
+    stove: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
+    sink: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
+    fridge: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
+    cash_register: { width: 1, height: 1, layer: "standing", footprint: ["#"], counter: true },
+    grocery_shelf: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
+    produce_crate: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
+    chalkboard: { width: 1, height: 1, layer: "standing", footprint: ["#"] }
 };
 
 export const objectIds = Object.keys(objectInfo) as ObjectId[];
@@ -80,6 +89,7 @@ export const objectColors: Partial<Record<ObjectId, readonly ColorName[]>> = {
     fence: ["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "white", "grey"],
     bookshelf: ["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "white", "grey"],
     rug: ["orange", "yellow", "green", "teal", "blue", "purple", "pink", "grey"],
+    table: ["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "grey"],
     flower: ["orange", "pink", "purple", "blue", "white"]
 };
 
@@ -91,6 +101,7 @@ const accents: Partial<Record<ObjectId, readonly ObjectRampId[]>> = {
     fence: ["wood"],
     bookshelf: ["wood"],
     rug: ["cloth_red"],
+    table: ["cloth_white"],
     flower: ["flower_red", "flower_yellow"]
 };
 

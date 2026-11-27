@@ -54,7 +54,7 @@ test("roof pieces share the shingle pattern and differ at ridge, eave and edges"
 
 test("objects render at their footprint size using only fixed ramps", () => {
     const rampColors = new Set(Object.values(objectRamps).flatMap((r) => Object.values(r)));
-    assert.deepEqual([...objectIds].sort(), ["bookshelf", "counter", "crop_beet", "crop_cabbage", "crop_carrot", "crop_corn", "crop_pumpkin", "crop_radish", "crop_tomato", "crop_turnip", "door", "fence", "flower", "fruit_apple", "fruit_cherry", "fruit_lemon", "fruit_olive", "fruit_orange", "fruit_peach", "fruit_pear", "fruit_tree", "rug", "tree", "veg_beet", "veg_cabbage", "veg_carrot", "veg_corn", "veg_pumpkin", "veg_radish", "veg_tomato", "veg_turnip", "window"]);
+    assert.deepEqual([...objectIds].sort(), ["bookshelf", "cash_register", "chair", "chalkboard", "counter", "crop_beet", "crop_cabbage", "crop_carrot", "crop_corn", "crop_pumpkin", "crop_radish", "crop_tomato", "crop_turnip", "door", "fence", "flower", "fridge", "fruit_apple", "fruit_cherry", "fruit_lemon", "fruit_olive", "fruit_orange", "fruit_peach", "fruit_pear", "fruit_tree", "grocery_shelf", "produce_crate", "rug", "sink", "stove", "table", "tree", "veg_beet", "veg_cabbage", "veg_carrot", "veg_corn", "veg_pumpkin", "veg_radish", "veg_tomato", "veg_turnip", "window"]);
     for (const id of objectIds) {
         const { width, height, footprint } = objectInfo[id];
         assert.equal(footprint.length, height, id);
@@ -295,7 +295,7 @@ test("trees and flowers change with the season, in the same shape, and the world
 });
 
 test("objects with a main colour can be shown in their common colours, in the same shape", () => {
-    assert.deepEqual([...colorableObjectIds].sort(), ["bookshelf", "door", "fence", "flower", "rug", "tree", "window"]);
+    assert.deepEqual([...colorableObjectIds].sort(), ["bookshelf", "door", "fence", "flower", "rug", "table", "tree", "window"]);
     const shape = (r) => Array.from(r.px, (p) => (p === 0 ? 0 : 1)).join("");
     for (const id of colorableObjectIds) {
         const plain = buildObject(id);

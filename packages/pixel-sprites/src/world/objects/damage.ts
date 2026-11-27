@@ -1,6 +1,6 @@
 import type { Raster } from "../../core/compose";
 import { Canvas, HOLE, bell, crack, cut, edges, heap, hole, ragged, scorch, seeded, walk, type Breaks } from "../damageTools";
-import type { CropId, FruitId, ObjectId, VegId } from "../types";
+import type { CropId, FruitId, FurnishingId, ObjectId, VegId } from "../types";
 import { fruitIds } from "./fruitTree";
 import { cropIds, vegIds } from "./vegetables";
 import { objectRamps } from "./ramps";
@@ -17,7 +17,8 @@ export type ObjectDamage = (typeof objectDamage)[number];
 type Level = Exclude<ObjectDamage, "none">;
 
 const glassTones = new Set<string>(Object.values(objectRamps.glass));
-const bookTones = new Set<string>([objectRamps.book_blue, objectRamps.book_red, objectRamps.book_green].flatMap((r) => Object.values(r)));
+// The goods on a grocery shelf (jars, boxes and cans) come off it the way books do.
+const bookTones = new Set<string>([objectRamps.book_blue, objectRamps.book_red, objectRamps.book_green, objectRamps.gold, objectRamps.fruit_red].flatMap((r) => Object.values(r)));
 const BOOKS = [objectRamps.book_blue.base, objectRamps.book_red.base, objectRamps.book_green.base, objectRamps.book_blue.highlight, objectRamps.book_red.highlight];
 
 /** The columns that have something in them. */
@@ -204,7 +205,7 @@ const smallRecipe: Recipe = (c, rng, breaks, level) => {
     return half(level) ? 0.3 : 0.55;
 };
 
-const recipes: Record<ObjectId, Recipe> = {
+const base: Record<Exclude<ObjectId, FurnishingId>, Recipe> = {
     tree: treeRecipe,
     fruit_tree: fruitTreeRecipe,
     ...(Object.fromEntries(fruitIds.map((id) => [id, smallRecipe])) as unknown as Record<FruitId, Recipe>),
@@ -285,6 +286,20 @@ const recipes: Record<ObjectId, Recipe> = {
         for (let i = half(level) ? 2 : 4; i > 0; i -= 1) burn(c, rng, breaks, 3 + rng() * 10, 3 + rng() * 10, 2 + rng());
         return half(level) ? 0.3 : 0.55;
     }
+};
+
+/** The furniture breaks like what it most resembles: a table like a counter, a tall fridge or shelf like a bookshelf, the rest like a door. */
+const recipes: Record<ObjectId, Recipe> = {
+    ...base,
+    table: base.counter,
+    chair: base.door,
+    stove: base.door,
+    sink: base.door,
+    fridge: base.bookshelf,
+    cash_register: base.door,
+    grocery_shelf: base.bookshelf,
+    produce_crate: base.door,
+    chalkboard: base.door
 };
 
 /**

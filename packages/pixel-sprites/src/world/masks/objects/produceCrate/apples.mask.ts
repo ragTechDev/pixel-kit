@@ -1,0 +1,6 @@
+export const produceCrateApplesMask = [
+    "01110",
+    "11111",
+    "11111",
+    "01110"
+];

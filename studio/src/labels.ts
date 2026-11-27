@@ -22,6 +22,7 @@ export const tileGroups = ["Terrain", "Pavement", "Roofs", "Walls", "Farmland", 
 export const objectLabel: Record<ObjectId, string> = {
     tree: "Tree", fruit_tree: "Fruit tree", fence: "Fence", door: "Door", window: "Window",
     counter: "Counter", bookshelf: "Bookshelf", rug: "Rug", flower: "Flowers",
+    table: "Table", chair: "Chair", stove: "Stove", sink: "Sink", fridge: "Fridge", cash_register: "Cash register", grocery_shelf: "Grocery shelf", produce_crate: "Produce crate", chalkboard: "Chalkboard",
     crop_carrot: "Carrot plant", crop_radish: "Radish plant", crop_turnip: "Turnip plant", crop_beet: "Beet plant", crop_cabbage: "Cabbage plant", crop_pumpkin: "Pumpkin plant", crop_tomato: "Tomato plant", crop_corn: "Corn plant",
     veg_carrot: "Carrot", veg_radish: "Radish", veg_turnip: "Turnip", veg_beet: "Beet", veg_cabbage: "Cabbage", veg_pumpkin: "Pumpkin", veg_tomato: "Tomato", veg_corn: "Corn",
     fruit_apple: "Apple", fruit_cherry: "Cherries", fruit_peach: "Peach", fruit_pear: "Pear", fruit_orange: "Orange", fruit_lemon: "Lemon", fruit_olive: "Olive"

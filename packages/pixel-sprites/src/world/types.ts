@@ -37,4 +37,6 @@ export type CropId = `crop_${Vegetable}`;
 export type VegId = `veg_${Vegetable}`;
 
 /** Things that stand on or sit over the terrain. They are shaded sprites, not tiles. */
-export type ObjectId = "tree" | "fruit_tree" | FruitId | CropId | VegId | "fence" | "door" | "window" | "counter" | "bookshelf" | "rug" | "flower";
+/** Furniture and fittings for a kitchen, a dining room and a grocer's. */
+export type FurnishingId = "table" | "chair" | "stove" | "sink" | "fridge" | "cash_register" | "grocery_shelf" | "produce_crate" | "chalkboard";
+export type ObjectId = "tree" | "fruit_tree" | FruitId | CropId | VegId | "fence" | "door" | "window" | "counter" | "bookshelf" | "rug" | "flower" | FurnishingId;
