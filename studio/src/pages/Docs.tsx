@@ -84,7 +84,7 @@ const map = defineMap(townTileset, ["NOQ", "LMJ"], [{ id: "tree", x: 0, y: 0, da
 buildMap(map, "ash");   // ash is a palette, not a season
 tileSeasons;            // the four that come round: spring, summer, autumn, winter`} />
             <p>
-                Buildings and objects can be shown damaged by war. <code>damage</code> is <code>"half"</code> or <code>"ruin"</code>: a building loses a corner and part of its roof (or most of its walls) and shows the rooms inside, a window loses its glass, a bookshelf its books, a tree burns down to a trunk.
+                Buildings and objects can be shown damaged by war. <code>damage</code> is <code>"half"</code> or <code>"ruin"</code>: a building loses a corner and part of its roof (or most of its walls) and shows the rooms inside, a window loses its glass, a bookshelf its books, a tree is blasted down to its branches and then burns to a trunk.
                 It is the same every time for the same thing, keeps its colours, and does not change what blocks movement.
             </p>
             <Demo>

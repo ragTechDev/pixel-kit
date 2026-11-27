@@ -5,7 +5,7 @@ import { objectRamps } from "./ramps";
 
 // War damage for an object. Like a building's it is a pass over the finished picture, seeded from the object's key, so an
 // object is always damaged the same way and keeps its own colours (and its season's). What is lost depends on the object: a
-// tree is blasted and then burnt down to a trunk, a window loses its glass, a bookshelf its books, a rug is burnt through
+// tree is blasted down to its branches and then burnt to a trunk, a window loses its glass, a bookshelf its books, a rug is burnt through
 // in holes. Every tone is a fixed one or the object's own colour darkened toward soot, and nothing here takes input.
 
 /** How badly an object is damaged: `none` is untouched, `half` is broken in one place, and `ruin` is most of the way gone. */
@@ -71,6 +71,43 @@ function burn(c: Canvas, rng: () => number, breaks: Breaks, cx: number, cy: numb
     breaks.sources.push([Math.round(cx), Math.round(cy), Math.round(r + 4)]);
 }
 
+/** The limbs of a tree, from the top of the trunk outward: one to the left, one up and one to the right. */
+const limbs: readonly (readonly (readonly [number, number])[])[] = [
+    [[7, 13], [6, 12], [5, 11], [4, 10], [3, 9], [3, 8], [2, 7]],
+    [[7, 13], [7, 12], [8, 11], [8, 10], [8, 9], [8, 8], [8, 7], [8, 6]],
+    [[8, 13], [9, 12], [10, 11], [11, 10], [12, 9], [12, 8], [13, 7]]
+];
+
+/**
+ * Turns a tree into its bones: the canopy is cleared away, except for a clump or two of leaves round the tips of limbs that
+ * keep them, so every leaf that is left is on a branch, and the branches that lost theirs are bare. The limbs are drawn over
+ * what is left, in the bark's own colours, with a twig or two off them.
+ */
+function skeleton(c: Canvas, rng: () => number) {
+    const order = [0, 1, 2].sort(() => rng() - 0.5);
+    const kept = order.slice(0, rng() < 0.5 ? 1 : 2).map((i) => limbs[i]);
+    const near = (x: number, y: number) => kept.some((limb) => limb.slice(2).some(([lx, ly]) => Math.hypot(x - lx, y - ly) <= 3.4 + (rng() - 0.5)));
+    for (let y = 0; y <= 12; y += 1) for (let x = 0; x < c.w; x += 1) if (c.on(x, y) && !near(x, y)) c.clear(x, y);
+    // The foot of the canopy, where it wrapped round the top of the trunk, is gone wherever it stuck out past it.
+    for (let y = 13; y <= 16; y += 1) for (let x = 0; x < c.w; x += 1) if (x < 4 || x > 11) c.clear(x, y);
+    const bark = objectRamps.bark;
+    const draw = (x: number, y: number) => {
+        c.put(x, y, bark.base);
+        c.put(x + 1, y, bark.shadow);
+    };
+    for (const limb of limbs) {
+        limb.forEach(([x, y], i) => {
+            draw(x, y);
+            // A twig off every other pixel of the limb's outer half, leaning away from the middle.
+            if (i >= 3 && i % 2 === 1 && rng() < 0.8) {
+                const away = x < 7 ? -1 : 1;
+                draw(x + away, y - 1);
+                if (rng() < 0.5) draw(x + away * 2, y - 2);
+            }
+        });
+    }
+}
+
 /** Darkens the pixels of a region to the soot of a fire, most of them. */
 function char(c: Canvas, rng: () => number, amount: number, inside: (x: number, y: number) => boolean) {
     for (let y = 0; y < c.h; y += 1) for (let x = 0; x < c.w; x += 1) if (inside(x, y) && rng() < 0.8) c.darkenAt(x, y, amount);
@@ -101,13 +138,14 @@ type Recipe = (c: Canvas, rng: () => number, breaks: Breaks, level: Level) => nu
 const half = (level: Level) => level === "half";
 
 const recipes: Record<ObjectId, Recipe> = {
-    // Blasted: a chunk of the canopy is gone, the rest is scorched and holed. A ruin is a burnt trunk, broken off short.
+    // Blasted: the canopy is blown away down to the branches, with a clump of scorched leaves left on one or two of them. A ruin
+    // is a burnt trunk, broken off short.
     tree: (c, rng, breaks, level) => {
         if (half(level)) {
-            const side = rng() < 0.5;
-            bite(c, rng, breaks, side ? 1 : Math.round(c.w * 0.5), Math.round(c.w * 0.45), 7 + Math.floor(rng() * 3));
-            for (let i = 0; i < 2; i += 1) burn(c, rng, breaks, 4 + rng() * 8, 5 + rng() * 8, 1.2 + rng() * 0.8);
-            char(c, rng, 0.45, (_x, y) => y < 16);
+            skeleton(c, rng);
+            // The leaves that are left are scorched. The bark, branches and trunk are left to the soot over the whole tree.
+            const bark = new Set<string>(Object.values(objectRamps.bark));
+            char(c, rng, 0.4, (x, y) => y < 17 && c.on(x, y) && !bark.has(c.colors[c.px[y * c.w + x]]));
             crack(c, rng, 8, 20, 6);
             return 0.12;
         }
@@ -192,6 +230,40 @@ const recipes: Record<ObjectId, Recipe> = {
     }
 };
 
+/**
+ * Takes away anything that is no longer joined to the object's foot, as a leaf, a plank or a pane left hanging in the air
+ * would be: only what is touching the lowest rows of the object, or touching something that does, is kept.
+ */
+function keepConnected(c: Canvas, root: number) {
+    const seen = new Uint8Array(c.w * c.h);
+    const queue: number[] = [];
+    for (let y = Math.max(0, root); y < c.h; y += 1) {
+        for (let x = 0; x < c.w; x += 1) {
+            if (c.on(x, y)) {
+                seen[y * c.w + x] = 1;
+                queue.push(y * c.w + x);
+            }
+        }
+    }
+    for (let head = 0; head < queue.length; head += 1) {
+        const x = queue[head] % c.w;
+        const y = Math.floor(queue[head] / c.w);
+        for (let dy = -1; dy <= 1; dy += 1) {
+            for (let dx = -1; dx <= 1; dx += 1) {
+                const k = (y + dy) * c.w + x + dx;
+                if (x + dx >= 0 && x + dx < c.w && c.on(x + dx, y + dy) && !seen[k]) {
+                    seen[k] = 1;
+                    queue.push(k);
+                }
+            }
+        }
+    }
+    for (let k = 0; k < seen.length; k += 1) if (!seen[k]) c.clear(k % c.w, Math.floor(k / c.w));
+}
+
+/** What is already shaped as it should be, and wants no teeth or torn faces added: a damaged tree is bare branches and clumps of leaves. */
+const plain = (id: ObjectId, level: Level) => id === "tree" && level === "half";
+
 /** The ground objects scorch where they are, with no broken top, so they get no edges of lit stone. */
 const ground = new Set<ObjectId>(["rug", "flower"]);
 
@@ -204,8 +276,13 @@ export function damageObjectRaster(id: ObjectId, raster: Raster, level: Level, k
     const rng = seeded(`${level}|${key}`);
     const breaks: Breaks = { sources: [], opened: new Set() };
     const whole = recipes[id](c, rng, breaks, level);
-    ragged(c, rng, breaks.opened, ground.has(id) ? [0.2] : [0.3, 0.12]);
-    if (!ground.has(id)) edges(c, breaks.opened);
+    if (!plain(id, level)) ragged(c, rng, breaks.opened, ground.has(id) ? [0.2] : [0.3, 0.12]);
+    if (!ground.has(id)) {
+        let bottom = raster.height - 1;
+        while (bottom > 0 && raster.px.slice(bottom * raster.width, (bottom + 1) * raster.width).every((i) => i === 0)) bottom -= 1;
+        keepConnected(c, bottom - 2);
+    }
+    if (!ground.has(id) && !plain(id, level)) edges(c, breaks.opened);
     scorch(c, rng, breaks, whole);
     return { width: raster.width, height: raster.height, colors: c.colors, px: c.px };
 }
