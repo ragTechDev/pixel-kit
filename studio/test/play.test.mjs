@@ -139,6 +139,16 @@ test("a hero behind a building is covered by it, and one in front covers it", ()
     assert.ok(hero > built, "the hero is drawn after the building");
 });
 
+test("the hero cannot walk onto the water part of the shore, only the grass and sand above it", () => {
+    const p = play();
+    // The shore row at y = 14 is grass, then sand, then water from its pixel row 9.
+    put(p, 10, 12, "down");
+    hold(p, "down", 2);
+    assert.equal(p.hero.feet.y + p.hero.feet.height, 14 * 16 + 9, "stopped at the edge of the water, on the sand");
+    hold(p, "right", 1);
+    assert.equal(p.hero.feet.y + p.hero.feet.height, 14 * 16 + 9, "and can walk along the shore");
+});
+
 test("water blocks the hero but turns them to face it", () => {
     const p = play();
     put(p, 7, 16, "down");
