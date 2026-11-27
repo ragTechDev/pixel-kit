@@ -74,6 +74,20 @@ const map = defineMap(townTileset, Array(8).fill("gggggggg"), [], [
 
 <Building roof="gable" wall="brick" roofColor="blue" pixelSize={4} />`} />
             <p>An object placed on a map can also take a <code>color</code> (<code>{'{ id: "door", x: 3, y: 2, color: "blue" }'}</code>), a common colour or a hex colour, for the objects that have one.</p>
+            <p>
+                Buildings and objects can be shown damaged by war. <code>damage</code> is <code>"half"</code> or <code>"ruin"</code>: a building loses a corner and part of its roof (or most of its walls) and shows the rooms inside, a window loses its glass, a bookshelf its books, a tree burns down to a trunk.
+                It is the same every time for the same thing, keeps its colours, and does not change what blocks movement.
+            </p>
+            <Demo>
+                <WorldObject id="tree" pixelSize={3} /><WorldObject id="tree" damage="half" pixelSize={3} /><WorldObject id="tree" damage="ruin" pixelSize={3} />
+                <WorldObject id="bookshelf" damage="half" pixelSize={3} /><WorldObject id="window" damage="half" pixelSize={3} /><WorldObject id="rug" damage="half" pixelSize={3} />
+            </Demo>
+            <CodeBlock code={`import { buildBuilding, buildObject, defineMap, townTileset } from "@ragtechdev/pixel-sprites";
+
+buildBuilding({ wall: "stone", damage: "ruin" });
+buildObject("window", undefined, undefined, "half");   // season, colour, then damage
+
+defineMap(townTileset, Array(4).fill("gggg"), [{ id: "tree", x: 1, y: 1, damage: "ruin" }]);`} />
         </>
     ),
     variants: () => (

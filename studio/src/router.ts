@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { colorDepths, paletteNames, variantSizes, type ColorDepth, type PalettePreset, type VariantOptions, type VariantSize } from "@ragtechdev/pixel-sprites";
+import { colorDepths, objectDamage, paletteNames, variantSizes, type ColorDepth, type ObjectDamage, type PalettePreset, type VariantOptions, type VariantSize } from "@ragtechdev/pixel-sprites";
 import { colorRamps, defaultTileTheme, parseHex, tileColorGroups, tileThemes, type ColorName, type HexColor, type TileColorGroup, type TileColors, type TileTheme } from "@ragtechdev/pixel-sprites";
 
 export interface Route {
@@ -61,6 +61,12 @@ export function variantOf(from: Route): VariantOptions {
 export function themeOf(from: Route): TileTheme {
     const theme = from.query.get("theme");
     return (tileThemes as readonly string[]).includes(theme ?? "") ? (theme as TileTheme) : defaultTileTheme;
+}
+
+/** The war damage picked for the selected objects: `half` or `ruin`, or none. */
+export function damageOf(from: Route): Exclude<ObjectDamage, "none"> | undefined {
+    const damage = from.query.get("damage") ?? "";
+    return damage !== "none" && (objectDamage as readonly string[]).includes(damage) ? (damage as Exclude<ObjectDamage, "none">) : undefined;
 }
 
 export function idleOf(from: Route): boolean {

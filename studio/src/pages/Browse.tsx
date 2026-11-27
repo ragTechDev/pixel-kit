@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ICON_SIZE, defaultTileTheme, buildIcon, buildObject, buildTile, colorableIconIds, iconCategories, iconColors, idleIconIds, objectColors, objectIds, objectInfo, seasonalObjectIds, tileIds, toVariant, type ColorName, type HexColor, type IconId, type ObjectId, type Raster, type TileId } from "@ragtechdev/pixel-sprites";
 import { iconKeywords, objectKeywords, tileKeywords } from "../keywords";
 import { categoryLabel, idLabel, objectLabel, tileGroup, tileGroups } from "../labels";
-import { colorOf, href, idleOf, setQuery as setRouteQuery, themeOf, tileColorsOf, variantOf, type Route } from "../router";
+import { colorOf, damageOf, href, idleOf, setQuery as setRouteQuery, themeOf, tileColorsOf, variantOf, type Route } from "../router";
 import { Art, ColorDots, Detail, Popover, TileColours, VariantBar } from "../ui";
 
 interface Item {
@@ -26,6 +26,8 @@ interface Kind {
     native?: { width: number; height: number };
     /** Whether the faded "idle" look is an option. */
     idle?: boolean;
+    /** Whether war damage is an option. */
+    damage?: boolean;
     /** The common colours offered for one item (none if it has no main colour to change). */
     colors?: (id: string) => readonly ColorName[];
 }
@@ -116,7 +118,7 @@ const kinds: Record<"icons" | "tiles" | "objects", Kind> = {
         groups: ["standing", "ground"],
         groupLabel: (g) => (g === "standing" ? "Standing" : "On the ground"),
         items: objectIds.map((id) => ({ id, group: objectInfo[id].layer, search: `${id} ${objectLabel[id]} ${objectInfo[id].layer} ${objectKeywords[id]}` })),
-        build: (id, route) => buildObject(id as ObjectId, themeOf(route), colorFor(id, route)),
+        build: (id, route) => buildObject(id as ObjectId, themeOf(route), colorFor(id, route), damageOf(route)),
         facts: (id) => {
             const info = objectInfo[id as ObjectId];
             return [
@@ -134,11 +136,13 @@ const kinds: Record<"icons" | "tiles" | "objects", Kind> = {
             const seasonal = (seasonalObjectIds as readonly string[]).includes(id) && theme !== defaultTileTheme;
             const picked = colorOf(route);
             const color = picked && (picked.startsWith("#") ? (objectColors[id as ObjectId] ?? []).length > 0 : (objectColors[id as ObjectId] ?? []).includes(picked as ColorName)) ? picked : undefined;
-            const props = [seasonal && `theme="${theme}"`, color && `color="${color}"`].filter(Boolean) as string[];
-            const args = color ? `, ${seasonal ? `"${theme}"` : "undefined"}, "${color}"` : seasonal ? `, "${theme}"` : "";
+            const hurt = damageOf(route);
+            const props = [seasonal && `theme="${theme}"`, color && `color="${color}"`, hurt && `damage="${hurt}"`].filter(Boolean) as string[];
+            const args = hurt ? `, ${seasonal ? `"${theme}"` : "undefined"}, ${color ? `"${color}"` : "undefined"}, "${hurt}"` : color ? `, ${seasonal ? `"${theme}"` : "undefined"}, "${color}"` : seasonal ? `, "${theme}"` : "";
             return snippets("WorldObject", "buildObject", id, route, props, args);
         },
         themes: true,
+        damage: true,
         native: objectNative,
         colors: (id) => objectColors[id as ObjectId] ?? []
     }
@@ -180,7 +184,7 @@ export function BrowsePage({ route, kind }: { route: Route; kind: keyof typeof k
                     ))}
                 </nav>
                 <section>
-                    <VariantBar route={route} themes={k.themes} idle={k.idle} native={k.native ?? base} />
+                    <VariantBar route={route} themes={k.themes} idle={k.idle} damage={k.damage} native={k.native ?? base} />
                     {kind === "tiles" && <TileColours route={route} />}
                     {visible.length === 0 && <p className="muted">Nothing matches "{query}".</p>}
                     {k.groups.map((g) => {

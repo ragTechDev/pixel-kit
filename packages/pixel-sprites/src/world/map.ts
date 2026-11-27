@@ -3,7 +3,7 @@ import { composeSprites, layerBounds, type Layer, type Raster } from "../core/co
 import { parseHex, type HexColor } from "../core/customColor";
 import { buildingBox, buildingFootprint, buildingLayers } from "./buildings/draw";
 import { resolveBuildingConfig, type BuildingConfig } from "./buildings/config";
-import { objectColors, objectIds, objectInfo, objectLayers } from "./objects/objects";
+import { objectColors, objectDamage, objectIds, objectInfo, objectLayers, type ObjectDamage } from "./objects/objects";
 import { TILE_SIZE } from "./size";
 import { themeSlots, tileSprite } from "./tiles";
 import { resolveTheme, tileColorsKey, type TileColors } from "./tiles/palettes";
@@ -17,6 +17,8 @@ export interface PlacedObject {
     readonly y: number;
     /** One of the object's common colours (`objectColors`) or a hex colour, replacing its main colour. Only for objects that have one. */
     readonly color?: ColorName | HexColor;
+    /** `"half"` or `"ruin"` for a broken or burnt object (`objectDamage`). It looks different, and blocks the same cells. */
+    readonly damage?: ObjectDamage;
 }
 
 /**
@@ -98,6 +100,9 @@ export function defineMap(tileset: TileSet, rows: readonly string[], objects: re
             if (!common || !(common.includes(placed.color as ColorName) || parseHex(placed.color))) {
                 throw new Error(`Object "${placed.id}" cannot be coloured "${String(placed.color)}"`);
             }
+        }
+        if (placed.damage !== undefined && !objectDamage.includes(placed.damage)) {
+            throw new Error(`Object "${placed.id}" cannot be damaged "${String(placed.damage)}"`);
         }
         const cells = index[info.layer];
         for (let dy = 0; dy < info.height; dy += 1) {
@@ -221,7 +226,7 @@ export function buildMap(map: TileMap, theme?: string, colors?: TileColors): Ras
         // Ground objects first, then standing ones and buildings from back to front so that a
         // tall object (a tree, a house) covers whatever stands behind it.
         const drawables = [
-            ...map.objects.map((o) => ({ standing: objectInfo[o.id].layer === "standing", bottom: o.y + objectInfo[o.id].height, x: o.x, layers: () => objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color) })),
+            ...map.objects.map((o) => ({ standing: objectInfo[o.id].layer === "standing", bottom: o.y + objectInfo[o.id].height, x: o.x, layers: () => objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color, o.damage) })),
             ...map.buildings.map((b) => ({ standing: true, bottom: b.y + buildingBox(b.config).height, x: b.x, layers: () => buildingLayers(b.config, b.x * TILE_SIZE, b.y * TILE_SIZE) }))
         ].sort((a, b) => Number(a.standing) - Number(b.standing) || a.bottom - b.bottom || a.x - b.x);
         for (const drawable of drawables) layers.push(...drawable.layers());
@@ -285,7 +290,7 @@ export function mapDrawables(map: TileMap, theme?: string, colors?: TileColors):
         const standing: (MapDrawable & { readonly x0: number })[] = [];
         for (const o of map.objects) {
             const info = objectInfo[o.id];
-            const objectLayer = objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color);
+            const objectLayer = objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color, o.damage);
             if (info.layer === "ground") {
                 layers.push(...objectLayer);
                 continue;

@@ -1,4 +1,4 @@
-import type { Raster } from "../core/compose";
+import type { Layer, Raster } from "../core/compose";
 
 // The tools the war damage of buildings and objects is made with: a seeded random number generator, a picture that can be cut
 // and painted over, and the broken edges, scorching, holes, cracks, rafters and rubble that go on it. Every tone is a fixed one,
@@ -187,10 +187,10 @@ export function bell(n: number, peak: number, rng: () => number): number[] {
 
 /**
  * Breaks the straight lines a cut leaves: for a few passes, a pixel of the building beside the opening may fall away too, so
- * the edge gets teeth and notches. The bottom rows stay, so the building still stands on its ground line.
+ * the edge gets teeth and notches. `passes` is the chance of falling in each pass, and a small thing wants fewer and gentler ones. The bottom rows stay, so the building still stands on its ground line.
  */
-export function ragged(c: Canvas, rng: () => number, opened: Set<number>) {
-    for (const p of [0.5, 0.35, 0.2]) {
+export function ragged(c: Canvas, rng: () => number, opened: Set<number>, passes: readonly number[] = [0.5, 0.35, 0.2]) {
+    for (const p of passes) {
         const fall: number[] = [];
         for (let y = 1; y < c.h - 3; y += 1) {
             for (let x = 1; x < c.w - 1; x += 1) {
@@ -243,4 +243,9 @@ export function scorch(c: Canvas, rng: () => number, breaks: Breaks, whole: numb
     if (whole > 0) {
         for (let y = 0; y < c.h; y += 1) for (let x = 0; x < c.w; x += 1) if (!done.has(y * c.w + x)) c.darkenAt(x, y, whole);
     }
+}
+
+/** A finished picture as the one layer of a thing, so a damaged building or object takes the place of the layers it was drawn from. */
+export function rasterLayer(raster: Raster): Layer {
+    return { sprite: { width: raster.width, height: raster.height, originX: 0, originY: 0, px: raster.px }, slots: raster.colors, x: 0, y: 0 };
 }

@@ -4,7 +4,7 @@ import { colorDepths, colorRamps, paletteNames, palettePresets, defaultTileTheme
 import { CustomColours } from "./CustomColours";
 import { useMediaQuery } from "./hooks";
 import { recolor, type ColorMap } from "./recolor";
-import { idleOf, setQuery, themeOf, tileColorsOf, tileGroupNames, variantOf, type Route } from "./router";
+import { damageOf, idleOf, setQuery, themeOf, tileColorsOf, tileGroupNames, variantOf, type Route } from "./router";
 
 const BIT_LABEL: Record<number, string> = { 1: "1-bit (2 colours)", 2: "2-bit (4 greys)" };
 
@@ -123,10 +123,12 @@ export function Chips<T extends string | number>({ label, value, options, show, 
 }
 
 /** Size and colour depth pickers. They live in the address, so a copied link keeps them. */
-export function VariantBar({ route, themes = false, idle = false, native, sizeLabel = "Size" }: {
+export function VariantBar({ route, themes = false, idle = false, damage = false, native, sizeLabel = "Size" }: {
     route: Route;
     themes?: boolean;
     idle?: boolean;
+    /** Whether war damage is an option (objects). */
+    damage?: boolean;
     /** The grid the assets come in by default, if known. */
     native?: { width: number; height: number } | null;
     sizeLabel?: string;
@@ -137,6 +139,7 @@ export function VariantBar({ route, themes = false, idle = false, native, sizeLa
     const size = isSquareSize(native) && v.size === native.width ? undefined : v.size;
     const theme = themeOf(route);
     const idleOn = idle && idleOf(route);
+    const hurt = damage ? damageOf(route) : undefined;
 
     const chips = (
         <>
@@ -148,6 +151,10 @@ export function VariantBar({ route, themes = false, idle = false, native, sizeLa
             {idle && (
                 <Chips label="State" value={idleOn ? "idle" : undefined} options={["idle"] as const} nativeLabel="Default"
                     onPick={(i) => setQuery(route, { idle: i ? "1" : undefined })} />
+            )}
+            {damage && (
+                <Chips label="War damage" value={hurt} options={["half", "ruin"] as const} nativeLabel="None"
+                    onPick={(d) => setQuery(route, { damage: d })} />
             )}
             {themes && (
                 <Chips label="Season" value={theme} options={tileThemes} nativeLabel={false}
@@ -163,9 +170,10 @@ export function VariantBar({ route, themes = false, idle = false, native, sizeLa
         v.bits ? BIT_LABEL[v.bits] : FULL_COLOUR,
         ...(v.palette ? [paletteLabel(v.palette)] : []),
         ...(idle ? [idleOn ? "idle" : "default state"] : []),
+        ...(damage ? [hurt ? `${hurt} damage` : "undamaged"] : []),
         ...(themes ? [theme] : [])
     ].join(" · ");
-    const changed = [size !== undefined, v.bits !== undefined, v.palette !== undefined, idleOn, themes && theme !== defaultTileTheme].filter(Boolean).length;
+    const changed = [size !== undefined, v.bits !== undefined, v.palette !== undefined, idleOn, hurt !== undefined, themes && theme !== defaultTileTheme].filter(Boolean).length;
     return (
         <details className="view-options">
             <summary>

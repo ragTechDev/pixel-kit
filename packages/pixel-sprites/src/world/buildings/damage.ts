@@ -1,4 +1,4 @@
-import type { Layer, Raster } from "../../core/compose";
+import type { Raster } from "../../core/compose";
 import { BEAM, BEAM_LIT, Canvas, bell, beam, crack, cut, edges, heap, hole, ragged, scorch, seeded, walk, type Breaks } from "../damageTools";
 
 // War damage for a building. It is a pass over the finished picture, so it works on every roof, wall and wing the same way
@@ -240,9 +240,4 @@ export function damageRaster(raster: Raster, level: Exclude<BuildingDamage, "non
     edges(c, breaks.opened);
     scorch(c, rng, breaks, level === "ruin" ? 0.22 : 0.1);
     return { width: raster.width, height: raster.height, colors: c.colors, px: c.px };
-}
-
-/** A finished picture as the one layer of a building, so a damaged building takes the place of the layers it was drawn from. */
-export function rasterLayer(raster: Raster): Layer {
-    return { sprite: { width: raster.width, height: raster.height, originX: 0, originY: 0, px: raster.px }, slots: raster.colors, x: 0, y: 0 };
 }

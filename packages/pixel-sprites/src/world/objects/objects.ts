@@ -2,10 +2,14 @@ import { colorRamps, type ColorName } from "../../core/colors";
 import { parseHex, rampFromHex, type HexColor } from "../../core/customColor";
 import { composeSprites, type Layer, type Raster } from "../../core/compose";
 import { rampSlots, shadeMask, type Sprite } from "../../core/sprite";
+import { rasterLayer } from "../damageTools";
 import { TILE_SIZE } from "../size";
 import { defaultTileTheme, resolveTheme, type TileTheme } from "../tiles/palettes";
 import type { ObjectId } from "../types";
+import { damageObjectRaster, objectDamage, type ObjectDamage } from "./damage";
 import { objectParts, type ObjectPart } from "./objectParts";
+
+export { objectDamage, type ObjectDamage };
 import { objectRamps, type ObjectRampId } from "./ramps";
 
 export interface ObjectInfo {
@@ -76,9 +80,10 @@ export const colorableObjectIds = objectIds.filter((id) => objectColors[id]);
 export const seasonalObjectIds = objectIds.filter((id) => objectParts[id].some((part) => part.seasonal));
 
 /** Internal: the layers of an object placed with its top-left corner at pixel (px, py). */
-export function objectLayers(id: ObjectId, px: number, py: number, theme: TileTheme = defaultTileTheme, color?: ColorName | HexColor): Layer[] {
+export function objectLayers(id: ObjectId, px: number, py: number, theme: TileTheme = defaultTileTheme, color?: ColorName | HexColor, damage: ObjectDamage = "none"): Layer[] {
     const parts = objectParts[id];
     if (!parts) throw new Error(`Unknown object: ${String(id)}`);
+    if (objectDamage.includes(damage) && damage !== "none") return [{ ...rasterLayer(buildObject(id, theme, color, damage)), x: px, y: py }];
     return parts.map((part) => ({
         sprite: partSprite(part),
         slots: rampSlots(color && accents[id]?.includes(part.ramp) ? (color.startsWith("#") ? rampFromHex(color as HexColor) : colorRamps[color as ColorName]) : objectRamps[part.seasonal?.[theme] ?? part.ramp]),
@@ -93,22 +98,21 @@ const built = new Map<string, Raster>();
  * Returns the (memoised) raster for an object, sized to its tile footprint. Trees and flowers
  * change with the season (`seasonalObjectIds`); `theme` is a season as in `tileThemes`, and
  * unknown values fall back to summer. `color` is one of the object's common colours
- * (`objectColors`) or any hex colour such as `"#e8873a"`; anything else is ignored.
+ * (`objectColors`) or any hex colour such as `"#e8873a"`; anything else is ignored. `damage` is `"half"` or
+ * `"ruin"` for a broken or burnt object (see `objectDamage`); anything else is the object as it was made.
  */
-export function buildObject(id: ObjectId, theme?: string, color?: ColorName | HexColor): Raster {
+export function buildObject(id: ObjectId, theme?: string, color?: ColorName | HexColor, damage?: ObjectDamage): Raster {
     const season = resolveTheme(theme);
     const chosen = objectColors[id] && color ? (objectColors[id]!.includes(color as ColorName) ? (color as ColorName) : parseHex(color)) : undefined;
     // A colour replaces the season's colour for the same part, so it does not need a season in its key.
-    const key = chosen ? `${id}:${season}:${chosen}` : seasonalObjectIds.includes(id) ? `${id}:${season}` : id;
+    const level = damage === "half" || damage === "ruin" ? damage : "none";
+    const whole = chosen ? `${id}:${season}:${chosen}` : seasonalObjectIds.includes(id) ? `${id}:${season}` : id;
+    const key = level === "none" ? whole : `${whole}!${level}`;
     let raster = built.get(key);
     if (!raster) {
         const { width, height } = objectInfo[id];
-        raster = composeSprites(objectLayers(id, 0, 0, season, chosen), {
-            x: 0,
-            y: 0,
-            width: width * TILE_SIZE,
-            height: height * TILE_SIZE
-        });
+        const bounds = { x: 0, y: 0, width: width * TILE_SIZE, height: height * TILE_SIZE };
+        raster = level === "none" ? composeSprites(objectLayers(id, 0, 0, season, chosen), bounds) : damageObjectRaster(id, buildObject(id, season, chosen), level, key);
         built.set(key, raster);
     }
     return raster;
