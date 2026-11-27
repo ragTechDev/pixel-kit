@@ -1,5 +1,12 @@
 import type { Layer } from "../../core/compose";
 import type { PixelMask } from "../../core/maskUtils";
+import { acUnitBodyMask } from "../masks/buildings/acUnit/body.mask";
+import { acUnitFrontMask } from "../masks/buildings/acUnit/front.mask";
+import { acUnitLouvresMask } from "../masks/buildings/acUnit/louvres.mask";
+import { acUnitFanMask } from "../masks/buildings/acUnit/fan.mask";
+import { cardboardBoxBodyMask } from "../masks/buildings/cardboardBox/body.mask";
+import { cardboardBoxFrontMask } from "../masks/buildings/cardboardBox/front.mask";
+import { cardboardBoxTapeMask } from "../masks/buildings/cardboardBox/tape.mask";
 import { barrelBodyMask } from "../masks/buildings/barrel/body.mask";
 import { barrelHoopsMask } from "../masks/buildings/barrel/hoops.mask";
 import { chimneyCapMask } from "../masks/buildings/chimney/cap.mask";
@@ -8,6 +15,10 @@ import { chimneyStackMask } from "../masks/buildings/chimney/stack.mask";
 import { flowerBoxBloomsMask } from "../masks/buildings/flowerBox/blooms.mask";
 import { flowerBoxBoxMask } from "../masks/buildings/flowerBox/box.mask";
 import { flowerBoxLeavesMask } from "../masks/buildings/flowerBox/leaves.mask";
+import { hvacUnitBodyMask } from "../masks/buildings/hvacUnit/body.mask";
+import { hvacUnitFanMask } from "../masks/buildings/hvacUnit/fan.mask";
+import { hvacUnitFrontMask } from "../masks/buildings/hvacUnit/front.mask";
+import { hvacUnitLouvresMask } from "../masks/buildings/hvacUnit/louvres.mask";
 import { houseDoorFrameArchedMask } from "../masks/buildings/houseDoor/frameArched.mask";
 import { houseDoorFrameMask } from "../masks/buildings/houseDoor/frame.mask";
 import { houseDoorGroovesMask } from "../masks/buildings/houseDoor/grooves.mask";
@@ -22,8 +33,15 @@ import { houseWindowGlassMask } from "../masks/buildings/houseWindow/glass.mask"
 import { houseWindowGlintMask } from "../masks/buildings/houseWindow/glint.mask";
 import { houseWindowShutterMask } from "../masks/buildings/houseWindow/shutter.mask";
 import { houseWindowSlatsMask } from "../masks/buildings/houseWindow/slats.mask";
+import { roofVentCapMask } from "../masks/buildings/roofVent/cap.mask";
+import { roofVentPipeMask } from "../masks/buildings/roofVent/pipe.mask";
 import { roundWindowGlassMask } from "../masks/buildings/roundWindow/glass.mask";
 import { roundWindowRingMask } from "../masks/buildings/roundWindow/ring.mask";
+import { skylightFrameMask } from "../masks/buildings/skylight/frame.mask";
+import { skylightFrontMask } from "../masks/buildings/skylight/front.mask";
+import { skylightGlassMask } from "../masks/buildings/skylight/glass.mask";
+import { solarPanelCellsMask } from "../masks/buildings/solarPanel/cells.mask";
+import { solarPanelPanelMask } from "../masks/buildings/solarPanel/panel.mask";
 import { stepsLowerMask } from "../masks/buildings/steps/lower.mask";
 import { stepsUpperMask } from "../masks/buildings/steps/upper.mask";
 import type { DoorStyle, WindowStyle } from "./config";
@@ -106,4 +124,46 @@ export const stepParts: Part[] = [
 export const roundWindowParts: Part[] = [
     { mask: roundWindowRingMask, role: "trim", dx: -5, dy: -5 },
     { mask: roundWindowGlassMask, role: "glass", dx: -3, dy: -3 }
+];
+
+/** Anchor: the top-left of the air conditioner, which shows its top and its front. */
+export const acUnitParts: Part[] = [
+    { mask: acUnitBodyMask, role: "metal", dx: 0, dy: 0 },
+    { mask: acUnitFanMask, role: "metal", dx: 3, dy: 1, tone: "shadow" },
+    { mask: acUnitFrontMask, role: "metal", dx: 0, dy: 7, tone: "shadow" },
+    { mask: acUnitLouvresMask, role: "metal", dx: 0, dy: 7, tone: "outline" }
+];
+
+/** Anchor: the top-left of the pipe. The cap is wider, so it starts a pixel to the left. */
+export const roofVentParts: Part[] = [
+    { mask: roofVentPipeMask, role: "metal", dx: 0, dy: 2 },
+    { mask: roofVentCapMask, role: "metal", dx: -1, dy: 0 }
+];
+
+/** Anchor: the top-left of the skylight's frame, which shows its top and its front. */
+export const skylightParts: Part[] = [
+    { mask: skylightFrameMask, role: "metal", dx: 0, dy: 0 },
+    { mask: skylightGlassMask, role: "glass", dx: 2, dy: 2 },
+    { mask: skylightFrontMask, role: "metal", dx: 0, dy: 8, tone: "shadow" }
+];
+
+/** Anchor: the top-left of the panel. */
+export const solarPanelParts: Part[] = [
+    { mask: solarPanelPanelMask, role: "solar", dx: 0, dy: 0 },
+    { mask: solarPanelCellsMask, role: "solar", dx: 0, dy: 0, tone: "highlight" }
+];
+
+/** Anchor: the top-left of the air-handling unit, which shows its top and its front. */
+export const hvacUnitParts: Part[] = [
+    { mask: hvacUnitBodyMask, role: "metal", dx: 0, dy: 0 },
+    { mask: hvacUnitFanMask, role: "metal", dx: 2, dy: 1, tone: "shadow" },
+    { mask: hvacUnitLouvresMask, role: "metal", dx: 0, dy: 2, tone: "shadow" },
+    { mask: hvacUnitFrontMask, role: "metal", dx: 0, dy: 10, tone: "shadow" }
+];
+
+/** Anchor: the top-left of the box, which shows its top and its front. */
+export const cardboardBoxParts: Part[] = [
+    { mask: cardboardBoxBodyMask, role: "cardboard", dx: 0, dy: 0 },
+    { mask: cardboardBoxTapeMask, role: "cardboard", dx: 4, dy: 1, tone: "highlight" },
+    { mask: cardboardBoxFrontMask, role: "cardboard", dx: 0, dy: 6, tone: "shadow" }
 ];

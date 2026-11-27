@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-    TILE_SIZE, colorRamps, buildBuilding, buildMap, buildingDepths, buildingWings, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
+    TILE_SIZE, colorRamps, buildBuilding, buildMap, buildingDepths, buildingWings, buildingRooftops, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
     chimneys, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes,
     townTileset, windowCounts, windowStyles
 } from "../dist/index.js";
@@ -10,7 +10,7 @@ import {
 const paint = (r) => [...r.px].map((i) => r.colors[i]);
 
 test("every choice draws a building a whole number of tiles wide and tall, standing on the bottom row", () => {
-    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
+    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, rooftop: buildingRooftops, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
     for (const [field, options] of Object.entries(lists)) {
         for (const option of options) {
             const config = { [field]: option };
@@ -40,7 +40,7 @@ test("random buildings are valid, repeatable, and every one draws and fits on a 
 test("a building is the same object each time, and its choices change the picture", () => {
     assert.equal(buildBuilding({ roofColor: "blue" }), buildBuilding({ roofColor: "blue" }));
     const base = paint(buildBuilding({}));
-    for (const change of [{ roofColor: "green" }, { wallColor: "pink" }, { trimColor: "white" }, { doorColor: "red" }, { wall: "brick" }, { wall: "stone" }, { wall: "timber" }, { roof: "hip" }, { roof: "barrel" }, { wing: "front" },
+    for (const change of [{ roofColor: "green" }, { wallColor: "pink" }, { trimColor: "white" }, { doorColor: "red" }, { wall: "brick" }, { wall: "stone" }, { wall: "timber" }, { roof: "hip" }, { roof: "flat" }, { wing: "front" }, { wing: "left" },
         { chimney: "left" }, { props: "barrels" }, { props: "planters" }, { porch: "deck" }, { windows: "none" }, { windowStyle: "arched" }, { doorStyle: "arched" }]) {
         assert.notDeepEqual(paint(buildBuilding(change)), base, JSON.stringify(change));
     }
@@ -118,6 +118,102 @@ test("a longer building has a roof that goes further up, and the facade stays th
     }
     // Only the roof grows, so the door is still at the foot of the building.
     assert.equal(buildingFootprint({ depth: "long" }).at(-1).indexOf("D"), buildingFootprint({}).at(-1).indexOf("D"));
+});
+
+test("rooftop equipment goes on the flat part of a roof, only on the roofs that have one, and never on the wall", () => {
+    const flatRoofs = ["flat", "hipFlat", "mansard"];
+    for (const roof of roofShapes) {
+        const config = { roof, width: 8, depth: "medium" };
+        const none = buildBuilding(config);
+        const box = buildingBox(config);
+        // Everything below the roof (and the shadow under its eave) is the wall and facade.
+        const below = (r) => paint(r).slice((box.roofTiles * TILE_SIZE + 8) * r.width);
+        for (const rooftop of buildingRooftops.filter((r) => r !== "none")) {
+            const placed = buildBuilding({ ...config, rooftop });
+            if (flatRoofs.includes(roof)) assert.notDeepEqual(paint(placed), paint(none), `${roof} ${rooftop}`);
+            else assert.deepEqual(paint(placed), paint(none), `${roof} ${rooftop}: no flat area`);
+            assert.deepEqual(below(placed), below(none), `${roof} ${rooftop}: wall untouched`);
+        }
+    }
+});
+
+test("a flat roof is a floor inside a thick parapet: coping all the way round, thicker at the front, with a floor of square tiles", () => {
+    const sloping = buildingBox({ roof: "gable" });
+    // It needs a tile more than a gable roof: the floor and the parapet round it.
+    assert.equal(buildingBox({ roof: "flat" }).height, sloping.height + 1);
+    const raster = buildBuilding({ roof: "flat", roofColor: "orange", wallColor: "white" });
+    const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
+    const roof = colorRamps.orange;
+    const roofRows = buildingBox({ roof: "flat" }).roofTiles * TILE_SIZE + 4;
+    const mid = raster.width / 2;
+    // The coping is the roof's own colour, at the back, the front and both sides.
+    assert.ok([roof.base, roof.highlight, roof.shadow].includes(at(mid, 4)), "back");
+    assert.ok([roof.base, roof.highlight, roof.shadow].includes(at(mid, roofRows - 4)), "front");
+    assert.ok([roof.base, roof.highlight, roof.shadow].includes(at(4, roofRows / 2)), "left");
+    assert.ok([roof.base, roof.highlight, roof.shadow].includes(at(raster.width - 5, roofRows / 2)), "right");
+    // The coping is thicker at the front: the rows from each edge to the dark outline round the floor.
+    const rowsToOutline = (from, step) => {
+        let n = 0;
+        for (let y = from; y > 0 && y < roofRows && at(mid + 5, y) !== roof.outline; y += step) n += 1;
+        return n;
+    };
+    const back = rowsToOutline(2, 1);
+    const front = rowsToOutline(roofRows - 1, -1);
+    assert.ok(front > back, `the front coping (${front}) is thicker than the back (${back})`);
+    // The floor is in two tiles of nearly the same tone, and has no stripes.
+    const floorTones = new Set();
+    for (let x = 12; x < raster.width - 12; x += 1) floorTones.add(at(x, roofRows - 16));
+    assert.ok(floorTones.size >= 2 && floorTones.size <= 4, `floor tones: ${[...floorTones].join(", ")}`);
+});
+
+test("a side wing is a lower, one-storey section beside a two-storey main part, which has the door", () => {
+    for (const wing of ["left", "right"]) {
+        for (const width of buildingWidths) {
+            for (const roof of roofShapes) {
+                const config = { wing, width, roof, storeys: 1 };
+                const box = buildingBox(config);
+                const plain = buildingBox({ width, roof, storeys: 2 });
+                // The main part is two storeys, so the building is as tall as a two-storey one.
+                assert.equal(box.height, plain.height, `${wing} ${width} ${roof}`);
+                const footprint = buildingFootprint(config);
+                assert.equal(footprint.length, box.height);
+                assert.ok(footprint.every((row) => row.length === width));
+                // The main part is solid from the top; the lower part only from two rows down.
+                const top = footprint[0];
+                const low = wing === "left" ? top.indexOf("#") : 0;
+                assert.ok(top.includes("."), `${wing} ${width} ${roof}: the lower part leaves its top rows open`);
+                assert.equal(footprint.at(-1).includes("."), false, "the bottom row is solid or the door");
+                assert.equal([...footprint.join("")].filter((c) => c === "D").length, 1);
+                void low;
+                // The door is in the main part: on the far side from the lower one.
+                const door = footprint.at(-1).indexOf("D");
+                assert.ok(wing === "left" ? door >= 2 : door < width - 2, `${wing} ${width} ${roof}: the door is in the main part`);
+            }
+        }
+    }
+    // The picture has the lower part's roof beside the main one, and a map lets a walker stand where the lower part's top rows are open.
+    const config = { wing: "left", width: 8, roof: "flat" };
+    const footprint = buildingFootprint(config);
+    const map = defineMap(townTileset, Array(12).fill("gggggggggg"), [], [{ config, x: 1, y: 2 }]);
+    assert.equal(queryCell(map, 1, 2).solid, false);
+    assert.equal(queryCell(map, 1 + 7, 2).solid, true);
+    assert.equal(queryCell(map, 1, 2 + footprint.length - 1).solid, true);
+});
+
+test("a side wing is joined to the main part: the ground floor wall is one wall, with no seam across the join", () => {
+    for (const [wing, join] of [["left", 3 * TILE_SIZE], ["right", 5 * TILE_SIZE]]) {
+        for (const wall of ["clapboard", "brick", "stone", "timber"]) {
+            const config = { wing, width: 8, roof: "flat", wall, wallColor: "yellow" };
+            const raster = buildBuilding(config);
+            const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
+            const outline = [colorRamps.yellow.outline];
+            // Down the ground floor wall, on both sides of where the two parts meet, nothing is the outline colour: it is not a dark line.
+            // (Between the ground floor windows and the foundation, so a beam or a window frame is not what is measured.)
+            let dark = 0;
+            for (let y = raster.height - 22; y < raster.height - 6; y += 1) for (const x of [join - 1, join]) if (outline.includes(at(x, y))) dark += 1;
+            assert.equal(dark, 0, `${wing} ${wall}: a dark seam of ${dark} pixels`);
+        }
+    }
 });
 
 test("a building with a front wing has the door on the wing, which sticks out in front of the rest", () => {

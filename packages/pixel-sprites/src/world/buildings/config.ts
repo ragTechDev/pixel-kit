@@ -13,12 +13,21 @@ export const buildingStoreys = [1, 2] as const;
  * - `mansard`: a hipped roof with a flat top and a flared skirt at the eave.
  * - `gambrel`: a steep lower slope under a flatter upper one.
  * - `saltbox`: a gable whose ridge is off to one side, so one slope is long and one short.
- * - `flat`: a flat roof with a low wall round its edge.
- * - `barrel`: a rounded roof.
+ * - `flat`: a flat roof inside a thick parapet, as on a shop or a block of flats.
  */
-export const roofShapes = ["gable", "hip", "hipFlat", "mansard", "gambrel", "saltbox", "flat", "barrel"] as const;
-/** A section that sticks out at the front, in the middle, with the same kind of roof, so a gable roof gets a cross gable, a flat one a notch and a barrel roof a rounded front. */
-export const buildingWings = ["none", "front"] as const;
+export const roofShapes = ["gable", "hip", "hipFlat", "mansard", "gambrel", "saltbox", "flat"] as const;
+/**
+ * What is on the flat part of a roof, on the roofs that have one (`flat`, `hipFlat` and `mansard`): air conditioners and
+ * vent pipes, a big air-handling unit, cardboard boxes, skylights, rows of solar panels, or a roof garden. The other roofs
+ * have none of these.
+ */
+export const buildingRooftops = ["none", "vents", "machinery", "boxes", "skylights", "solar", "garden"] as const;
+/**
+ * A second section of the building. `front` sticks out at the front, in the middle, with the same kind of roof, so a gable
+ * roof gets a cross gable and a flat one a notch. `left` and `right` are a lower, one-storey section beside the main part,
+ * which is then two storeys tall, so a flat roof has a step in it.
+ */
+export const buildingWings = ["none", "front", "left", "right"] as const;
 /** How steep the roof is. A steep roof is one tile taller. */
 export const roofPitches = ["low", "steep"] as const;
 /** How long the building is from front to back. The picture is from above, so a longer building is a roof that goes further up: one more tile for each step. */
@@ -42,6 +51,7 @@ export const buildingColors = Object.keys(colorRamps) as ColorName[];
 export type BuildingWidth = (typeof buildingWidths)[number];
 export type BuildingStoreys = (typeof buildingStoreys)[number];
 export type RoofShape = (typeof roofShapes)[number];
+export type BuildingRooftop = (typeof buildingRooftops)[number];
 export type BuildingWing = (typeof buildingWings)[number];
 export type RoofPitch = (typeof roofPitches)[number];
 export type BuildingDepth = (typeof buildingDepths)[number];
@@ -65,6 +75,7 @@ export interface BuildingConfig {
     storeys?: BuildingStoreys;
     roof?: RoofShape;
     wing?: BuildingWing;
+    rooftop?: BuildingRooftop;
     pitch?: RoofPitch;
     depth?: BuildingDepth;
     wall?: BuildingWall;
@@ -84,13 +95,18 @@ export interface BuildingConfig {
 export type ResolvedBuildingConfig = Required<BuildingConfig>;
 
 /** What is drawn: a resolved config whose width may be any whole number of tiles, because the front wing of a building is narrower than the lists allow. */
-export type VolumeConfig = Omit<ResolvedBuildingConfig, "width"> & { width: number };
+export type VolumeConfig = Omit<ResolvedBuildingConfig, "width"> & {
+    width: number;
+    /** Tiles at the left and right of the volume that are hidden under a neighbouring volume it joins to. Nothing is put on them. */
+    hidden?: { readonly left: number; readonly right: number };
+};
 
 export const defaultBuildingConfig: ResolvedBuildingConfig = {
     width: 6,
     storeys: 1,
     roof: "gable",
     wing: "none",
+    rooftop: "none",
     pitch: "low",
     depth: "short",
     wall: "clapboard",
@@ -123,6 +139,7 @@ export function resolveBuildingConfig(config: BuildingConfig = {}): ResolvedBuil
         storeys: oneOf(buildingStoreys, c.storeys, d.storeys),
         roof: oneOf(roofShapes, c.roof, d.roof),
         wing: oneOf(buildingWings, c.wing, d.wing),
+        rooftop: oneOf(buildingRooftops, c.rooftop, d.rooftop),
         pitch: oneOf(roofPitches, c.pitch, d.pitch),
         depth: oneOf(buildingDepths, c.depth, d.depth),
         wall: oneOf(buildingWalls, c.wall, d.wall),
@@ -162,6 +179,7 @@ export function randomBuilding(seed: number = Math.floor(Math.random() * 4294967
         storeys: pick(buildingStoreys),
         roof: pick(roofShapes),
         wing: pick(buildingWings),
+        rooftop: pick(buildingRooftops),
         pitch: pick(roofPitches),
         depth: pick(buildingDepths),
         wall: pick(buildingWalls),

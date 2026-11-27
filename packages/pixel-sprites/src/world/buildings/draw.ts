@@ -1,53 +1,55 @@
 import { composeSprites, type Layer, type Raster } from "../../core/compose";
+import { SLOT } from "../../core/sprite";
 import { TILE_SIZE } from "../size";
 import { buildingKey, resolveBuildingConfig, type BuildingConfig, type ResolvedBuildingConfig, type VolumeConfig } from "./config";
 import { doorColumn, drawFacade } from "./facade";
-import { buildingBox, makeFrame, volumeBox } from "./frame";
+import { makeFrame, volumeBox } from "./frame";
 import { drawChimney, drawRoof, type RoofKind } from "./roof";
 import { drawWall } from "./wall";
-import { wingParts } from "./wing";
+import { buildingBox, buildingVolumes } from "./volumes";
 
 // A building is drawn from its config in code, back to front: the wall, the roof (with its gable), the chimney, then
 // the facade on the wall. The roofs are in `roof/`, the wall in `wall.ts` and the facade in `facade.ts`; the parts that
-// are one fixed size are masks (`parts.ts`). A building with a front wing is two such volumes (`wing.ts`). The picture is a
+// are one fixed size are masks (`parts.ts`). A building with a wing is two such volumes (`volumes.ts`). The picture is a
 // whole number of tiles, with the ground on its bottom row.
 
-export { buildingBox } from "./frame";
+export { buildingBox } from "./volumes";
 
 /**
  * The tiles a building covers and what is solid: `#` is a wall or roof, `.` is open and `D` is the door
- * cell at the foot of the door, where a walker can step in. One string per tile row. Beside a front wing the
- * rows in front of the main part are open.
+ * cell at the foot of the door, where a walker can step in. One string per tile row. The rows beside a wing (in front of
+ * the main part, or above a lower side wing) are open.
  */
 export function buildingFootprint(config?: BuildingConfig): readonly string[] {
     const c = resolveBuildingConfig(config);
     const { width, height } = buildingBox(c);
-    const wing = c.wing === "front" ? wingParts(c) : undefined;
-    const left = wing ? wing.wingX : 0;
-    const right = wing ? wing.wingX + wing.wing.width : width;
-    const door = wing ? wing.wingX + doorColumn(wing.wing) : doorColumn(c);
-    // The main part covers its own rows; the wing sticks out below them.
-    const mainRows = wing ? volumeBox(wing.main).height : height;
-    return Array.from({ length: height }, (_, y) => {
-        const inMain = y < mainRows;
-        const cells: string[] = Array.from({ length: width }, (_, x) => (inMain || (x >= left && x < right) ? "#" : "."));
-        if (y === height - 1) cells[door] = "D";
-        return cells.join("");
-    });
+    const cells = Array.from({ length: height }, () => Array<string>(width).fill("."));
+    for (const v of buildingVolumes(c)) {
+        const { height: h } = volumeBox(v.config);
+        for (let y = v.y; y < v.y + h; y += 1) for (let x = v.x; x < v.x + v.config.width; x += 1) cells[y][x] = "#";
+        if (v.door) cells[v.y + h - 1][v.x + doorColumn(v.config)] = "D";
+    }
+    return cells.map((row) => row.join(""));
 }
 
-function drawVolume(c: VolumeConfig, roof: RoofKind, door: boolean): Layer[] {
-    const frame = makeFrame(c);
-    return [...drawWall(frame), ...drawRoof(frame, roof), ...drawChimney(frame, roof), ...drawFacade(frame, { door })];
+function drawVolume(c: VolumeConfig, roof: RoofKind, door: boolean, x: number, joined: boolean): Layer[] {
+    const frame = makeFrame(c, x * TILE_SIZE);
+    let wall = drawWall(frame);
+    if (joined) {
+        // Over the wall of the lower volume it joins, the outline and the lit and shaded edges are left out, so the two walls are one wall.
+        // Only the shaded base of each part has an edge (the layers over it, the brick or the boards, have no outline).
+        const tones = [frame.ramps.wall, frame.ramps.stone, frame.ramps.wood].flatMap((ramp) => Object.values(ramp));
+        wall = wall.map((layer) => (layer.sprite.px.includes(SLOT.outline) ? { ...layer, noOutlineOver: tones, noHighlightOver: tones, noShadowOver: tones } : layer));
+    }
+    return [...wall, ...drawRoof(frame, roof), ...drawChimney(frame, roof), ...drawFacade(frame, { door })];
 }
 
 function draw(c: ResolvedBuildingConfig): Layer[] {
-    if (c.wing === "none") return drawVolume(c, c.roof, true);
-    const parts = wingParts(c);
-    const wing = drawVolume(parts.wing, parts.wing.roof, true);
-    const dx = parts.wingX * TILE_SIZE;
-    const dy = parts.wingTop * TILE_SIZE;
-    return [...drawVolume(parts.main, parts.mainRoof, false), ...wing.map((layer) => ({ ...layer, x: layer.x + dx, y: layer.y + dy }))];
+    return buildingVolumes(c).flatMap((v) => {
+        const dx = v.x * TILE_SIZE;
+        const dy = v.y * TILE_SIZE;
+        return drawVolume(v.config, v.roof, v.door, v.x, v.joined === true).map((layer) => ({ ...layer, x: layer.x + dx, y: layer.y + dy }));
+    });
 }
 
 const drawn = new Map<string, readonly Layer[]>();

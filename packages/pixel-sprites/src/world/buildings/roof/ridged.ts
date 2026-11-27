@@ -29,7 +29,7 @@ export function drawGable(f: Frame, ridge: number = f.W / 2): Layer[] {
     const layers: Layer[] = [];
     const apex = slopes(f, ridge, layers);
     layers.push(...paint(addPolygon(f.here(), [[1, yb], [W - 1, yb], [ridge, apex[1] - 2]]), ramps.trim));
-    const texture = wallPattern(c.wall, yw);
+    const texture = wallPattern(c.wall, f.H, f.xOffset);
     layers.push(...paint(addPolygon(f.here(), [[wx0, yb], [wx1, yb], [ridge, apex[1] + 5]]), ramps.wall, (x, y) => (y >= yb - 2 ? SHADOW : texture(x, y))));
     if (c.windows !== "none") layers.push(...placeParts(f, roundWindowParts, ridge, yb - 7));
     return layers;

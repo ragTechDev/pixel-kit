@@ -42,6 +42,12 @@ export function addPolygon(s: Shape, points: readonly (readonly [number, number]
     return s;
 }
 
+/** A colour part of the way from `a` to `b` (0 is `a`, 1 is `b`), both as `#rrggbb`. */
+export function blend(a: string, b: string, t: number): string {
+    const channel = (hex: string, i: number) => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+    return `#${[0, 1, 2].map((i) => Math.round(channel(a, i) + (channel(b, i) - channel(a, i)) * t).toString(16).padStart(2, "0")).join("")}`;
+}
+
 export const mod = (n: number, m: number) => ((n % m) + m) % m;
 
 /** What a pattern paints at a pixel: one of the tones below, or 0 to leave the pixel as it is. */
@@ -84,6 +90,17 @@ export function paint(s: Shape, ramp: Ramp, pattern?: Pattern): Layer[] {
         layers.push({ sprite: { ...base, px }, slots, x: x0, y: y0 });
     }
     return layers;
+}
+
+/** A shape drawn flat in one tone of a ramp, with no outline: small details such as flowers. */
+export function flat(s: Shape, ramp: Ramp, slot: number = BASE): Layer[] {
+    const b = bounds(s);
+    if (!b) return [];
+    const width = b.x1 - b.x0 + 1;
+    const height = b.y1 - b.y0 + 1;
+    const px = new Uint8Array(width * height);
+    for (let y = b.y0; y <= b.y1; y += 1) for (let x = b.x0; x <= b.x1; x += 1) if (filled(s, x, y)) px[(y - b.y0) * width + (x - b.x0)] = slot;
+    return [{ sprite: { width, height, originX: 0, originY: 0, px }, slots: rampSlots(ramp), x: b.x0, y: b.y0 }];
 }
 
 /** A mask drawn with its top-left pixel at (x, y): shaded like every mask, or flat in one tone of the ramp (no outline) for a detail painted over a part. */

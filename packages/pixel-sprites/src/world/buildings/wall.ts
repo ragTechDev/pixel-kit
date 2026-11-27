@@ -4,10 +4,15 @@ import type { BuildingWall } from "./config";
 import type { Frame } from "./frame";
 import { addRect, LIGHT, mod, paint, SHADOW, type Pattern } from "./shapes";
 
-/** What a wall material paints at a pixel. `top` is the row the wall starts on, so the pattern lines up with the gable above it. */
-export function wallPattern(kind: BuildingWall, top: number): Pattern {
-    return (x, y) => {
-        const r = mod(y - top, 4096);
+/**
+ * What a wall material paints at a pixel. The pattern is counted up from `bottom`, the row the wall stands on, and across from
+ * the left of the whole picture (`shift` is where this volume's left edge is), so it lines up with the gable above it and
+ * carries on across a join to the volume beside it.
+ */
+export function wallPattern(kind: BuildingWall, bottom: number, shift = 0): Pattern {
+    return (px, y) => {
+        const x = px + shift;
+        const r = mod(bottom - y, 4096);
         switch (kind) {
             case "clapboard": return r % 4 === 3 ? SHADOW : r % 4 === 0 ? LIGHT : 0;
             case "brick": return r % 4 === 3 || (x + (Math.floor(r / 4) % 2) * 4) % 8 === 0 ? SHADOW : 0;
@@ -26,11 +31,11 @@ export function wallPattern(kind: BuildingWall, top: number): Pattern {
 /** The wall with the shadow the roof casts on it, a stone foundation and, for a timber wall, the beams between the plaster. */
 export function drawWall(f: Frame): Layer[] {
     const { c, yw, yb, wx0, wx1, H, ground, ramps } = f;
-    const texture = wallPattern(c.wall, yw);
+    const texture = wallPattern(c.wall, H, f.xOffset);
     const layers: Layer[] = [];
 
     layers.push(...paint(addRect(f.here(), wx0, yw, wx1, ground), ramps.wall, (x, y) => (y >= yb && y < yb + 3 ? SHADOW : texture(x, y))));
-    layers.push(...paint(addRect(f.here(), wx0, H - 4, wx1, ground), ramps.stone, (x, y) => ((x + (y % 2) * 3) % 6 === 0 ? SHADOW : 0)));
+    layers.push(...paint(addRect(f.here(), wx0, H - 4, wx1, ground), ramps.stone, (x, y) => ((x + f.xOffset + (y % 2) * 3) % 6 === 0 ? SHADOW : 0)));
 
     if (c.wall === "timber") {
         const beams = f.here();

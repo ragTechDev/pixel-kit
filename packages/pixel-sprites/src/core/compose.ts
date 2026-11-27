@@ -21,6 +21,8 @@ export type Layer = {
     readonly noOutlineOver?: readonly string[];
     /** The same for highlights, so a layer can carry on from the one under it without a lighter edge. */
     readonly noHighlightOver?: readonly string[];
+    /** The same for shadows, so a layer can carry on from the one under it without a darker edge. */
+    readonly noShadowOver?: readonly string[];
 };
 
 export type Bounds = { x: number; y: number; width: number; height: number };
@@ -47,7 +49,7 @@ export function composeSprites(layers: readonly Layer[], bounds: Bounds = layerB
     const indexOf = new Map<string, number>();
     const px = new Uint8Array(width * height);
 
-    for (const { sprite, slots, x, y, noOutlineOver, noHighlightOver } of layers) {
+    for (const { sprite, slots, x, y, noOutlineOver, noHighlightOver, noShadowOver } of layers) {
         const left = x + sprite.originX - bounds.x;
         const top = y + sprite.originY - bounds.y;
         for (let sy = 0; sy < sprite.height; sy += 1) {
@@ -61,6 +63,7 @@ export function composeSprites(layers: readonly Layer[], bounds: Bounds = layerB
                 const under = colors[px[ty * width + tx]];
                 if (noOutlineOver && slot === SLOT.outline && noOutlineOver.includes(under)) continue;
                 if (noHighlightOver && slot === SLOT.highlight && noHighlightOver.includes(under)) continue;
+                if (noShadowOver && slot === SLOT.shadow && noShadowOver.includes(under)) continue;
                 let ci = indexOf.get(color);
                 if (ci === undefined) {
                     ci = colors.length;
