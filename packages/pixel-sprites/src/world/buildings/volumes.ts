@@ -1,6 +1,7 @@
 import type { BuildingConfig, ResolvedBuildingConfig, RoofShape, VolumeConfig } from "./config";
 import { buildingDepths, resolveBuildingConfig } from "./config";
 import { volumeBox } from "./frame";
+import { TILE_SIZE } from "../size";
 import type { RoofKind } from "./roof";
 
 // A building is one volume, or two when it has a wing, each drawn on its own (its wall, roof and facade) and placed in the
@@ -36,7 +37,10 @@ function frontWing(c: ResolvedBuildingConfig): Volume[] {
     // Narrower than the building by two tiles on each side, or one if that would leave less than three.
     const width = c.width - 4 >= 3 ? c.width - 4 : c.width - 2;
     // The part behind has no door, and the barrels are at the wing's door; the flower boxes stay under the windows of the main part.
-    const main: VolumeConfig = { ...c, wing: "none", porch: "none", props: c.props === "barrels" ? "none" : c.props };
+    const margin = ((c.width - width) / 2) * TILE_SIZE;
+    // The chimney stands in the middle of the margin beside the wing, where the roof behind it shows, not under the wing's roof.
+    const chimneyAt = c.chimney === "left" ? Math.round(margin / 2) : Math.round(c.width * TILE_SIZE - margin / 2);
+    const main: VolumeConfig = { ...c, wing: "none", porch: "none", props: c.props === "barrels" ? "none" : c.props, chimneyAt };
     const wing: VolumeConfig = {
         ...c,
         wing: "none",

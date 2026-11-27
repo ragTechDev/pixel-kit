@@ -29,18 +29,30 @@ function drawKind(f: Frame, kind: RoofKind): Drawn {
     }
 }
 
-/** The roof of a building (or of the part of it that `kind` is for). */
+/** Where a chimney stands: the middle of it, and the row its cap starts on. On a ridged roof it rises through a slope, higher up on the rest. */
+function chimneyPlace(f: Frame, kind: RoofKind): { cx: number; y: number } | undefined {
+    if (f.c.chimney === "none") return undefined;
+    const ridged = kind === "gable" || kind === "saltbox" || kind === "hip";
+    return { cx: f.c.chimneyAt ?? Math.round(f.c.chimney === "left" ? f.W * 0.26 : f.W * 0.74), y: ridged ? 6 : 4 };
+}
+
+/** The roof of a building (or of the part of it that `kind` is for). What is on its flat part keeps clear of the chimney, which has the side it stands on to itself. */
 export function drawRoof(f: Frame, kind: RoofKind = f.c.roof): Layer[] {
     const drawn = drawKind(f, kind);
     if (Array.isArray(drawn)) return drawn;
-    return [...drawn.layers, ...drawRooftop(f, drawn.area)];
+    let area = drawn.area;
+    const chimney = chimneyPlace(f, kind);
+    if (chimney) {
+        // The cap is 13 wide, so the rooftop starts a pixel beyond it, on the side away from the chimney.
+        area = chimney.cx < (area.x0 + area.x1) / 2 ? { ...area, x0: Math.max(area.x0, chimney.cx + 8) } : { ...area, x1: Math.min(area.x1, chimney.cx - 8) };
+    }
+    return [...drawn.layers, ...drawRooftop(f, area)];
 }
 
-/** A chimney rising through the roof: on a slope for the ridged roofs, higher up for the rest. */
+/** A chimney rising through the roof. */
 export function drawChimney(f: Frame, kind: RoofKind = f.c.roof): Layer[] {
-    if (f.c.chimney === "none") return [];
-    const ridged = kind === "gable" || kind === "saltbox" || kind === "hip";
-    return placeParts(f, chimneyParts, Math.round(f.c.chimney === "left" ? f.W * 0.26 : f.W * 0.74), ridged ? 6 : 4);
+    const chimney = chimneyPlace(f, kind);
+    return chimney ? placeParts(f, chimneyParts, chimney.cx, chimney.y) : [];
 }
 
 /** The row where the side of a roof starts at its left or right edge: the top of the roof's outline there. A side wall rises to it. */

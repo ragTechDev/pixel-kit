@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
     TILE_SIZE, colorRamps, buildBuilding, buildMap, buildingDepths, buildingWings, buildingRooftops, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
-    chimneys, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes,
+    chimneys, objectRamps, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes,
     townTileset, windowCounts, windowStyles
 } from "../dist/index.js";
 
@@ -263,6 +263,50 @@ test("where a side wing joins, the taller part's corner is a line straight down 
     // On a flat lower roof there is no parapet between the floor and the corner: no coping stone (the roof's base colour) just beside it.
     const flat = buildBuilding({ wing: "left", width: 8, roof: "flat", wall: "clapboard", wallColor: "yellow", roofColor: "grey" });
     for (const x of [3 * TILE_SIZE - 6, 3 * TILE_SIZE - 5, 3 * TILE_SIZE - 4]) assert.notEqual(flat.colors[flat.px[(2 * TILE_SIZE + 30) * flat.width + x]], colorRamps.grey.base, `no parapet at x=${x}: the floor runs up to the corner`);
+});
+
+test("a chimney is not on anything else on the roof: rooftop equipment keeps clear of it", () => {
+    // The colours of the equipment (air conditioners and vents, skylights, solar panels, boxes), none of which may be in the chimney's footprint.
+    const equipment = new Set(["#C3C8CE", "#E8EBEE", "#2E4A7C", "#5B7FB8", "#213A63", "#9CC7DB", "#D6EBF5", "#C79A6B", "#E8EBEE"]);
+    for (const roof of ["flat", "hipFlat", "mansard"]) {
+        for (const rooftop of buildingRooftops.filter((r) => r !== "none")) {
+            for (const chimney of ["left", "right"]) {
+                for (const width of buildingWidths) {
+                    for (const depth of ["short", "medium", "long"]) {
+                        const config = { roof, rooftop, chimney, width, depth, roofColor: "purple", wall: "clapboard", wallColor: "white" };
+                        const raster = buildBuilding(config);
+                        const cx = Math.round(width * TILE_SIZE * (chimney === "left" ? 0.26 : 0.74));
+                        // The stack and its cap: 13 wide, from the row the cap starts on to the foot of the stack.
+                        for (let y = 6; y < 28; y += 1) {
+                            for (let x = cx - 6; x < cx + 7; x += 1) {
+                                const colour = raster.colors[raster.px[y * raster.width + x]];
+                                assert.ok(!equipment.has(colour.toUpperCase()), `${roof} ${rooftop} ${chimney} ${width} ${depth}: ${colour} at (${x}, ${y}) is on the chimney`);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+});
+
+test("a chimney is not hidden under the roof of a front wing: it stands where the roof behind shows", () => {
+    // The brick of the chimney is a colour nothing else in the picture is: count it with and without the wing.
+    const bricks = (config) => {
+        const raster = buildBuilding(config);
+        const brick = raster.colors.indexOf(objectRamps.flower_rust.base);
+        return brick < 0 ? 0 : raster.px.filter((p) => p === brick).length;
+    };
+    for (const roof of ["gable", "hip", "hipFlat", "mansard", "gambrel", "saltbox", "flat"]) {
+        for (const chimney of ["left", "right"]) {
+            for (const width of buildingWidths) {
+                const config = { roof, chimney, width, roofColor: "blue", wall: "clapboard", wallColor: "white", doorColor: "teal" };
+                const alone = bricks(config);
+                assert.ok(alone > 40, `${roof} ${chimney} ${width}: the chimney is drawn`);
+                assert.equal(bricks({ ...config, wing: "front" }), alone, `${roof} ${chimney} ${width}: the wing hides some of the chimney`);
+            }
+        }
+    }
 });
 
 test("a building with a front wing has the door on the wing, which sticks out in front of the rest", () => {

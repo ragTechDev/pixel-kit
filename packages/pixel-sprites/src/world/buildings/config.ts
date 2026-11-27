@@ -99,6 +99,8 @@ export type VolumeConfig = Omit<ResolvedBuildingConfig, "width"> & {
     width: number;
     /** The edges where this volume carries on into the volume beside it: its wall runs out to the edge there, with no gap for the roof's overhang. */
     joined?: { readonly left: boolean; readonly right: boolean };
+    /** Where the chimney stands, as its centre in pixels from the left of the volume, when it is not at its usual place. */
+    chimneyAt?: number;
 };
 
 export const defaultBuildingConfig: ResolvedBuildingConfig = {
