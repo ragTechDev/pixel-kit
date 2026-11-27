@@ -17,10 +17,11 @@ export { randomAvatar } from "./avatar/randomAvatar";
 export { buildTile, tileIds } from "./world/tiles";
 export { TILE_SIZE } from "./world/size";
 export { tilePalettes, tileThemes, tileSeasons, defaultTileTheme, tileColorGroups, type TileColor, type TileColors, type TileColorGroup, type TileTheme } from "./world/tiles/palettes";
-export type { TileId, RoadTileId, TownTileId, ObjectId } from "./world/types";
+export type { TileId, RoadTileId, TownTileId, ObjectId, FruitId, TreeCrop } from "./world/types";
 export { defineTileSet, type Block, type TileSet, type TileSetDefinition } from "./world/tileset";
 export { defineMap, buildMap, mapDrawables, tileAt, queryCell, mapTileSize, type TileMap, type CellInfo, type PlacedObject, type PlacedBuilding, type MapDrawable, type MapDrawables } from "./world/map";
 export { solidBoxes, doorBoxes, type Box } from "./world/solids";
+export { treeStages, treeBearings, treeCrops, fruitIds, type TreeStage, type TreeBearing, type FruitTreeOptions } from "./world/objects/fruitTree";
 export { buildObject, objectIds, objectInfo, objectColors, colorableObjectIds, seasonalObjectIds, objectDamage, type ObjectInfo, type ObjectDamage } from "./world/objects/objects";
 export { objectRamps, type ObjectRampId } from "./world/objects/ramps";
 export {

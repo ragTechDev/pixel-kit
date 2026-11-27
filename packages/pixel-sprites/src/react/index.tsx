@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { avatarKey, buildAvatar, buildBuilding, buildIcon, buildMap, buildObject, buildTile, createCache, toMapVariant, toSvgPaths, toVariant } from "../index";
-import type { AvatarConfig, BuildingConfig, ColorName, HexColor, IconId, IconOptions, ObjectDamage, ObjectId, Raster, TileId, TileMap, TileColors, TileTheme, VariantOptions } from "../index";
+import type { AvatarConfig, BuildingConfig, ColorName, FruitTreeOptions, HexColor, IconId, IconOptions, ObjectDamage, ObjectId, Raster, TileId, TileMap, TileColors, TileTheme, VariantOptions } from "../index";
 
 const avatarCache = createCache<Raster>(512);
 
@@ -44,8 +44,8 @@ export function Icon({ id, idle, color, ...rest }: ImageProps & IconOptions & { 
     return <PixelImage raster={buildIcon(id, { idle, color })} {...rest} />;
 }
 
-export function WorldObject({ id, theme, color, damage, ...rest }: ImageProps & { id: ObjectId; theme?: TileTheme; color?: ColorName | HexColor; damage?: ObjectDamage }) {
-    return <PixelImage raster={buildObject(id, theme, color, damage)} {...rest} />;
+export function WorldObject({ id, theme, color, damage, stage, bearing, crop, ...rest }: ImageProps & { id: ObjectId; theme?: TileTheme; color?: ColorName | HexColor; damage?: ObjectDamage } & FruitTreeOptions) {
+    return <PixelImage raster={buildObject(id, theme, color, damage, { stage, bearing, crop })} {...rest} />;
 }
 
 /**

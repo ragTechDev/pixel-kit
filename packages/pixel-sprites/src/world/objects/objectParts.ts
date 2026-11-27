@@ -10,13 +10,14 @@ import { fenceRailsMask } from "../masks/objects/fence/rails.mask";
 import { flowerMask } from "../masks/objects/flower.mask";
 import { rugClothMask } from "../masks/objects/rug/cloth.mask";
 import { rugRingMask } from "../masks/objects/rug/ring.mask";
-import { treeCanopyMask } from "../masks/objects/tree/canopy.mask";
-import { treeTrunkMask } from "../masks/objects/tree/trunk.mask";
 import { windowFrameMask } from "../masks/objects/window/frame.mask";
 import { windowGlassMask } from "../masks/objects/window/glass.mask";
+import { treeCanopyMask } from "../masks/objects/tree/canopy.mask";
+import { treeTrunkMask } from "../masks/objects/tree/trunk.mask";
 import type { ObjectId } from "../types";
 import type { TileTheme } from "../tiles/palettes";
 import type { ObjectRampId } from "./ramps";
+import { fruitItemParts, fruitTreeParts } from "./fruitTree";
 
 /**
  * One mask of an object, drawn with a fixed ramp. `x` and `y` are the pixel
@@ -26,8 +27,10 @@ import type { ObjectRampId } from "./ramps";
 export interface ObjectPart {
     readonly mask: PixelMask;
     readonly ramp: ObjectRampId;
-    /** Ramps for the seasons that change this part. Summer uses `ramp`. */
-    readonly seasonal?: Partial<Record<TileTheme, ObjectRampId>>;
+    /** Ramps for the seasons that change this part. Summer uses `ramp`. `null` leaves the part out that season. */
+    readonly seasonal?: Partial<Record<TileTheme, ObjectRampId | null>>;
+    /** Paints every pixel of the mask in one tone of `ramp` (no outline or shading of its own), for detail over another part. */
+    readonly tone?: "shadow" | "highlight";
     readonly x: number;
     readonly y: number;
 }
@@ -39,6 +42,10 @@ export const objectParts: Record<ObjectId, readonly ObjectPart[]> = {
         { mask: treeTrunkMask, ramp: "bark", x: 5, y: 14 },
         { mask: treeCanopyMask, ramp: "leaf", seasonal: { spring: "leaf_spring", autumn: "leaf_autumn", winter: "leaf_snow", ash: "leaf_ash" }, x: 1, y: 1 }
     ],
+    // 2×3 tiles (32×48). Drawn from options, see fruitTree.ts: this is the default, a mature apple tree.
+    fruit_tree: fruitTreeParts(),
+    // 1×1 tile, sits on the ground. Picked fruit.
+    ...fruitItemParts,
     // 1×1 tile. Two posts with two rails across them.
     fence: [
         { mask: fencePostsMask, ramp: "wood", x: 1, y: 2 },

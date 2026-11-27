@@ -19,5 +19,11 @@ export type TownTileId =
 
 export type TileId = RoadTileId | TownTileId;
 
+/** The crops of a fruit tree. */
+export type TreeCrop = "apple" | "cherry" | "peach" | "pear" | "orange" | "lemon" | "olive";
+
+/** Picked fruit, one object per crop. */
+export type FruitId = `fruit_${TreeCrop}`;
+
 /** Things that stand on or sit over the terrain. They are shaded sprites, not tiles. */
-export type ObjectId = "tree" | "fence" | "door" | "window" | "counter" | "bookshelf" | "rug" | "flower";
+export type ObjectId = "tree" | "fruit_tree" | FruitId | "fence" | "door" | "window" | "counter" | "bookshelf" | "rug" | "flower";

@@ -64,7 +64,7 @@ function compute(map: TileMap): Boxes {
         });
         if (minX === Infinity) continue;
         const area = { x: (placed.x + minX) * TILE_SIZE, y: (placed.y + minY) * TILE_SIZE, width: (maxX - minX) * TILE_SIZE, height: (maxY - minY) * TILE_SIZE };
-        const layers = objectLayers(placed.id, placed.x * TILE_SIZE, placed.y * TILE_SIZE, undefined, placed.color);
+        const layers = objectLayers(placed.id, placed.x * TILE_SIZE, placed.y * TILE_SIZE, undefined, placed.color, "none", placed);
         const bounds = layerBounds(layers);
         const raster = composeSprites(layers, bounds);
         let x0 = Infinity;

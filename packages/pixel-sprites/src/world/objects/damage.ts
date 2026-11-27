@@ -1,6 +1,7 @@
 import type { Raster } from "../../core/compose";
 import { Canvas, HOLE, bell, crack, cut, edges, heap, hole, ragged, scorch, seeded, walk, type Breaks } from "../damageTools";
-import type { ObjectId } from "../types";
+import type { FruitId, ObjectId } from "../types";
+import { fruitIds } from "./fruitTree";
 import { objectRamps } from "./ramps";
 
 // War damage for an object. Like a building's it is a pass over the finished picture, seeded from the object's key, so an
@@ -137,22 +138,68 @@ type Recipe = (c: Canvas, rng: () => number, breaks: Breaks, level: Level) => nu
 
 const half = (level: Level) => level === "half";
 
-const recipes: Record<ObjectId, Recipe> = {
-    // Blasted: the canopy is blown away down to the branches, with a clump of scorched leaves left on one or two of them. A ruin
-    // is a burnt trunk, broken off short.
-    tree: (c, rng, breaks, level) => {
-        if (half(level)) {
-            skeleton(c, rng);
-            // The leaves that are left are scorched. The bark, branches and trunk are left to the soot over the whole tree.
-            const bark = new Set<string>(Object.values(objectRamps.bark));
-            char(c, rng, 0.4, (x, y) => y < 17 && c.on(x, y) && !bark.has(c.colors[c.px[y * c.w + x]]));
-            crack(c, rng, 8, 20, 6);
-            return 0.12;
+// Blasted: the canopy is blown away down to the branches, with a clump of scorched leaves left on one or two of them. A ruin
+// is a burnt trunk, broken off short.
+const treeRecipe: Recipe = (c, rng, breaks, level) => {
+    if (half(level)) {
+        skeleton(c, rng);
+        // The leaves that are left are scorched. The bark, branches and trunk are left to the soot over the whole tree.
+        const bark = new Set<string>(Object.values(objectRamps.bark));
+        char(c, rng, 0.4, (x, y) => y < 17 && c.on(x, y) && !bark.has(c.colors[c.px[y * c.w + x]]));
+        crack(c, rng, 8, 20, 6);
+        return 0.12;
+    }
+    stub(c, rng, breaks, 12 + Math.floor(rng() * 4));
+    spill(c, rng, 3, 10);
+    return 0.5;
+};
+
+const barkTones = new Set<string>([...Object.values(objectRamps.bark), ...Object.values(objectRamps.bark_olive)]);
+
+/** A fruit tree, at any size: the same, found from the picture. Limbs are drawn from the top of the trunk to a few tips, and leaves stay only round some of them. */
+const fruitTreeRecipe: Recipe = (c, rng, breaks, level) => {
+    const isBark = (x: number, y: number) => c.on(x, y) && barkTones.has(c.colors[c.px[y * c.w + x]]);
+    let top = c.h;
+    for (let y = 0; y < c.h && top === c.h; y += 1) for (let x = 0; x < c.w; x += 1) if (isBark(x, y)) top = y;
+    const [x0, x1] = span(c);
+    const cx = Math.round((x0 + x1) / 2);
+    if (half(level) && top > 8) {
+        const tips = [0, 1, 2].map((i) => [cx + (i - 1) * Math.round((x1 - x0) * (0.2 + rng() * 0.15)), top - Math.round((0.35 + rng() * 0.5) * top)] as const);
+        const kept = tips.sort(() => rng() - 0.5).slice(0, rng() < 0.5 ? 1 : 2);
+        const base = top + 2;
+        // Whatever of the crown covers the top of the trunk goes with it, and the trunk's broken top is filled in where the crown hid it.
+        for (let y = 0; y <= base; y += 1) for (let x = 0; x < c.w; x += 1) if (c.on(x, y) && !isBark(x, y) && !kept.some(([tx, ty]) => Math.hypot(x - tx, y - ty) <= 5.5 + (rng() - 0.5))) c.clear(x, y);
+        const bark = objectRamps.bark;
+        for (let y = top; y <= base; y += 1) {
+            const xs = Array.from({ length: c.w }, (_, x) => x).filter((x) => isBark(x, y));
+            for (let x = xs[0]; x <= xs[xs.length - 1]; x += 1) if (xs.length) c.put(x, y, bark.base);
         }
-        stub(c, rng, breaks, 12 + Math.floor(rng() * 4));
-        spill(c, rng, 3, 10);
-        return 0.5;
-    },
+        for (const [tx, ty] of tips) {
+            const steps = Math.max(Math.abs(tx - cx), base - ty);
+            for (let i = 0; i <= steps; i += 1) {
+                const x = Math.round(cx + ((tx - cx) * i) / steps);
+                const y = Math.round(base - ((base - ty) * i) / steps);
+                c.put(x, y, bark.base);
+                c.put(x + 1, y, bark.shadow);
+            }
+        }
+        char(c, rng, 0.4, (x, y) => y < top + 2 && c.on(x, y) && !barkTones.has(c.colors[c.px[y * c.w + x]]));
+        crack(c, rng, cx - 2, c.h - 10, 6);
+        return 0.12;
+    }
+    stub(c, rng, breaks, 10 + Math.floor(rng() * 4));
+    spill(c, rng, cx - 8, 10);
+    return 0.5;
+};
+
+const recipes: Record<ObjectId, Recipe> = {
+    tree: treeRecipe,
+    fruit_tree: fruitTreeRecipe,
+    ...(Object.fromEntries(fruitIds.map((id) => [id, (c: Canvas, rng: () => number, breaks: Breaks, level: Level) => {
+        // A bite or two out of a small fruit, and most of it gone in a ruin.
+        for (let i = half(level) ? 1 : 3; i > 0; i -= 1) burn(c, rng, breaks, 3 + rng() * 6, 3 + rng() * 6, half(level) ? 1.5 : 2.6);
+        return half(level) ? 0.3 : 0.55;
+    }])) as unknown as Record<FruitId, Recipe>),
     // Planks gone from the middle and a post broken; a ruin is two stumps and the planks in the dirt.
     fence: (c, rng, breaks, level) => {
         const gx = 5 + Math.floor(rng() * 4);
@@ -262,10 +309,10 @@ function keepConnected(c: Canvas, root: number) {
 }
 
 /** What is already shaped as it should be, and wants no teeth or torn faces added: a damaged tree is bare branches and clumps of leaves. */
-const plain = (id: ObjectId, level: Level) => id === "tree" && level === "half";
+const plain = (id: ObjectId, level: Level) => (id === "tree" || id === "fruit_tree") && level === "half";
 
 /** The ground objects scorch where they are, with no broken top, so they get no edges of lit stone. */
-const ground = new Set<ObjectId>(["rug", "flower"]);
+const ground = new Set<ObjectId>(["rug", "flower", ...fruitIds]);
 
 /**
  * Returns the object's picture, damaged. `key` is the object's cache key, which seeds every choice, and `raster` is the object

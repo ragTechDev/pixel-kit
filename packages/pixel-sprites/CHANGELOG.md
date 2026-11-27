@@ -10,6 +10,12 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 
 <!-- next-release -->
 
+## Unreleased
+
+### Added
+- **Fruit trees for farming: `fruit_tree` and `fruit_<crop>`.** A 2×3 tile (32×48) tree with a `stage` (`sapling`, `young`, `mature`), a `bearing` (`none`, `flowers`, `fruit`) and a `crop` (`apple`, `cherry`, `peach`, `pear`, `orange`, `lemon`, `olive`), each crop with its own crown, leaves, blossom and fruit. Pass them on a placed object, to `buildObject(id, season, color, damage, options)` or to `<WorldObject>`. Each crop's picked fruit is a 1×1 ground object, `fruit_<crop>`. The new exports are `treeStages`, `treeBearings`, `treeCrops`, `fruitIds` and the types `TreeStage`, `TreeBearing`, `FruitTreeOptions`, `TreeCrop` and `FruitId`. Crowns are generated from a few numbers (a pile of clumps, scaled down for a young tree), so a crop costs a table row instead of a mask. `tree` is unchanged.
+- An object part can be left out for a season (`seasonal: { winter: null }`), and can be a flat `tone` over another part.
+
 ## [0.11.0] - 2026-11-27
 
 ### Breaking changes

@@ -1,16 +1,17 @@
 import { colorRamps, type ColorName } from "../../core/colors";
 import { parseHex, rampFromHex, type HexColor } from "../../core/customColor";
 import { composeSprites, type Layer, type Raster } from "../../core/compose";
-import { rampSlots, shadeMask, type Sprite } from "../../core/sprite";
+import { SLOT, rampSlots, shadeMask, type Sprite } from "../../core/sprite";
 import { rasterLayer } from "../damageTools";
 import { TILE_SIZE } from "../size";
 import { defaultTileTheme, resolveTheme, type TileTheme } from "../tiles/palettes";
-import type { ObjectId } from "../types";
+import type { FruitId, ObjectId } from "../types";
 import { damageObjectRaster, objectDamage, type ObjectDamage } from "./damage";
 import { objectParts, type ObjectPart } from "./objectParts";
 
 export { objectDamage, type ObjectDamage };
 import { objectRamps, type ObjectRampId } from "./ramps";
+import { fruitIds, fruitTreeParts, resolveFruitTree, type FruitTreeOptions } from "./fruitTree";
 
 export interface ObjectInfo {
     /** Footprint width in tiles. */
@@ -29,6 +30,8 @@ export interface ObjectInfo {
 
 export const objectInfo: Record<ObjectId, ObjectInfo> = {
     tree: { width: 1, height: 2, layer: "standing", footprint: [".", "#"] },
+    fruit_tree: { width: 2, height: 3, layer: "standing", footprint: ["..", "..", "##"] },
+    ...(Object.fromEntries(fruitIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<FruitId, ObjectInfo>),
     fence: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     door: { width: 1, height: 1, layer: "standing", footprint: ["."], door: true },
     window: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
@@ -40,12 +43,20 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
 
 export const objectIds = Object.keys(objectInfo) as ObjectId[];
 
+/** A sprite with every pixel of the mask in one slot, with no outline round it. */
+function flatSprite(mask: ObjectPart["mask"], slot: number): Sprite {
+    const width = mask[0]?.length ?? 0;
+    const px = new Uint8Array(width * mask.length);
+    mask.forEach((r, y) => [...r].forEach((c, x) => c === "1" && (px[y * width + x] = slot)));
+    return { width, height: mask.length, originX: 0, originY: 0, px };
+}
+
 const partSprites = new WeakMap<ObjectPart, Sprite>();
 
 function partSprite(part: ObjectPart): Sprite {
     let sprite = partSprites.get(part);
     if (!sprite) {
-        sprite = shadeMask(part.mask);
+        sprite = part.tone ? flatSprite(part.mask, SLOT[part.tone]) : shadeMask(part.mask);
         partSprites.set(part, sprite);
     }
     return sprite;
@@ -80,16 +91,16 @@ export const colorableObjectIds = objectIds.filter((id) => objectColors[id]);
 export const seasonalObjectIds = objectIds.filter((id) => objectParts[id].some((part) => part.seasonal));
 
 /** Internal: the layers of an object placed with its top-left corner at pixel (px, py). */
-export function objectLayers(id: ObjectId, px: number, py: number, theme: TileTheme = defaultTileTheme, color?: ColorName | HexColor, damage: ObjectDamage = "none"): Layer[] {
-    const parts = objectParts[id];
+export function objectLayers(id: ObjectId, px: number, py: number, theme: TileTheme = defaultTileTheme, color?: ColorName | HexColor, damage: ObjectDamage = "none", grow?: FruitTreeOptions): Layer[] {
+    const parts = id === "fruit_tree" ? fruitTreeParts(grow) : objectParts[id];
     if (!parts) throw new Error(`Unknown object: ${String(id)}`);
-    if (objectDamage.includes(damage) && damage !== "none") return [{ ...rasterLayer(buildObject(id, theme, color, damage)), x: px, y: py }];
-    return parts.map((part) => ({
+    if (objectDamage.includes(damage) && damage !== "none") return [{ ...rasterLayer(buildObject(id, theme, color, damage, grow)), x: px, y: py }];
+    return parts.flatMap((part) => (part.seasonal?.[theme] === null ? [] : [{
         sprite: partSprite(part),
-        slots: rampSlots(color && accents[id]?.includes(part.ramp) ? (color.startsWith("#") ? rampFromHex(color as HexColor) : colorRamps[color as ColorName]) : objectRamps[part.seasonal?.[theme] ?? part.ramp]),
+        slots: rampSlots(color && accents[id]?.includes(part.ramp) ? (color.startsWith("#") ? rampFromHex(color as HexColor) : colorRamps[color as ColorName]) : objectRamps[part.seasonal?.[theme] || part.ramp]),
         x: px + part.x,
         y: py + part.y
-    }));
+    }]));
 }
 
 const built = new Map<string, Raster>();
@@ -99,20 +110,23 @@ const built = new Map<string, Raster>();
  * change with the season (`seasonalObjectIds`); `theme` is a season as in `tileThemes`, and
  * unknown values fall back to summer. `color` is one of the object's common colours
  * (`objectColors`) or any hex colour such as `"#e8873a"`; anything else is ignored. `damage` is `"half"` or
- * `"ruin"` for a broken or burnt object (see `objectDamage`); anything else is the object as it was made.
+ * `"ruin"` for a broken or burnt object (see `objectDamage`); anything else is the object as it was made. `grow` is the stage, bearing and
+ * crop of a `fruit_tree` (see `FruitTreeOptions`) and is ignored for other objects.
  */
-export function buildObject(id: ObjectId, theme?: string, color?: ColorName | HexColor, damage?: ObjectDamage): Raster {
+export function buildObject(id: ObjectId, theme?: string, color?: ColorName | HexColor, damage?: ObjectDamage, grow?: FruitTreeOptions): Raster {
     const season = resolveTheme(theme);
     const chosen = objectColors[id] && color ? (objectColors[id]!.includes(color as ColorName) ? (color as ColorName) : parseHex(color)) : undefined;
     // A colour replaces the season's colour for the same part, so it does not need a season in its key.
     const level = damage === "half" || damage === "ruin" ? damage : "none";
-    const whole = chosen ? `${id}:${season}:${chosen}` : seasonalObjectIds.includes(id) ? `${id}:${season}` : id;
+    const shape = id === "fruit_tree" ? resolveFruitTree(grow) : undefined;
+    const kind = shape ? `${id}:${shape.stage}:${shape.bearing}:${shape.crop}` : id;
+    const whole = chosen ? `${kind}:${season}:${chosen}` : seasonalObjectIds.includes(id) ? `${kind}:${season}` : kind;
     const key = level === "none" ? whole : `${whole}!${level}`;
     let raster = built.get(key);
     if (!raster) {
         const { width, height } = objectInfo[id];
         const bounds = { x: 0, y: 0, width: width * TILE_SIZE, height: height * TILE_SIZE };
-        raster = level === "none" ? composeSprites(objectLayers(id, 0, 0, season, chosen), bounds) : damageObjectRaster(id, buildObject(id, season, chosen), level, key);
+        raster = level === "none" ? composeSprites(objectLayers(id, 0, 0, season, chosen, "none", shape), bounds) : damageObjectRaster(id, buildObject(id, season, chosen, undefined, shape), level, key);
         built.set(key, raster);
     }
     return raster;

@@ -16,8 +16,9 @@ export function tileGroup(id: TileId): string {
 export const tileGroups = ["Terrain", "Pavement", "Roofs", "Walls", "Damaged"] as const;
 
 export const objectLabel: Record<ObjectId, string> = {
-    tree: "Tree", fence: "Fence", door: "Door", window: "Window",
-    counter: "Counter", bookshelf: "Bookshelf", rug: "Rug", flower: "Flowers"
+    tree: "Tree", fruit_tree: "Fruit tree", fence: "Fence", door: "Door", window: "Window",
+    counter: "Counter", bookshelf: "Bookshelf", rug: "Rug", flower: "Flowers",
+    fruit_apple: "Apple", fruit_cherry: "Cherries", fruit_peach: "Peach", fruit_pear: "Pear", fruit_orange: "Orange", fruit_lemon: "Lemon", fruit_olive: "Olive"
 };
 export const categoryLabel = (c: string) => c.replaceAll("-", " & ");
 export type { IconId };

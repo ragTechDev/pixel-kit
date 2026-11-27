@@ -29,6 +29,14 @@ export const iconKeywords: Record<IconId, string> = {
 
 export const objectKeywords: Record<ObjectId, string> = {
     tree: "plant forest nature wood leaves",
+    fruit_tree: "plant orchard farm grow sapling blossom flowers fruit harvest apple cherry peach pear orange lemon olive",
+    fruit_apple: "food fruit harvest farm item pick red",
+    fruit_cherry: "food fruit harvest farm item pick red",
+    fruit_peach: "food fruit harvest farm item pick",
+    fruit_pear: "food fruit harvest farm item pick green",
+    fruit_orange: "food fruit harvest farm item pick citrus",
+    fruit_lemon: "food fruit harvest farm item pick citrus yellow",
+    fruit_olive: "food fruit harvest farm item pick green",
     fence: "barrier gate border boundary wall",
     door: "entrance exit entry warp enter",
     window: "glass pane house building",

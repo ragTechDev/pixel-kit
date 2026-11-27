@@ -8,7 +8,8 @@ import { TILE_SIZE } from "./size";
 import { themeSlots, tileSprite } from "./tiles";
 import { resolveTheme, tileColorsKey, type TileColors } from "./tiles/palettes";
 import type { TileSet } from "./tileset";
-import type { ObjectId, TileId } from "./types";
+import { treeBearings, treeCrops, treeStages, type TreeBearing, type TreeStage } from "./objects/fruitTree";
+import type { ObjectId, TileId, TreeCrop } from "./types";
 
 /** An object placed on a map. `x` and `y` are the tile coordinates of its top-left footprint tile. */
 export interface PlacedObject {
@@ -19,6 +20,12 @@ export interface PlacedObject {
     readonly color?: ColorName | HexColor;
     /** `"half"` or `"ruin"` for a broken or burnt object (`objectDamage`). It looks different, and blocks the same cells. */
     readonly damage?: ObjectDamage;
+    /** For a `fruit_tree`: how far it has grown (`treeStages`). */
+    readonly stage?: TreeStage;
+    /** For a `fruit_tree`: leaves only, flowers or fruit (`treeBearings`). Only a mature tree bears. */
+    readonly bearing?: TreeBearing;
+    /** For a `fruit_tree`: which crop it is (`treeCrops`). */
+    readonly crop?: TreeCrop;
 }
 
 /**
@@ -104,6 +111,9 @@ export function defineMap(tileset: TileSet, rows: readonly string[], objects: re
         if (placed.damage !== undefined && !objectDamage.includes(placed.damage)) {
             throw new Error(`Object "${placed.id}" cannot be damaged "${String(placed.damage)}"`);
         }
+        if (placed.stage !== undefined && !treeStages.includes(placed.stage)) throw new Error(`Object "${placed.id}" cannot be at stage "${String(placed.stage)}"`);
+        if (placed.bearing !== undefined && !treeBearings.includes(placed.bearing)) throw new Error(`Object "${placed.id}" cannot bear "${String(placed.bearing)}"`);
+        if (placed.crop !== undefined && !treeCrops.includes(placed.crop)) throw new Error(`Object "${placed.id}" cannot be the crop "${String(placed.crop)}"`);
         const cells = index[info.layer];
         for (let dy = 0; dy < info.height; dy += 1) {
             for (let dx = 0; dx < info.width; dx += 1) {
@@ -226,7 +236,7 @@ export function buildMap(map: TileMap, theme?: string, colors?: TileColors): Ras
         // Ground objects first, then standing ones and buildings from back to front so that a
         // tall object (a tree, a house) covers whatever stands behind it.
         const drawables = [
-            ...map.objects.map((o) => ({ standing: objectInfo[o.id].layer === "standing", bottom: o.y + objectInfo[o.id].height, x: o.x, layers: () => objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color, o.damage) })),
+            ...map.objects.map((o) => ({ standing: objectInfo[o.id].layer === "standing", bottom: o.y + objectInfo[o.id].height, x: o.x, layers: () => objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color, o.damage, o) })),
             ...map.buildings.map((b) => ({ standing: true, bottom: b.y + buildingBox(b.config).height, x: b.x, layers: () => buildingLayers(b.config, b.x * TILE_SIZE, b.y * TILE_SIZE) }))
         ].sort((a, b) => Number(a.standing) - Number(b.standing) || a.bottom - b.bottom || a.x - b.x);
         for (const drawable of drawables) layers.push(...drawable.layers());
@@ -290,7 +300,7 @@ export function mapDrawables(map: TileMap, theme?: string, colors?: TileColors):
         const standing: (MapDrawable & { readonly x0: number })[] = [];
         for (const o of map.objects) {
             const info = objectInfo[o.id];
-            const objectLayer = objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color, o.damage);
+            const objectLayer = objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color, o.damage, o);
             if (info.layer === "ground") {
                 layers.push(...objectLayer);
                 continue;

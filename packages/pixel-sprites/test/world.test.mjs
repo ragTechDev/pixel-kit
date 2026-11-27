@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
     buildMap, buildObject, buildTile, defineMap, defineTileSet, houseTileset, mapTileSize,
-    colorRamps, colorableObjectIds, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
+    colorRamps, colorableObjectIds, treeCrops, treeStages, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
 } from "../dist/index.js";
 
 test("every tile is 16×16, opaque terrain, and only uses palette colours", () => {
@@ -54,7 +54,7 @@ test("roof pieces share the shingle pattern and differ at ridge, eave and edges"
 
 test("objects render at their footprint size using only fixed ramps", () => {
     const rampColors = new Set(Object.values(objectRamps).flatMap((r) => Object.values(r)));
-    assert.deepEqual([...objectIds].sort(), ["bookshelf", "counter", "door", "fence", "flower", "rug", "tree", "window"]);
+    assert.deepEqual([...objectIds].sort(), ["bookshelf", "counter", "door", "fence", "flower", "fruit_apple", "fruit_cherry", "fruit_lemon", "fruit_olive", "fruit_orange", "fruit_peach", "fruit_pear", "fruit_tree", "rug", "tree", "window"]);
     for (const id of objectIds) {
         const { width, height, footprint } = objectInfo[id];
         assert.equal(footprint.length, height, id);
@@ -269,7 +269,7 @@ test("the town tileset has a sky block", () => {
 });
 
 test("trees and flowers change with the season, in the same shape, and the world follows", () => {
-    assert.deepEqual([...seasonalObjectIds].sort(), ["flower", "tree"]);
+    assert.deepEqual([...seasonalObjectIds].sort(), ["flower", "fruit_tree", "tree"]);
     const shape = (r) => Array.from(r.px, (p) => (p === 0 ? 0 : 1)).join("");
     for (const id of seasonalObjectIds) {
         const summer = buildObject(id);
@@ -326,7 +326,7 @@ test("ash is a palette of its own: a drained, sooty city, with burnt trees and f
     assert.ok(ash.colors.includes(tilePalettes.ash.grass) && !ash.colors.includes(tilePalettes.summer.grass));
     assert.ok(ash.colors.includes(objectRamps.leaf_ash.base) && ash.colors.includes(objectRamps.flower_ash.base));
     assert.ok(!ash.colors.includes(objectRamps.leaf.base));
-    assert.deepEqual([...seasonalObjectIds].sort(), ["flower", "tree"]);
+    assert.deepEqual([...seasonalObjectIds].sort(), ["flower", "fruit_tree", "tree"]);
 });
 
 test("the damaged ground tiles are their plain tiles with cracks, debris or soot, drawn in the palette's own names", () => {
@@ -367,4 +367,47 @@ test("a street and a ruined block can be laid out from the tilesets, and none of
     const rooms = defineMap(houseTileset, ["bb", "ff"]);
     assert.equal(tileAt(rooms, 0, 0), "broken_floor");
     assert.equal(queryCell(rooms, 0, 0).solid, false);
+});
+
+test("a fruit tree fills 2×3 tiles at every stage, crop and season, and blocks the same cells", () => {
+    assert.deepEqual(objectInfo.fruit_tree.footprint, ["..", "..", "##"]);
+    for (const crop of treeCrops) {
+        for (const stage of treeStages) {
+            for (const season of [...tileSeasons, "ash"]) {
+                const r = buildObject("fruit_tree", season, undefined, undefined, { stage, crop });
+                assert.equal(r.width, 32, `${crop} ${stage}`);
+                assert.equal(r.height, 48, `${crop} ${stage}`);
+            }
+        }
+        assert.deepEqual(objectInfo[`fruit_${crop}`], { width: 1, height: 1, layer: "ground", footprint: ["."] });
+        assert.equal(buildObject(`fruit_${crop}`).width, 16);
+    }
+});
+
+test("a fruit tree grows: it gets bigger, then bears flowers, then fruit", () => {
+    const count = (grow) => buildObject("fruit_tree", "summer", undefined, undefined, grow).px.filter(Boolean).length;
+    const [sapling, young, mature] = treeStages.map((stage) => count({ stage, crop: "apple" }));
+    assert.ok(sapling < young && young < mature);
+    const colors = (grow, season = "summer") => new Set(buildObject("fruit_tree", season, undefined, undefined, grow).colors);
+    assert.ok(!colors({ crop: "apple" }).has(objectRamps.fruit_red.outline));
+    assert.ok(colors({ crop: "apple", bearing: "fruit" }).has(objectRamps.fruit_red.outline));
+    assert.ok(colors({ crop: "apple", bearing: "flowers" }).has(objectRamps.flower_white.outline));
+    assert.ok(colors({ crop: "cherry", bearing: "flowers" }).has(objectRamps.flower_pink.outline));
+    // Nothing is borne before the tree is mature, or in a burnt city, and anything unknown becomes the default.
+    assert.equal(count({ stage: "young", bearing: "fruit" }), count({ stage: "young" }));
+    assert.ok(!colors({ crop: "apple", bearing: "fruit" }, "ash").has(objectRamps.fruit_red.outline));
+    assert.equal(count({ stage: "huge", crop: "nope", bearing: "x" }), count({}));
+});
+
+test("a fruit tree can be placed with its options, and is damaged like a tree", () => {
+    const map = defineMap(townTileset, Array(6).fill("gggggg"), [{ id: "fruit_tree", x: 1, y: 1, stage: "mature", bearing: "fruit", crop: "pear" }, { id: "fruit_pear", x: 4, y: 4 }]);
+    assert.equal(queryCell(map, 1, 3).solid, true);
+    assert.equal(queryCell(map, 1, 1).solid, false);
+    assert.throws(() => defineMap(townTileset, Array(6).fill("gggggg"), [{ id: "fruit_tree", x: 0, y: 0, crop: "plum" }]), /crop/);
+    assert.throws(() => defineMap(townTileset, Array(6).fill("gggggg"), [{ id: "fruit_tree", x: 0, y: 0, stage: "old" }]), /stage/);
+    for (const damage of ["half", "ruin"]) {
+        const r = buildObject("fruit_tree", "summer", undefined, damage, { crop: "olive" });
+        assert.equal(r.height, 48);
+        assert.ok(r.px.filter(Boolean).length < buildObject("fruit_tree", "summer", undefined, undefined, { crop: "olive" }).px.filter(Boolean).length);
+    }
 });
