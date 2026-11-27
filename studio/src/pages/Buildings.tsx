@@ -60,8 +60,8 @@ interface Tab {
 
 const TABS: Tab[] = [
     { id: "roof", label: "Roof", sections: [
-        { field: "roof", title: "Shape", hint: "A hip roof is plain. A gable faces the front, with a round window in it when the house has windows.", options: roofShapes },
-        { field: "pitch", title: "Pitch", hint: "A steep roof is one tile taller.", options: roofPitches }
+        { field: "roof", title: "Shape", hint: "A hip roof slopes on all four sides. A gable roof has its ridge running front to back, so you see a left and a right slope, with the gable on the wall and a round window in it when the house has windows.", options: roofShapes },
+        { field: "pitch", title: "Pitch", hint: "A steep roof is one tile taller, with more of the slopes showing.", options: roofPitches }
     ], colours: [{ field: "roofColor", title: "Roof colour" }] },
     { id: "walls", label: "Walls", sections: [
         { field: "wall", title: "Material", hint: "Timber is plaster between wooden beams.", options: buildingWalls },
@@ -180,7 +180,7 @@ export function BuildingsPage({ route }: { route: Route }) {
             <div>
                 <h1 className="h" style={{ fontSize: 18 }}>Buildings</h1>
                 <p className="muted" style={{ maxWidth: 720, marginTop: 4 }}>
-                    Build a house: pick a tab, tap what you like. It is drawn from the front and a little above, the way houses look in most pixel-art games. Your building is saved in this browser.
+                    Build a house: pick a tab, tap what you like. It is drawn from the front and well above, the way houses look in most pixel-art games, so you see the slopes of the roof. Your building is saved in this browser.
                 </p>
             </div>
             <VariantBar route={route} themes native={{ width: 16, height: 16 }} sizeLabel="Pixels per tile" />

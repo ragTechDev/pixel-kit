@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-    TILE_SIZE, buildBuilding, buildMap, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
+    TILE_SIZE, colorRamps, buildBuilding, buildMap, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
     chimneys, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes,
     townTileset, windowCounts, windowStyles
 } from "../dist/index.js";
@@ -48,6 +48,28 @@ test("a building is the same object each time, and its choices change the pictur
     // A taller building has more rows, a steeper roof too, and a wider one more columns.
     assert.equal(buildingBox({ storeys: 2 }).height, buildingBox({}).height + 2);
     assert.equal(buildingBox({ pitch: "steep" }).height, buildingBox({}).height + 1);
+});
+
+test("a roof is seen from above: both slopes show, the left lit and the right in shade, and it is taller than the wall's top edge", () => {
+    for (const roof of roofShapes) {
+        for (const pitch of roofPitches) {
+            const config = { roof, pitch, roofColor: "red" };
+            const raster = buildBuilding(config);
+            const rows = (buildingBox(config).roofTiles) * TILE_SIZE;
+            const count = (from, to, colour) => {
+                let n = 0;
+                for (let y = 0; y < rows; y += 1) for (let x = from; x < to; x += 1) if (raster.colors[raster.px[y * raster.width + x]] === colour) n += 1;
+                return n;
+            };
+            const half = raster.width / 2;
+            const base = colorRamps.red.base;
+            // A gable is two big slopes; a hip is mostly one front slope, with the left and right ones as narrow faces beside it.
+            assert.ok(count(0, half, base) > count(half, raster.width, base) * (roof === "gable" ? 1.5 : 1), `${roof} ${pitch}: left side is lit`);
+            assert.ok(count(half, raster.width, colorRamps.red.shadow) > count(0, half, colorRamps.red.shadow), `${roof} ${pitch}: right side is in shade`);
+            // The roof reaches the top of the picture, so it is not just a front slope the height of the wall.
+            assert.ok(raster.px.slice(0, raster.width * 4).some((p) => p !== 0), `${roof} ${pitch}: reaches the top`);
+        }
+    }
 });
 
 test("unknown values fall back to the defaults and bad colours are dropped", () => {

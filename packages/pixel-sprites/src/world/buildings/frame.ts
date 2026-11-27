@@ -12,7 +12,7 @@ const stone: Ramp = { outline: "#4A4C50", base: "#A9ADB4", shadow: "#868A92", hi
 /** The size of a building in tiles: its width, its height and how many of those rows are roof. */
 export function buildingBox(config?: BuildingConfig): { width: number; height: number; roofTiles: number } {
     const c = resolveBuildingConfig(config);
-    const roofTiles = c.pitch === "steep" ? 3 : 2;
+    const roofTiles = c.pitch === "steep" ? 4 : 3;
     return { width: c.width, height: roofTiles + c.storeys * 2, roofTiles };
 }
 
