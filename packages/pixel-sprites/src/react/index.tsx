@@ -44,8 +44,8 @@ export function Icon({ id, idle, color, ...rest }: ImageProps & IconOptions & { 
     return <PixelImage raster={buildIcon(id, { idle, color })} {...rest} />;
 }
 
-export function WorldObject({ id, theme, color, damage, stage, bearing, crop, ...rest }: ImageProps & { id: ObjectId; theme?: TileTheme; color?: ColorName | HexColor; damage?: ObjectDamage } & FruitTreeOptions) {
-    return <PixelImage raster={buildObject(id, theme, color, damage, { stage, bearing, crop })} {...rest} />;
+export function WorldObject({ id, theme, color, damage, stage, bearing, crop, count, ...rest }: ImageProps & { id: ObjectId; theme?: TileTheme; color?: ColorName | HexColor; damage?: ObjectDamage } & FruitTreeOptions) {
+    return <PixelImage raster={buildObject(id, theme, color, damage, { stage, bearing, crop, count })} {...rest} />;
 }
 
 /**

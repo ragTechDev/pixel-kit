@@ -23,7 +23,7 @@ export { defineMap, buildMap, mapDrawables, tileAt, queryCell, mapTileSize, type
 export { solidBoxes, doorBoxes, type Box } from "./world/solids";
 export { treeStages, treeBearings, treeCrops, fruitIds, type TreeStage, type TreeBearing, type FruitTreeOptions } from "./world/objects/fruitTree";
 export { vegetables, rootVegetables, bushVegetables, cropIds, vegIds } from "./world/objects/vegetables";
-export { buildObject, objectIds, objectInfo, objectColors, colorableObjectIds, seasonalObjectIds, objectDamage, type ObjectInfo, type ObjectDamage } from "./world/objects/objects";
+export { buildObject, produceLimits, objectIds, objectInfo, objectColors, colorableObjectIds, seasonalObjectIds, objectDamage, type ObjectInfo, type ObjectDamage } from "./world/objects/objects";
 export { objectRamps, type ObjectRampId } from "./world/objects/ramps";
 export {
     buildBuilding, buildingBox, buildingFootprint, buildingMap, randomBuilding, resolveBuildingConfig, defaultBuildingConfig,

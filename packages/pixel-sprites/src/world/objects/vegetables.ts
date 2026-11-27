@@ -1,4 +1,5 @@
 import { getMaskWidth, type PixelMask } from "../../core/maskUtils";
+import { produceCount, type FruitTreeOptions } from "./fruitTree";
 import { fruitRoundMask } from "../masks/objects/fruit/round.mask";
 import { vegetableBushMask } from "../masks/objects/vegetable/bush.mask";
 import { vegetableCabbageMask } from "../masks/objects/vegetable/cabbage.mask";
@@ -43,10 +44,10 @@ const centred = (mask: PixelMask, ramp: ObjectRampId, y: number, extra: Partial<
 interface Look {
     /** What the vegetable looks like picked. */
     readonly item: readonly ObjectPart[];
-    /** What it looks like in the field, ripe. */
+    /** What it looks like in the field, ripe. For a bush, the plant and all its produce. */
     readonly field: readonly ObjectPart[];
-    /** What is left of a bush once its produce is picked: the plant alone. */
-    readonly bare?: readonly ObjectPart[];
+    /** A bush: the plant alone, and then each tomato or cob as a part of its own, in the order they are picked. */
+    readonly bush?: { readonly plant: readonly ObjectPart[]; readonly produce: readonly ObjectPart[] };
 }
 
 /** A root vegetable: picked, with leaves on top of it, and in the field, only the leaves and the top of it. */
@@ -55,6 +56,12 @@ function root(body: PixelMask, ramp: ObjectRampId, crown: { from: number; rows: 
         item: [{ mask: vegetableTuftMask, ramp: "leaf", x: 4, y: 1 }, centred(body, ramp, 6)],
         field: [{ mask: vegetableTuftMask, ramp: "leaf", x: 4, y: 5 }, centred(body.slice(crown.from, crown.from + crown.rows), ramp, 10)]
     };
+}
+
+/** A bush: its plant, and produce at fixed places, so a plant with fewer has the first of them. */
+function bush(plant: readonly ObjectPart[], mask: PixelMask, ramp: ObjectRampId, at: readonly (readonly [number, number])[]): Pick<Look, "field" | "bush"> {
+    const produce = at.map(([x, y]) => ({ mask, ramp, x, y }));
+    return { field: [...plant, ...produce], bush: { plant, produce } };
 }
 
 const looks: Record<Vegetable, Look> = {
@@ -72,21 +79,11 @@ const looks: Record<Vegetable, Look> = {
     },
     tomato: {
         item: [centred(fruitRoundMask, "fruit_red", 4), centred(vegetableStemMask, "leaf", 3)],
-        field: [
-            { mask: vegetableBushMask, ramp: "leaf", x: 1, y: 3 },
-            { mask: vegetableTomatoMask, ramp: "fruit_red", x: 3, y: 7 },
-            { mask: vegetableTomatoMask, ramp: "fruit_red", x: 10, y: 8 }
-        ],
-        bare: [{ mask: vegetableBushMask, ramp: "leaf", x: 1, y: 3 }]
+        ...bush([{ mask: vegetableBushMask, ramp: "leaf", x: 1, y: 3 }], vegetableTomatoMask, "fruit_red", [[3, 6], [8, 4], [7, 8], [11, 8]])
     },
     corn: {
         item: [centred(vegetableCobMask, "veg_corn", 3), { mask: vegetableStemMask, ramp: "leaf", x: 7, y: 11 }],
-        field: [
-            { mask: vegetableStalkMask, ramp: "leaf", x: 2, y: 3 },
-            { mask: vegetableCobMask, ramp: "veg_corn", x: 3, y: 12 },
-            { mask: vegetableCobMask, ramp: "veg_corn", x: 9, y: 17 }
-        ],
-        bare: [{ mask: vegetableStalkMask, ramp: "leaf", x: 2, y: 3 }]
+        ...bush([{ mask: vegetableStalkMask, ramp: "leaf", x: 2, y: 3 }], vegetableCobMask, "veg_corn", [[3, 12], [9, 17], [9, 6], [3, 21]])
     }
 };
 
@@ -99,11 +96,19 @@ export const vegItemParts = record(vegIds, "veg_", (look) => look.item);
 /** The vegetables in a field, standing objects that block where they are drawn. Corn is two tiles tall (16×32) and the rest one (16×16). */
 export const cropParts = record(cropIds, "crop_", (look) => look.field);
 
+/** The most a bush shows: four tomatoes or four cobs. */
+export const maxProduce = 4;
+
 /** Whether a crop is a bush, which stays in the field, bare, when it is picked. */
 export const isBushCrop = (id: string): id is CropId => (bushVegetables as readonly string[]).includes(id.slice(5)) && id.startsWith("crop_");
 
-/** The parts of a crop in a field. A bush (tomato, corn) is drawn bare, with only its plant, when `bare` is true; the others have no bare form. */
-export function cropFieldParts(id: CropId, bare = false): readonly ObjectPart[] {
+/** How many tomatoes or cobs a bush shows given its options: `bearing: "none"` is none, and `count` is kept to the most it can carry. */
+export function bushCount(options?: FruitTreeOptions): number {
+    return options?.bearing === "none" ? 0 : produceCount(options?.count, maxProduce);
+}
+
+/** The parts of a crop in a field. A bush (tomato, corn) shows its plant and the first `count` of its produce; the others have no count. */
+export function cropFieldParts(id: CropId, count = maxProduce): readonly ObjectPart[] {
     const look = looks[id.slice(5) as Vegetable];
-    return (bare && look.bare) || look.field;
+    return look.bush ? [...look.bush.plant, ...look.bush.produce.slice(0, count)] : look.field;
 }

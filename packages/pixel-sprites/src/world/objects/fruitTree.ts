@@ -31,6 +31,16 @@ export interface FruitTreeOptions {
     readonly stage?: TreeStage;
     readonly bearing?: TreeBearing;
     readonly crop?: TreeCrop;
+    /** How many fruit or flowers a mature tree, or a tomato or corn plant, shows: up to its limit (`produceLimits`), which is also the default. More than that are not drawn, and 0 is bare. */
+    readonly count?: number;
+}
+
+/** The most fruit or flowers a mature fruit tree shows. */
+export const maxFruit = 8;
+
+/** A count of fruit, kept to a whole number from 0 up to `max`. Anything that is not a number is `max`. */
+export function produceCount(count: unknown, max: number): number {
+    return typeof count === "number" && Number.isFinite(count) ? Math.max(0, Math.min(max, Math.floor(count))) : max;
 }
 
 export const fruitIds: readonly FruitId[] = treeCrops.map((crop) => `fruit_${crop}` as const);
@@ -86,7 +96,7 @@ export function resolveFruitTree(options?: FruitTreeOptions): Required<FruitTree
     const stage = treeStages.find((s) => s === options?.stage) ?? "mature";
     const crop = treeCrops.find((c) => c === options?.crop) ?? "apple";
     const bearing = stage === "mature" ? (treeBearings.find((b) => b === options?.bearing) ?? "none") : "none";
-    return { stage, bearing, crop };
+    return { stage, bearing, crop, count: bearing === "none" ? 0 : produceCount(options?.count, maxFruit) };
 }
 
 const row = (cells: readonly boolean[]) => cells.map((on) => (on ? "1" : "0")).join("");
@@ -124,18 +134,22 @@ const petals = [[0, -1], [-1, 0], [0, 0], [1, 0], [0, 1]] as const;
 /** A round 4×4 fruit, so it reads as fruit and not as a flower. */
 const round = [[0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [2, 1], [0, 2], [1, 2]] as const;
 
-function spots(drawn: ReturnType<typeof drawCrown>, rng: () => number, count: number, shape: readonly (readonly [number, number])[]): PixelMask {
+function spots(drawn: ReturnType<typeof drawCrown>, rng: () => number, show: number, shape: readonly (readonly [number, number])[]): PixelMask {
     const { owner, w, h } = drawn;
     const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && owner[y * w + x] >= 0;
     const chosen: [number, number][] = [];
-    for (let tries = 0; tries < 400 && chosen.length < count; tries += 1) {
-        const x = 3 + Math.floor(rng() * (w - 6));
-        const y = 3 + Math.floor(rng() * (h - 6));
-        const room = [-3, 0, 3].every((dy) => [-3, 0, 3].every((dx) => inside(x + dx, y + dy)));
-        if (room && chosen.every(([cx, cy]) => Math.hypot(cx - x, cy - y) >= 7)) chosen.push([x, y]);
+    // Spread out as far as the crown allows: a narrow crown is filled at a closer spacing, after the first fruit are placed at a wide one.
+    for (const [gap, reach] of [[7, 3], [6, 3], [5, 3], [5, 2], [4.5, 2]] as const) {
+        for (let tries = 0; tries < 400 && chosen.length < maxFruit; tries += 1) {
+            const x = reach + Math.floor(rng() * (w - reach * 2));
+            const y = reach + Math.floor(rng() * (h - reach * 2));
+            const room = [-reach, 0, reach].every((dy) => [-reach, 0, reach].every((dx) => inside(x + dx, y + dy)));
+            if (room && chosen.every(([cx, cy]) => Math.hypot(cx - x, cy - y) >= gap)) chosen.push([x, y]);
+        }
     }
     const cells = Array.from({ length: h }, () => Array<boolean>(w).fill(false));
-    for (const [x, y] of chosen) for (const [dx, dy] of shape) cells[y + dy][x + dx] = true;
+    // The spots are chosen in a fixed order whatever the count, so a tree with fewer fruit has the first of them.
+    for (const [x, y] of chosen.slice(0, show)) for (const [dx, dy] of shape) cells[y + dy][x + dx] = true;
     return cells.map(row);
 }
 
@@ -164,8 +178,8 @@ const cache = new Map<string, readonly ObjectPart[]>();
 
 /** The parts of a fruit tree, trunk first, then the crown, its shading and the blossom or fruit. Each tree fills the 32×48 box, cached. */
 export function fruitTreeParts(options?: FruitTreeOptions): readonly ObjectPart[] {
-    const { stage, bearing, crop } = resolveFruitTree(options);
-    const key = `${stage}:${bearing}:${crop}`;
+    const { stage, bearing, crop, count } = resolveFruitTree(options);
+    const key = `${stage}:${bearing}:${crop}:${count}`;
     let parts = cache.get(key);
     if (parts) return parts;
     const look = looks[crop];
@@ -194,7 +208,7 @@ export function fruitTreeParts(options?: FruitTreeOptions): readonly ObjectPart[
             { mask: drawn.crown, ...leaf, x, y },
             { mask: drawn.shade, ...leaf, tone: "shadow", x, y },
             { mask: drawn.light, ...leaf, tone: "highlight", x, y },
-            ...(bearing === "none" ? [] : [{ mask: spots(drawn, seeded(`spots|${crop}`), 8, bearing === "fruit" ? round : petals), ramp: bearing === "fruit" ? look.fruit : look.blossom, seasonal: { ash: null }, x, y } as const])
+            ...(bearing === "none" || count === 0 ? [] : [{ mask: spots(drawn, seeded(`spots|${crop}`), count, bearing === "fruit" ? round : petals), ramp: bearing === "fruit" ? look.fruit : look.blossom, seasonal: { ash: null }, x, y } as const])
         ];
     }
     cache.set(key, parts);

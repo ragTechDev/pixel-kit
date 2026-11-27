@@ -11,8 +11,8 @@ import { objectParts, type ObjectPart } from "./objectParts";
 
 export { objectDamage, type ObjectDamage };
 import { objectRamps, type ObjectRampId } from "./ramps";
-import { cropFieldParts, cropIds, isBushCrop, vegIds } from "./vegetables";
-import { fruitIds, fruitTreeParts, resolveFruitTree, type FruitTreeOptions } from "./fruitTree";
+import { bushCount, cropFieldParts, cropIds, isBushCrop, maxProduce, vegIds } from "./vegetables";
+import { fruitIds, maxFruit, fruitTreeParts, resolveFruitTree, type FruitTreeOptions } from "./fruitTree";
 
 export interface ObjectInfo {
     /** Footprint width in tiles. */
@@ -94,6 +94,9 @@ const accents: Partial<Record<ObjectId, readonly ObjectRampId[]>> = {
     flower: ["flower_red", "flower_yellow"]
 };
 
+/** The most fruit, flowers, tomatoes or cobs an object can show with `count`. More are not drawn. */
+export const produceLimits: Partial<Record<ObjectId, number>> = { fruit_tree: maxFruit, crop_tomato: maxProduce, crop_corn: maxProduce };
+
 /** The objects with a main colour you can change with `color`. */
 export const colorableObjectIds = objectIds.filter((id) => objectColors[id]);
 
@@ -102,7 +105,7 @@ export const seasonalObjectIds = objectIds.filter((id) => objectParts[id].some((
 
 /** Internal: the layers of an object placed with its top-left corner at pixel (px, py). */
 export function objectLayers(id: ObjectId, px: number, py: number, theme: TileTheme = defaultTileTheme, color?: ColorName | HexColor, damage: ObjectDamage = "none", grow?: FruitTreeOptions): Layer[] {
-    const parts = id === "fruit_tree" ? fruitTreeParts(grow) : isBushCrop(id) ? cropFieldParts(id, grow?.bearing === "none") : objectParts[id];
+    const parts = id === "fruit_tree" ? fruitTreeParts(grow) : isBushCrop(id) ? cropFieldParts(id, bushCount(grow)) : objectParts[id];
     if (!parts) throw new Error(`Unknown object: ${String(id)}`);
     if (objectDamage.includes(damage) && damage !== "none") return [{ ...rasterLayer(buildObject(id, theme, color, damage, grow)), x: px, y: py }];
     return parts.flatMap((part) => (part.seasonal?.[theme] === null ? [] : [{
@@ -121,7 +124,7 @@ const built = new Map<string, Raster>();
  * unknown values fall back to summer. `color` is one of the object's common colours
  * (`objectColors`) or any hex colour such as `"#e8873a"`; anything else is ignored. `damage` is `"half"` or
  * `"ruin"` for a broken or burnt object (see `objectDamage`); anything else is the object as it was made. `grow` is the stage, bearing and
- * crop of a `fruit_tree` (see `FruitTreeOptions`). For a bush crop (`bushVegetables`) only `bearing` counts, and `"none"` is the bare plant. It is ignored for other objects.
+ * crop of a `fruit_tree` (see `FruitTreeOptions`). For a bush crop (`bushVegetables`) only `bearing` and `count` count, and `"none"` is the bare plant. It is ignored for other objects.
  */
 export function buildObject(id: ObjectId, theme?: string, color?: ColorName | HexColor, damage?: ObjectDamage, grow?: FruitTreeOptions): Raster {
     const season = resolveTheme(theme);
@@ -129,8 +132,8 @@ export function buildObject(id: ObjectId, theme?: string, color?: ColorName | He
     // A colour replaces the season's colour for the same part, so it does not need a season in its key.
     const level = damage === "half" || damage === "ruin" ? damage : "none";
     // A tree is drawn from its options; a bush crop is ripe, or bare once picked (`bearing: "none"`).
-    const shape: FruitTreeOptions | undefined = id === "fruit_tree" ? resolveFruitTree(grow) : isBushCrop(id) ? { bearing: grow?.bearing === "none" ? "none" : "fruit" } : undefined;
-    const kind = id === "fruit_tree" ? `${id}:${shape!.stage}:${shape!.bearing}:${shape!.crop}` : isBushCrop(id) ? `${id}:${shape!.bearing}` : id;
+    const shape: FruitTreeOptions | undefined = id === "fruit_tree" ? resolveFruitTree(grow) : isBushCrop(id) ? { bearing: "fruit", count: bushCount(grow) } : undefined;
+    const kind = id === "fruit_tree" ? `${id}:${shape!.stage}:${shape!.bearing}:${shape!.crop}:${shape!.count}` : isBushCrop(id) ? `${id}:${shape!.count}` : id;
     const whole = chosen ? `${kind}:${season}:${chosen}` : seasonalObjectIds.includes(id) ? `${kind}:${season}` : kind;
     const key = level === "none" ? whole : `${whole}!${level}`;
     let raster = built.get(key);

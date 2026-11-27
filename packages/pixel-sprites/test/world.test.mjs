@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
     buildMap, buildObject, buildTile, defineMap, defineTileSet, solidBoxes, houseTileset, mapTileSize,
-    colorRamps, colorableObjectIds, bushVegetables, cropIds, rootVegetables, treeCrops, treeStages, vegIds, vegetables, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
+    colorRamps, colorableObjectIds, bushVegetables, produceLimits, cropIds, rootVegetables, treeCrops, treeStages, vegIds, vegetables, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
 } from "../dist/index.js";
 
 test("every tile is 16×16, opaque terrain, and only uses palette colours", () => {
@@ -489,4 +489,35 @@ test("a bush crop can be bare: the plant stays when its tomatoes or cobs are pic
     const map = defineMap(townTileset, ["gg"], [{ id: "crop_tomato", x: 0, y: 0, bearing: "none" }]);
     assert.equal(queryCell(map, 0, 0).solid, true);
     for (const damage of ["half", "ruin"]) assert.ok(buildObject("crop_tomato", "summer", undefined, damage, { bearing: "none" }).px.some(Boolean), damage);
+});
+
+test("fruit and vegetables on a tree or a bush are counted, up to a limit, and more than that are not drawn", () => {
+    assert.deepEqual(produceLimits, { fruit_tree: 8, crop_tomato: 4, crop_corn: 4 });
+    const grid = (id, grow) => [...buildObject(id, "summer", undefined, undefined, grow).px].join();
+    const colourCount = (id, grow, colour) => {
+        const r = buildObject(id, "summer", undefined, undefined, grow);
+        const index = r.colors.indexOf(colour);
+        return index < 0 ? 0 : r.px.filter((p) => p === index).length;
+    };
+    // More fruit is more of the fruit's colour, one count at a time, until the limit.
+    const tree = (count) => colourCount("fruit_tree", { bearing: "fruit", crop: "apple", count }, objectRamps.fruit_red.outline);
+    assert.equal(tree(0), 0, "none");
+    for (let n = 1; n <= 8; n += 1) assert.ok(tree(n) > tree(n - 1), `${n} apples show more than ${n - 1}`);
+    assert.equal(grid("fruit_tree", { bearing: "fruit", count: 8 }), grid("fruit_tree", { bearing: "fruit" }), "the limit is the default");
+    for (const over of [9, 50, Infinity]) assert.equal(grid("fruit_tree", { bearing: "fruit", count: over }), grid("fruit_tree", { bearing: "fruit", count: 8 }), `${over} is no more than 8`);
+    assert.equal(grid("fruit_tree", { bearing: "fruit", count: -3 }), grid("fruit_tree", { bearing: "fruit", count: 0 }), "and less than none is none");
+    assert.equal(grid("fruit_tree", { bearing: "fruit", count: 0 }), grid("fruit_tree", { bearing: "none" }), "0 is a bare tree");
+    assert.equal(grid("fruit_tree", { bearing: "fruit", count: 2.9 }), grid("fruit_tree", { bearing: "fruit", count: 2 }), "whole fruit only");
+    assert.equal(grid("fruit_tree", { bearing: "fruit", count: "many" }), grid("fruit_tree", { bearing: "fruit", count: 8 }), "anything else is the limit");
+    // The same for a bush.
+    for (const [v, ramp] of [["tomato", objectRamps.fruit_red], ["corn", objectRamps.veg_corn]]) {
+        const bush = (count) => colourCount(`crop_${v}`, { count }, ramp.outline);
+        assert.equal(bush(0), 0, `${v}: bare`);
+        for (let n = 1; n <= 4; n += 1) assert.ok(bush(n) > bush(n - 1), `${v}: ${n}`);
+        assert.equal(grid(`crop_${v}`, { count: 5 }), grid(`crop_${v}`), `${v}: more than the limit is the limit`);
+        assert.equal(grid(`crop_${v}`, { count: 0 }), grid(`crop_${v}`, { bearing: "none" }), v);
+    }
+    // A placed object carries it, and it has to be a number.
+    assert.doesNotThrow(() => defineMap(townTileset, ["gggg", "gggg"], [{ id: "crop_tomato", x: 0, y: 0, count: 2 }]));
+    assert.throws(() => defineMap(townTileset, ["gggg", "gggg"], [{ id: "crop_tomato", x: 0, y: 0, count: "2" }]), /fruit/);
 });

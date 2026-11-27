@@ -26,6 +26,8 @@ export interface PlacedObject {
     readonly bearing?: TreeBearing;
     /** For a `fruit_tree`: which crop it is (`treeCrops`). */
     readonly crop?: TreeCrop;
+    /** For a `fruit_tree`, `crop_tomato` or `crop_corn`: how many fruit, flowers, tomatoes or cobs it shows, up to `produceLimits` (the default). */
+    readonly count?: number;
 }
 
 /**
@@ -114,6 +116,7 @@ export function defineMap(tileset: TileSet, rows: readonly string[], objects: re
         if (placed.stage !== undefined && !treeStages.includes(placed.stage)) throw new Error(`Object "${placed.id}" cannot be at stage "${String(placed.stage)}"`);
         if (placed.bearing !== undefined && !treeBearings.includes(placed.bearing)) throw new Error(`Object "${placed.id}" cannot bear "${String(placed.bearing)}"`);
         if (placed.crop !== undefined && !treeCrops.includes(placed.crop)) throw new Error(`Object "${placed.id}" cannot be the crop "${String(placed.crop)}"`);
+        if (placed.count !== undefined && typeof placed.count !== "number") throw new Error(`Object "${placed.id}" cannot hold "${String(placed.count)}" fruit`);
         const cells = index[info.layer];
         for (let dy = 0; dy < info.height; dy += 1) {
             for (let dx = 0; dx < info.width; dx += 1) {
