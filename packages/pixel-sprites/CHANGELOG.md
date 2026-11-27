@@ -10,11 +10,17 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 
 <!-- next-release -->
 
-## [Unreleased]
+## [0.11.0] - 2026-11-27
+
+### Breaking changes
+- **`windows` on a building is a number.** It was `"none"`, `"some"` or `"many"`; it is now `0` up to `maxWindows(width, windowStyle, door)`, spaced evenly along each storey (the ground floor spaces its windows either side of the door). The default is `2`, which matches the old `"some"`. `windowCounts` and `WindowCount` are removed.
+- **A building with no `roofColor` or `wallColor` is in its material's natural colour** (`"natural"`: slate, terracotta, straw, brick red, grey stone, natural wood) rather than red and white. Pass the colours to keep the old look.
 
 ### Added
-- **`solidBoxes(map)` and `doorBoxes(map)`: collision in pixels.** Terrain and water are whole tiles, but a standing object is solid where it is drawn on its blocking cells (a tree is its trunk, as wide as the trunk) and a building where its wall is drawn, from the outline on each side down to the line it stands on, so something can come right up to either. The roof rows above the wall are open, and the foot of the door is a box in `doorBoxes`. `queryCell` and `buildingFootprint` are unchanged and still cover the whole box in tiles, for tile-by-tile movement.
+- **Composable buildings: `buildBuilding` and `buildingMap`.** A building is chosen from fixed lists like an avatar and seen from above and in front, so the roof shows its slopes and far end. Roof shapes (`gable`, `hip`, `hipFlat`, `mansard`, `gambrel`, `saltbox`, `flat`), pitch, `depth`, `roofMaterial` (`shingle`, `ceramic`, `thatch`, `wood`), wall materials, storeys, a front, left or right `wing` with its own storeys (`wingStoreys`), a door, windows, chimney and props. Flat roofs have a parapet, and `rooftop` puts vents, machinery, boxes, skylights, solar panels or a garden on them.
+- **`solidBoxes(map)` and `doorBoxes(map)`: collision in pixels.** A standing object is solid where it is drawn on its blocking cells (a tree is its trunk) and a building where its wall is drawn, so something can come right up to either. The roof rows above the wall are open, and the foot of the door is a box in `doorBoxes`. `queryCell` and `buildingFootprint` are unchanged and still cover the whole box in tiles.
 - **`mapDrawables(map, theme, colors)`** returns the map split into its `ground` and each standing object and building as its own raster with a `sortY`, so a game can draw a character behind a building and have the roof cover it. Drawn in order with nothing between, it is the same picture as `buildMap`.
+- **A `headscarf` hair accessory** with throwback and tucked styles.
 
 ## [0.10.0] - 2026-11-27
 
