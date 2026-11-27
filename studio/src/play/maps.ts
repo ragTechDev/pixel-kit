@@ -43,9 +43,9 @@ export const grocerMap = defineMap(houseTileset, [
     ...at("chalkboard", [7, 1]),
     ...at("grocery_shelf", [1, 2], [2, 2], [3, 2], [12, 2], [13, 2], [14, 2]),
     ...at("fridge", [5, 2], [9, 2]),
-    // The checkout, between the two fridges: the shopkeeper stands behind it, and there is a gap at the right end to step through.
-    ...at("counter", [5, 4]),
-    ...at("cash_register", [7, 4]),
+    // The checkout: a row of open floor runs between it and the fridges, so the shopkeeper's side can be walked, and there is a gap at the right end to step through.
+    ...at("counter", [5, 5]),
+    ...at("cash_register", [7, 5]),
     ...at("produce_crate", [2, 6], [3, 6], [4, 6], [11, 6], [12, 6], [13, 6]),
     ...at("grocery_shelf", [2, 8], [3, 8], [12, 8], [13, 8]),
     ...at("rug", [7, 7]),

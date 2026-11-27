@@ -703,7 +703,7 @@ test("every character stands on open floor, and every door has open floor in fro
 
 test("the hero can walk behind the counter, into the kitchen and to the grocer's shelves behind the till", () => {
     // A search over the tiles the hero's feet fit on, from where it arrives: whatever it reaches, a player can walk to.
-    for (const [id, behind] of [["restaurant", [[6, 3], [4, 3]]], ["grocer", [[8, 3], [8, 2]]]]) {
+    for (const [id, behind] of [["restaurant", [[6, 3], [4, 3]]], ["grocer", [[5, 4], [6, 4], [8, 4], [8, 3]]]]) {
         const place = maps.places[id];
         const p = play();
         const solid = maps.solidBoxes(place.map);
