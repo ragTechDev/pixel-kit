@@ -37,6 +37,22 @@ export const objectKeywords: Record<ObjectId, string> = {
     fruit_orange: "food fruit harvest farm item pick citrus",
     fruit_lemon: "food fruit harvest farm item pick citrus yellow",
     fruit_olive: "food fruit harvest farm item pick green",
+    crop_carrot: "farm field crop grow plant root vegetable orange",
+    veg_carrot: "food vegetable harvest farm item pick root vegetable orange",
+    crop_radish: "farm field crop grow plant root vegetable red pink",
+    veg_radish: "food vegetable harvest farm item pick root vegetable red pink",
+    crop_turnip: "farm field crop grow plant root vegetable white purple",
+    veg_turnip: "food vegetable harvest farm item pick root vegetable white purple",
+    crop_beet: "farm field crop grow plant root vegetable beetroot purple red",
+    veg_beet: "food vegetable harvest farm item pick root vegetable beetroot purple red",
+    crop_cabbage: "farm field crop grow plant leafy vegetable green head",
+    veg_cabbage: "food vegetable harvest farm item pick leafy vegetable green head",
+    crop_pumpkin: "farm field crop grow plant gourd squash vegetable orange halloween",
+    veg_pumpkin: "food vegetable harvest farm item pick gourd squash vegetable orange halloween",
+    crop_tomato: "farm field crop grow plant vegetable fruit red vine bush",
+    veg_tomato: "food vegetable harvest farm item pick vegetable fruit red vine bush",
+    crop_corn: "farm field crop grow plant maize cob vegetable yellow tall stalk",
+    veg_corn: "food vegetable harvest farm item pick maize cob vegetable yellow tall stalk",
     fence: "barrier gate border boundary wall",
     door: "entrance exit entry warp enter",
     window: "glass pane house building",
@@ -63,7 +79,11 @@ const tileBase: Record<string, string> = {
     cracked_pavement: "sidewalk footpath paving stone broken damaged war",
     scorched_earth: "burnt burned charred ash ground dirt damaged war fire",
     rubble: "debris stones bricks ruins collapsed broken damaged war",
-    broken_floor: "indoor room boards cracked debris damaged war"
+    broken_floor: "indoor room boards cracked debris damaged war",
+    untilled: "farm field wild land meadow dirt patches grass",
+    tilled: "farm field soil dug ploughed plowed furrows rows dirt",
+    seeded: "farm field planted seeds sown sowing soil",
+    sprouting: "farm field seedlings shoots sprouts growing young plants"
 };
 
 const edgeParts = new Set(["top", "bottom", "left", "right"]);

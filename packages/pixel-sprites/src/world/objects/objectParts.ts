@@ -18,6 +18,7 @@ import type { ObjectId } from "../types";
 import type { TileTheme } from "../tiles/palettes";
 import type { ObjectRampId } from "./ramps";
 import { fruitItemParts, fruitTreeParts } from "./fruitTree";
+import { cropParts, vegItemParts } from "./vegetables";
 
 /**
  * One mask of an object, drawn with a fixed ramp. `x` and `y` are the pixel
@@ -46,6 +47,9 @@ export const objectParts: Record<ObjectId, readonly ObjectPart[]> = {
     fruit_tree: fruitTreeParts(),
     // 1×1 tile, sits on the ground. Picked fruit.
     ...fruitItemParts,
+    // Vegetables: growing in a field (1×1, and corn 1×2) and picked (1×1). See vegetables.ts.
+    ...cropParts,
+    ...vegItemParts,
     // 1×1 tile. Two posts with two rails across them.
     fence: [
         { mask: fencePostsMask, ramp: "wood", x: 1, y: 2 },

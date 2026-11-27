@@ -36,5 +36,9 @@
   "cracked_pavement": "731c14f154fe5f08",
   "scorched_earth": "d81d63b18a274a2d",
   "rubble": "3fd261d01ca0dce1",
-  "broken_floor": "11e85a60bea69790"
+  "broken_floor": "11e85a60bea69790",
+  "untilled": "4256d1b9453d7368",
+  "tilled": "fd375244f3d8e2a3",
+  "seeded": "2f53c45a8b7e70da",
+  "sprouting": "3702d576df788f46"
 }

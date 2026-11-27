@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
     buildMap, buildObject, buildTile, defineMap, defineTileSet, houseTileset, mapTileSize,
-    colorRamps, colorableObjectIds, treeCrops, treeStages, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
+    colorRamps, colorableObjectIds, cropIds, rootVegetables, treeCrops, treeStages, vegIds, vegetables, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
 } from "../dist/index.js";
 
 test("every tile is 16×16, opaque terrain, and only uses palette colours", () => {
@@ -54,7 +54,7 @@ test("roof pieces share the shingle pattern and differ at ridge, eave and edges"
 
 test("objects render at their footprint size using only fixed ramps", () => {
     const rampColors = new Set(Object.values(objectRamps).flatMap((r) => Object.values(r)));
-    assert.deepEqual([...objectIds].sort(), ["bookshelf", "counter", "door", "fence", "flower", "fruit_apple", "fruit_cherry", "fruit_lemon", "fruit_olive", "fruit_orange", "fruit_peach", "fruit_pear", "fruit_tree", "rug", "tree", "window"]);
+    assert.deepEqual([...objectIds].sort(), ["bookshelf", "counter", "crop_beet", "crop_cabbage", "crop_carrot", "crop_corn", "crop_pumpkin", "crop_radish", "crop_tomato", "crop_turnip", "door", "fence", "flower", "fruit_apple", "fruit_cherry", "fruit_lemon", "fruit_olive", "fruit_orange", "fruit_peach", "fruit_pear", "fruit_tree", "rug", "tree", "veg_beet", "veg_cabbage", "veg_carrot", "veg_corn", "veg_pumpkin", "veg_radish", "veg_tomato", "veg_turnip", "window"]);
     for (const id of objectIds) {
         const { width, height, footprint } = objectInfo[id];
         assert.equal(footprint.length, height, id);
@@ -410,4 +410,49 @@ test("a fruit tree can be placed with its options, and is damaged like a tree", 
         assert.equal(r.height, 48);
         assert.ok(r.px.filter(Boolean).length < buildObject("fruit_tree", "summer", undefined, undefined, { crop: "olive" }).px.filter(Boolean).length);
     }
+});
+
+test("farmland tiles are the stages of working a field, and nothing about them blocks walking", () => {
+    const stages = ["untilled", "tilled", "seeded", "sprouting"];
+    for (const id of stages) {
+        assert.ok(tileIds.includes(id), id);
+        for (const theme of tileThemes) assert.ok(buildTile(id, theme).px.every((p) => p !== 0), `${id} ${theme} is opaque`);
+    }
+    const colours = (id) => new Set(buildTile(id).colors);
+    // Each stage adds to the one before it: tilled soil, then seeds in it, then seedlings in it.
+    assert.ok(colours("seeded").has(tilePalettes.summer.seed));
+    assert.ok(!colours("tilled").has(tilePalettes.summer.seed));
+    assert.ok(colours("sprouting").has(tilePalettes.summer.sprout));
+    assert.ok(!colours("seeded").has(tilePalettes.summer.sprout));
+    // A seedling stays green in winter, when the grass is white.
+    assert.ok(buildTile("sprouting", "winter").colors.includes(tilePalettes.winter.sprout));
+    const map = defineMap(townTileset, ["uvxy"], []);
+    for (let x = 0; x < 8; x += 2) assert.equal(queryCell(map, x, 0).solid, false);
+});
+
+test("every vegetable is a crop in a field and a picked item, and root crops show only their top", () => {
+    assert.equal(cropIds.length, vegetables.length);
+    assert.equal(vegIds.length, vegetables.length);
+    for (const v of vegetables) {
+        assert.deepEqual(objectInfo[`veg_${v}`], { width: 1, height: 1, layer: "ground", footprint: ["."] }, v);
+        const crop = buildObject(`crop_${v}`);
+        assert.equal(crop.width, 16, v);
+        assert.equal(crop.height, v === "corn" ? 32 : 16, v);
+        assert.ok(crop.px.some(Boolean), v);
+        assert.equal(objectInfo[`crop_${v}`].footprint.join("").includes("#"), false, `${v} does not block walking`);
+    }
+    const area = (id) => buildObject(id).px.filter(Boolean).length;
+    for (const v of rootVegetables) assert.ok(area(`crop_${v}`) < area(`veg_${v}`) + 20 && objectInfo[`crop_${v}`].layer === "ground", v);
+    // A root vegetable in the ground shows less of itself than the picked one; a vegetable above the ground shows all of it.
+    const body = (id, ramp) => buildObject(id).px.filter((i) => i && buildObject(id).colors[i] === objectRamps[ramp].base).length;
+    assert.ok(body("crop_carrot", "veg_carrot") < body("veg_carrot", "veg_carrot"));
+    assert.equal(body("crop_cabbage", "veg_cabbage"), body("veg_cabbage", "veg_cabbage"));
+    assert.equal(objectInfo.crop_corn.layer, "standing");
+});
+
+test("a field is a map: soil tiles with crops on them, and picked vegetables on the ground", () => {
+    const map = defineMap(townTileset, ["vvvv", "gggg"], [{ id: "crop_carrot", x: 0, y: 0 }, { id: "crop_corn", x: 2, y: 0 }, { id: "veg_beet", x: 4, y: 0 }]);
+    const picture = buildMap(map);
+    assert.equal(picture.width, 128);
+    assert.ok(queryCell(map, 0, 0).solid === false && queryCell(map, 2, 1).solid === false);
 });

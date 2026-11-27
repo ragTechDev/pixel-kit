@@ -5,12 +5,13 @@ import { SLOT, rampSlots, shadeMask, type Sprite } from "../../core/sprite";
 import { rasterLayer } from "../damageTools";
 import { TILE_SIZE } from "../size";
 import { defaultTileTheme, resolveTheme, type TileTheme } from "../tiles/palettes";
-import type { FruitId, ObjectId } from "../types";
+import type { CropId, FruitId, ObjectId, VegId } from "../types";
 import { damageObjectRaster, objectDamage, type ObjectDamage } from "./damage";
 import { objectParts, type ObjectPart } from "./objectParts";
 
 export { objectDamage, type ObjectDamage };
 import { objectRamps, type ObjectRampId } from "./ramps";
+import { cropIds, vegIds } from "./vegetables";
 import { fruitIds, fruitTreeParts, resolveFruitTree, type FruitTreeOptions } from "./fruitTree";
 
 export interface ObjectInfo {
@@ -32,6 +33,9 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
     tree: { width: 1, height: 2, layer: "standing", footprint: [".", "#"] },
     fruit_tree: { width: 2, height: 3, layer: "standing", footprint: ["..", "..", "##"] },
     ...(Object.fromEntries(fruitIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<FruitId, ObjectInfo>),
+    // Crops in a field do not block walking. Corn is the one that stands taller than a person, so a walker goes behind it.
+    ...(Object.fromEntries(cropIds.map((id) => [id, id === "crop_corn" ? { width: 1, height: 2, layer: "standing", footprint: [".", "."] } : { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<CropId, ObjectInfo>),
+    ...(Object.fromEntries(vegIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<VegId, ObjectInfo>),
     fence: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     door: { width: 1, height: 1, layer: "standing", footprint: ["."], door: true },
     window: { width: 1, height: 1, layer: "standing", footprint: ["#"] },

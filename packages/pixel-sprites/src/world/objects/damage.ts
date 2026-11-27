@@ -1,7 +1,8 @@
 import type { Raster } from "../../core/compose";
 import { Canvas, HOLE, bell, crack, cut, edges, heap, hole, ragged, scorch, seeded, walk, type Breaks } from "../damageTools";
-import type { FruitId, ObjectId } from "../types";
+import type { CropId, FruitId, ObjectId, VegId } from "../types";
 import { fruitIds } from "./fruitTree";
+import { cropIds, vegIds } from "./vegetables";
 import { objectRamps } from "./ramps";
 
 // War damage for an object. Like a building's it is a pass over the finished picture, seeded from the object's key, so an
@@ -192,14 +193,23 @@ const fruitTreeRecipe: Recipe = (c, rng, breaks, level) => {
     return 0.5;
 };
 
+/** Fruit and vegetables, picked or in a field: a bite or two out of something small, and most of it gone in a ruin. */
+const smallRecipe: Recipe = (c, rng, breaks, level) => {
+    const filled: [number, number][] = [];
+    for (let y = 0; y < c.h; y += 1) for (let x = 0; x < c.w; x += 1) if (c.on(x, y)) filled.push([x, y]);
+    for (let i = half(level) ? 1 : 3; i > 0; i -= 1) {
+        const [x, y] = filled[Math.floor(rng() * filled.length)];
+        burn(c, rng, breaks, x, y, half(level) ? 1.5 : 2.6);
+    }
+    return half(level) ? 0.3 : 0.55;
+};
+
 const recipes: Record<ObjectId, Recipe> = {
     tree: treeRecipe,
     fruit_tree: fruitTreeRecipe,
-    ...(Object.fromEntries(fruitIds.map((id) => [id, (c: Canvas, rng: () => number, breaks: Breaks, level: Level) => {
-        // A bite or two out of a small fruit, and most of it gone in a ruin.
-        for (let i = half(level) ? 1 : 3; i > 0; i -= 1) burn(c, rng, breaks, 3 + rng() * 6, 3 + rng() * 6, half(level) ? 1.5 : 2.6);
-        return half(level) ? 0.3 : 0.55;
-    }])) as unknown as Record<FruitId, Recipe>),
+    ...(Object.fromEntries(fruitIds.map((id) => [id, smallRecipe])) as unknown as Record<FruitId, Recipe>),
+    ...(Object.fromEntries(cropIds.map((id) => [id, smallRecipe])) as unknown as Record<CropId, Recipe>),
+    ...(Object.fromEntries(vegIds.map((id) => [id, smallRecipe])) as unknown as Record<VegId, Recipe>),
     // Planks gone from the middle and a post broken; a ruin is two stumps and the planks in the dirt.
     fence: (c, rng, breaks, level) => {
         const gx = 5 + Math.floor(rng() * 4);
@@ -312,7 +322,7 @@ function keepConnected(c: Canvas, root: number) {
 const plain = (id: ObjectId, level: Level) => (id === "tree" || id === "fruit_tree") && level === "half";
 
 /** The ground objects scorch where they are, with no broken top, so they get no edges of lit stone. */
-const ground = new Set<ObjectId>(["rug", "flower", ...fruitIds]);
+const ground = new Set<ObjectId>(["rug", "flower", ...fruitIds, ...vegIds, ...cropIds.filter((id) => id !== "crop_corn")]);
 
 /**
  * Returns the object's picture, damaged. `key` is the object's cache key, which seeds every choice, and `raster` is the object

@@ -31,6 +31,12 @@ import { baseFoundationMask } from "../masks/tiles/edges/wall/base/foundation.ma
 import { baseShadeMask } from "../masks/tiles/edges/wall/base/shade.mask";
 import { postFoundationMask } from "../masks/tiles/edges/wall/post/foundation.mask";
 import { postShadeMask } from "../masks/tiles/edges/wall/post/shade.mask";
+import { farmDirtMask } from "../masks/tiles/farm/dirt.mask";
+import { farmFurrowMask } from "../masks/tiles/farm/furrow.mask";
+import { farmRidgeMask } from "../masks/tiles/farm/ridge.mask";
+import { farmSeedMask } from "../masks/tiles/farm/seed.mask";
+import { farmSproutMask } from "../masks/tiles/farm/sprout.mask";
+import { farmSproutTipMask } from "../masks/tiles/farm/sproutTip.mask";
 import { floorMask } from "../masks/tiles/floor.mask";
 import { grassLightMask } from "../masks/tiles/grass/light.mask";
 import { grassShadeMask } from "../masks/tiles/grass/shade.mask";
@@ -167,6 +173,11 @@ export const tileDefs: Record<TileId, TileDef> = {
     scorched_earth: material("scorchBase", [scorchedEarthShadeMask, "scorchShade"], [scorchedEarthLightMask, "scorchLight"]),
     rubble: material("rubbleBase", [rubbleShadeMask, "rubbleShade"], [rubbleLightMask, "rubbleLight"]),
     broken_floor: material("floor", [floorMask, "floorLine"], [brokenFloorCrackMask, "crackLine"], [brokenFloorDebrisMask, "rubbleLight"]),
+    // Farmland. Wild ground with bare patches, then tilled soil in ridges, then the same soil with seeds and with seedlings. Crops stand on it as objects.
+    untilled: material("grass", [grassShadeMask, "grassShade"], [grassLightMask, "grassLight"], [farmDirtMask, "soilBase"]),
+    tilled: material("soilBase", [farmFurrowMask, "soilShade"], [farmRidgeMask, "soilLight"]),
+    seeded: material("soilBase", [farmFurrowMask, "soilShade"], [farmRidgeMask, "soilLight"], [farmSeedMask, "seed"]),
+    sprouting: material("soilBase", [farmFurrowMask, "soilShade"], [farmRidgeMask, "soilLight"], [farmSproutMask, "sprout"], [farmSproutTipMask, "sproutLight"]),
     grass: material("grass", [grassShadeMask, "grassShade"], [grassLightMask, "grassLight"]),
     tall_grass: material("grass", [tallGrassShadeMask, "grassShade"], [tallGrassLightMask, "grassLight"]),
     path: material("path", [pathShadeMask, "pathShade"], [pathLightMask, "pathLight"]),

@@ -40,7 +40,13 @@ const summerColors = {
     crackLine: "#3A3430",
     rubbleBase: "#887F75",
     rubbleShade: "#45403A",
-    rubbleLight: "#B0A79A"
+    rubbleLight: "#B0A79A",
+    soilBase: "#7A5A3C",
+    soilShade: "#5E432C",
+    soilLight: "#97754F",
+    seed: "#E6D29A",
+    sprout: "#5FA83E",
+    sproutLight: "#9BD26A"
 } as const;
 
 export type TileColor = keyof typeof summerColors;
@@ -103,7 +109,10 @@ export const tilePalettes = {
         roofLight: "#FFFFFF",
         roofEdge: "#5F6B77",
         sky: "#D5DFE8",
-        skyLight: "#E8EFF5"
+        skyLight: "#E8EFF5",
+        soilBase: "#6E6258",
+        soilShade: "#52483F",
+        soilLight: "#C9C6C0"
     },
     // Not a season: a city after a war. Everything is drained and sooty, the grass is dead, the water is murky and the sky is smoke.
     ash: {
@@ -145,7 +154,13 @@ export const tilePalettes = {
         crackLine: "#2B2623",
         rubbleBase: "#756E66",
         rubbleShade: "#38342F",
-        rubbleLight: "#968E83"
+        rubbleLight: "#968E83",
+        soilBase: "#4F463E",
+        soilShade: "#3A332D",
+        soilLight: "#665B50",
+        seed: "#9C927A",
+        sprout: "#6E7A4A",
+        sproutLight: "#8E9A66"
     }
 } as const satisfies Record<string, Palette>;
 

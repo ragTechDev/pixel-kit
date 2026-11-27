@@ -18,6 +18,8 @@ import { defineTileSet } from "../tileset";
  * - after a war: `L` cracked pavement, `M` cracked road (each with a cracked tile in two corners of the block, so a street
  *   looks broken without repeating), `N` scorched earth, `O` rubble, `Q` rubble lying in scorched earth. None of them blocks movement.
  *
+ * - farmland, in the order it is worked: `u` untilled, `v` tilled, `x` seeded, `y` sprouting seedlings. Crops stand on it as objects.
+ *
  * Trees, fences, flowers, doors and windows are objects placed on top.
  */
 export const townTileset = defineTileSet({
@@ -68,7 +70,12 @@ export const townTileset = defineTileSet({
         M: [["cracked_road", "road"], ["road", "cracked_road"]],
         N: [["scorched_earth", "scorched_earth"], ["scorched_earth", "scorched_earth"]],
         O: [["rubble", "rubble"], ["rubble", "rubble"]],
-        Q: [["rubble", "scorched_earth"], ["scorched_earth", "rubble"]]
+        Q: [["rubble", "scorched_earth"], ["scorched_earth", "rubble"]],
+
+        u: [["untilled", "untilled"], ["untilled", "untilled"]],
+        v: [["tilled", "tilled"], ["tilled", "tilled"]],
+        x: [["seeded", "seeded"], ["seeded", "seeded"]],
+        y: [["sprouting", "sprouting"], ["sprouting", "sprouting"]]
     },
     solid: [
         "water", "wall", "wall_left", "wall_right", "wall_base", "wall_base_left", "wall_base_right",

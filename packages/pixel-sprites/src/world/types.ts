@@ -6,6 +6,8 @@ export type TownTileId =
     | "grass" | "tall_grass" | "path" | "water" | "shore" | "wall" | "floor" | "sky"
     // Ground that a war has been over: burnt earth, a field of rubble, and a floor broken up.
     | "scorched_earth" | "rubble" | "broken_floor"
+    // Farmland, in the order it is worked: wild ground, tilled soil, seeded soil and sprouting seedlings.
+    | "untilled" | "tilled" | "seeded" | "sprouting"
     // Roof nine-patch: ridge (top), eave (bottom), rake edges (left, right).
     | "roof_top_left" | "roof_top" | "roof_top_right"
     | "roof_left" | "roof" | "roof_right"
@@ -25,5 +27,14 @@ export type TreeCrop = "apple" | "cherry" | "peach" | "pear" | "orange" | "lemon
 /** Picked fruit, one object per crop. */
 export type FruitId = `fruit_${TreeCrop}`;
 
+/** The vegetables a game can grow. */
+export type Vegetable = "carrot" | "radish" | "turnip" | "beet" | "cabbage" | "pumpkin" | "tomato" | "corn";
+
+/** A vegetable growing in a field, ready to pick. */
+export type CropId = `crop_${Vegetable}`;
+
+/** A picked vegetable. */
+export type VegId = `veg_${Vegetable}`;
+
 /** Things that stand on or sit over the terrain. They are shaded sprites, not tiles. */
-export type ObjectId = "tree" | "fruit_tree" | FruitId | "fence" | "door" | "window" | "counter" | "bookshelf" | "rug" | "flower";
+export type ObjectId = "tree" | "fruit_tree" | FruitId | CropId | VegId | "fence" | "door" | "window" | "counter" | "bookshelf" | "rug" | "flower";
