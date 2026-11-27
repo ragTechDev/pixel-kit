@@ -1,10 +1,10 @@
 import type { Layer } from "../../../core/compose";
 import type { Frame } from "../frame";
 import { chimneyParts, placeParts } from "../parts";
-import type { RoofKind } from "./common";
+import { riseOf, TOP, type RoofKind } from "./common";
 import { drawFlat } from "./flat";
-import { drawHipFlat, drawMansard } from "./flatTop";
-import { drawGambrel } from "./gambrel";
+import { drawHipFlat, drawMansard, flatTopDrop } from "./flatTop";
+import { drawGambrel, gambrelSplit } from "./gambrel";
 import { drawGable, drawHip, drawSideGable } from "./ridged";
 import { drawRooftop, type Area } from "./rooftop";
 
@@ -41,4 +41,18 @@ export function drawChimney(f: Frame, kind: RoofKind = f.c.roof): Layer[] {
     if (f.c.chimney === "none") return [];
     const ridged = kind === "gable" || kind === "saltbox" || kind === "hip";
     return placeParts(f, chimneyParts, Math.round(f.c.chimney === "left" ? f.W * 0.26 : f.W * 0.74), ridged ? 6 : 4);
+}
+
+/** The row where the side of a roof starts at its left or right edge: the top of the roof's outline there. A side wall rises to it. */
+export function roofSideTop(f: Frame, kind: RoofKind): number {
+    switch (kind) {
+        case "gable":
+        case "saltbox":
+        case "hip":
+            return TOP + riseOf(f.c.pitch);
+        case "hipFlat": return TOP + flatTopDrop(f, 0);
+        case "mansard": return TOP + flatTopDrop(f, 11);
+        case "gambrel": return gambrelSplit(f);
+        default: return TOP;
+    }
 }

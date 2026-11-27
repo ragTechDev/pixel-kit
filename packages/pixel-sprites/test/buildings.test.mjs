@@ -8,6 +8,9 @@ import {
 
 // Pixel values index each raster's own colour list, so compare the colours themselves.
 const paint = (r) => [...r.px].map((i) => r.colors[i]);
+// The row (in pixels) where the lower part of a side wing starts: the taller part is two storeys, the lower one, with the roof it gets, one.
+const lowerRoof = { gable: "gable", hip: "hip", hipFlat: "hip", mansard: "hip", gambrel: "gable", saltbox: "gable", flat: "flat" };
+const lowTopOf = (roof, width = 8) => (buildingBox({ roof, width, wing: "left", storeys: 1 }).height - buildingBox({ roof: lowerRoof[roof], width, storeys: 1 }).height) * TILE_SIZE;
 
 test("every choice draws a building a whole number of tiles wide and tall, standing on the bottom row", () => {
     const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, rooftop: buildingRooftops, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
@@ -216,21 +219,50 @@ test("a side wing is joined to the main part: the ground floor wall is one wall,
     }
 });
 
-test("the roof of a side wing is complete at the end where it joins the main part: it is closed with an edge, not cut off", () => {
+test("the roof of a side wing is complete at the end where it joins the main part: it reaches the taller part's corner, not cut off", () => {
+    const red = Object.values(colorRamps.red);
     for (const wing of ["left", "right"]) {
         for (const roof of roofShapes) {
-            const config = { wing, width: 8, roof, roofColor: "red" };
+            const config = { wing, width: 8, roof, roofColor: "red", wall: "clapboard", wallColor: "white" };
             const raster = buildBuilding(config);
             const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
-            // The lower part is three tiles wide, and its top is two storeys-worth of rows (2 tiles) down from the top of the taller part.
+            // The lower part is three tiles wide, and its roof goes right up to the line that is the taller part's corner.
             const join = wing === "left" ? 3 * TILE_SIZE : 5 * TILE_SIZE;
-            const x = wing === "left" ? join - 1 : join;
-            const roofRows = buildingBox({ roof, wing: "none", storeys: 1 }).roofTiles * TILE_SIZE;
-            let edge = 0;
-            for (let y = 2 * TILE_SIZE; y < 2 * TILE_SIZE + roofRows; y += 1) if (at(x, y) === colorRamps.red.outline) edge += 1;
-            assert.ok(edge >= 6, `${wing} ${roof}: only ${edge} rows of the roof's edge at the join`);
+            const nextToLine = wing === "left" ? join - 3 : join + 2;
+            const roofRows = buildingBox({ roof: lowerRoof[roof], wing: "none", storeys: 1 }).roofTiles * TILE_SIZE;
+            const lowTop = lowTopOf(roof);
+            let reaches = 0;
+            for (let y = lowTop; y < lowTop + roofRows; y += 1) if (red.includes(at(nextToLine, y))) reaches += 1;
+            assert.ok(reaches >= 6, `${wing} ${roof}: the roof only reaches the corner for ${reaches} rows`);
         }
     }
+});
+
+test("where a side wing joins, the taller part's corner is a line straight down beside the lower roof, and the lower roof runs up to it", () => {
+    for (const [wing, dark, shade] of [["left", 3 * TILE_SIZE - 1, 3 * TILE_SIZE - 2], ["right", 5 * TILE_SIZE, 5 * TILE_SIZE + 1]]) {
+        for (const roof of roofShapes) {
+            const config = { wing, width: 8, roof, wall: "clapboard", wallColor: "yellow", roofColor: "purple" };
+            const raster = buildBuilding(config);
+            const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
+            const lowTop = lowTopOf(roof);
+            // The line is unbroken for as many rows as the lower roof has at its side, and one pixel of the wall's shadow tone is beside it.
+            let line = 0;
+            let beside = 0;
+            for (let y = lowTop + 24; y < lowTop + 34; y += 1) {
+                if (at(dark, y) === colorRamps.yellow.outline) line += 1;
+                if (at(shade, y) === colorRamps.yellow.shadow) beside += 1;
+            }
+            assert.equal(line, 10, `${wing} ${roof}: the line is broken (${line} of 10 rows)`);
+            assert.equal(beside, 10, `${wing} ${roof}: the shadow tone beside it is broken (${beside} of 10 rows)`);
+        }
+        // It runs straight down: the same column all the way, from the side of the taller roof to the lower roof's eave.
+        const flat = buildBuilding({ wing, width: 8, roof: "flat", wall: "clapboard", wallColor: "yellow", roofColor: "grey" });
+        const colour = (x, y) => flat.colors[flat.px[y * flat.width + x]];
+        for (let y = 2 * TILE_SIZE; y < 2 * TILE_SIZE + 3 * TILE_SIZE; y += 1) assert.equal(colour(dark, y), colorRamps.yellow.outline, `${wing}: the line is straight at row ${y}`);
+    }
+    // On a flat lower roof there is no parapet between the floor and the corner: no coping stone (the roof's base colour) just beside it.
+    const flat = buildBuilding({ wing: "left", width: 8, roof: "flat", wall: "clapboard", wallColor: "yellow", roofColor: "grey" });
+    for (const x of [3 * TILE_SIZE - 6, 3 * TILE_SIZE - 5, 3 * TILE_SIZE - 4]) assert.notEqual(flat.colors[flat.px[(2 * TILE_SIZE + 30) * flat.width + x]], colorRamps.grey.base, `no parapet at x=${x}: the floor runs up to the corner`);
 });
 
 test("a building with a front wing has the door on the wing, which sticks out in front of the rest", () => {

@@ -17,6 +17,8 @@ export interface Volume {
     readonly door: boolean;
     readonly x: number;
     readonly y: number;
+    /** The side of a taller volume that has a lower one against it, where a line runs down its corner beside the lower roof. */
+    readonly sideWall?: "left" | "right";
 }
 
 /** How many tiles a front wing sticks out in front of the rest of the building. */
@@ -76,11 +78,11 @@ function sideWing(c: ResolvedBuildingConfig, side: "left" | "right"): Volume[] {
     return side === "left"
         ? [
               { config: low, roof: low.roof, door: false, x: 0, y: lowY },
-              { config: tall, roof: tall.roof, door: true, x: annexWidth, y: 0 }
+              { config: tall, roof: tall.roof, door: true, x: annexWidth, y: 0, sideWall: "left" }
           ]
         : [
               { config: low, roof: low.roof, door: false, x: tall.width, y: lowY },
-              { config: tall, roof: tall.roof, door: true, x: 0, y: 0 }
+              { config: tall, roof: tall.roof, door: true, x: 0, y: 0, sideWall: "right" }
           ];
 }
 

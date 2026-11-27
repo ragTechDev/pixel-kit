@@ -7,24 +7,34 @@ import type { Area } from "./rooftop";
 // Hip roofs with a flat top: the roof slopes up on all four sides to a flat plane, so the front slope is a trapezoid under
 // it and the left and right slopes are bands either side. A steep roof has a taller front slope and a narrower flat.
 
+/** How far in from the sides a flat top is. A mansard is always steep, with its flat top narrower than a hip roof's. */
+function flatTopInset(f: Frame, skirt: number): number {
+    const steep = f.c.pitch === "steep" || skirt > 0;
+    return Math.round((f.rr - f.rl) * (steep ? 0.23 : 0.17));
+}
+
+/** How far below the top the outer corner of the left and right slopes is: where the side of the roof starts. */
+export function flatTopDrop(f: Frame, skirt: number): number {
+    return Math.round(flatTopInset(f, skirt) * 0.55);
+}
+
 function drawFlatTop(f: Frame, skirt: number): { layers: Layer[]; area: Area } {
-    const { c, W, yb, ramps } = f;
+    const { c, rl, rr, yb, ramps } = f;
     const layers: Layer[] = [];
-    // A mansard is always steep, with its flat top narrower than a hip roof's.
     const steep = c.pitch === "steep" || skirt > 0;
-    const inset = Math.round(W * (steep ? 0.23 : 0.17));
+    const inset = flatTopInset(f, skirt);
     const frontHeight = steep ? 26 : 16;
     const yf = yb - frontHeight;
-    const drop = Math.round(inset * 0.55);
-    const l = 1 + inset;
-    const r = W - 1 - inset;
+    const drop = flatTopDrop(f, skirt);
+    const l = rl + inset;
+    const r = rr - inset;
     // The front's lower corners come in a little when there is a flared skirt, so the skirt reads as a lip.
     const lower = skirt ? 5 : 0;
-    const leftEdge: Point[] = skirt ? [[1, yb], [1 + lower, yb - skirt], [l, yf]] : [[1, yb], [l, yf]];
-    const rightEdge: Point[] = skirt ? [[W - 1, yb], [W - 1 - lower, yb - skirt], [r, yf]] : [[W - 1, yb], [r, yf]];
+    const leftEdge: Point[] = skirt ? [[rl, yb], [rl + lower, yb - skirt], [l, yf]] : [[rl, yb], [l, yf]];
+    const rightEdge: Point[] = skirt ? [[rr, yb], [rr - lower, yb - skirt], [r, yf]] : [[rr, yb], [r, yf]];
 
-    const leftBand = addPolygon(f.here(), [...leftEdge, [l, TOP], [1, TOP + drop]]);
-    const rightBand = addPolygon(f.here(), [...rightEdge, [r, TOP], [W - 1, TOP + drop]]);
+    const leftBand = addPolygon(f.here(), [...leftEdge, [l, TOP], [rl, TOP + drop]]);
+    const rightBand = addPolygon(f.here(), [...rightEdge, [r, TOP], [rr, TOP + drop]]);
     const front = addPolygon(f.here(), [...leftEdge, ...[...rightEdge].reverse()]);
     const flat = addRect(f.here(), l, TOP, r, yf);
     layers.push(...paint(leftBand, ramps.roof, rimmed(leftBand, columns(), { top: LIGHT, left: SHADOW })));

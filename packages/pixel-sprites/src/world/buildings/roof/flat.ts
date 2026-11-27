@@ -22,17 +22,19 @@ const floorRamp = (roof: Ramp): Ramp => ({
 });
 
 export function drawFlat(f: Frame): { layers: Layer[]; area: Area } {
-    const { W, yb, ramps } = f;
-    const parapet = addRect(f.here(), 1, TOP, W - 1, yb);
-    const x0 = 1 + SIDE;
+    const { c, rl, rr, yb, ramps } = f;
+    const parapet = addRect(f.here(), rl, TOP, rr, yb);
+    // Where the roof meets the taller wall beside it there is no parapet: the floor runs up to the wall.
+    const x0 = c.joined?.left ? rl : rl + SIDE;
     const y0 = TOP + BACK;
-    const x1 = W - 1 - SIDE;
+    const x1 = c.joined?.right ? rr : rr - SIDE;
     const y1 = yb - FRONT;
     const floor = addRect(f.here(), x0, y0, x1, y1);
     // The coping is stones 16 wide: joints across the top and bottom, and along the sides.
     const stones = (x: number, y: number) => ((y < y0 || y >= y1 ? mod(x, 16) === 15 : mod(y, 16) === 15) ? SHADOW : 0);
     const tiles = (x: number, y: number) => {
-        if (y < y0 + 3 || x < x0 + 3) return SHADOW;
+        // The shadow the back parapet casts, and along the left; and the one the taller wall casts, along the side it is on.
+        if (y < y0 + 3 || x < x0 + 3 || (c.joined?.right === true && x >= x1 - 4)) return SHADOW;
         return (Math.floor((x - x0) / 16) + Math.floor((y - y0) / 16)) % 2 === 1 ? LIGHT : 0;
     };
     return {

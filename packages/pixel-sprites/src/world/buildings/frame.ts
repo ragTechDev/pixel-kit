@@ -36,6 +36,10 @@ export interface Frame {
     /** Where the wall starts, and the lower edge of the roof, which overhangs the wall. */
     readonly yw: number;
     readonly yb: number;
+    /** The left and right edges of the roof, and the middle between them. */
+    readonly rl: number;
+    readonly rr: number;
+    readonly mid: number;
     /** The wall's left and right edges. */
     readonly wx0: number;
     readonly wx1: number;
@@ -53,6 +57,8 @@ export function makeFrame(c: VolumeConfig, xOffset = 0): Frame {
     const W = box.width * TILE_SIZE;
     const H = box.height * TILE_SIZE;
     const yw = box.roofTiles * TILE_SIZE;
+    const rl = 1;
+    const rr = W - 1;
     return {
         c,
         W,
@@ -61,6 +67,9 @@ export function makeFrame(c: VolumeConfig, xOffset = 0): Frame {
         roofTiles: box.roofTiles,
         yw,
         yb: yw + 4,
+        rl,
+        rr,
+        mid: (rl + rr) / 2,
         // The wall is set in from the edge by the roof's overhang, except where it joins the volume beside it.
         wx0: c.joined?.left ? 0 : 4,
         wx1: W - (c.joined?.right ? 0 : 4),

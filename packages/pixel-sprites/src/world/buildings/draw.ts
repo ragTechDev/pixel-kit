@@ -4,9 +4,10 @@ import { TILE_SIZE } from "../size";
 import { buildingKey, resolveBuildingConfig, type BuildingConfig, type ResolvedBuildingConfig, type VolumeConfig } from "./config";
 import { doorColumn, drawFacade } from "./facade";
 import { makeFrame, volumeBox } from "./frame";
-import { drawChimney, drawRoof, type RoofKind } from "./roof";
+import { drawChimney, drawRoof, roofSideTop, type RoofKind } from "./roof";
+import { addRect, flat, shape } from "./shapes";
 import { drawWall } from "./wall";
-import { buildingBox, buildingVolumes } from "./volumes";
+import { buildingBox, buildingVolumes, type Volume } from "./volumes";
 
 // A building is drawn from its config in code, back to front: the wall, the roof (with its gable), the chimney, then
 // the facade on the wall. The roofs are in `roof/`, the wall in `wall.ts` and the facade in `facade.ts`; the parts that
@@ -67,11 +68,37 @@ function drawVolume(c: VolumeConfig, roof: RoofKind, door: boolean, x: number): 
     return [...(c.joined ? openJoinedEdges(wall, frame.W, c.joined) : wall), ...drawRoof(frame, roof), ...drawChimney(frame, roof), ...drawFacade(frame, { door })];
 }
 
+/**
+ * The corner of a taller volume where it comes down beside the lower roof: a thin line straight down, from where the side of the
+ * taller roof starts to the lower roof's eave, a dark line along the join with a line of the wall's shadow tone next to it, on the
+ * side of the lower roof.
+ */
+function drawSideLine(c: ResolvedBuildingConfig, tall: Volume, low: Volume, side: "left" | "right"): Layer[] {
+    const box = buildingBox(c);
+    const tallFrame = makeFrame(tall.config, tall.x * TILE_SIZE);
+    const lowFrame = makeFrame(low.config, low.x * TILE_SIZE);
+    const join = side === "left" ? tall.x * TILE_SIZE : (tall.x + tall.config.width) * TILE_SIZE;
+    const y0 = tall.y * TILE_SIZE + roofSideTop(tallFrame, tall.roof);
+    const y1 = low.y * TILE_SIZE + lowFrame.yb;
+    const dark = side === "left" ? join - 1 : join;
+    const shade = side === "left" ? join - 2 : join + 1;
+    const here = () => shape(box.width * TILE_SIZE, box.height * TILE_SIZE);
+    return [
+        ...flat(addRect(here(), dark, y0, dark + 1, y1), tallFrame.ramps.wall, SLOT.outline),
+        ...flat(addRect(here(), shade, y0, shade + 1, y1), tallFrame.ramps.wall, SLOT.shadow)
+    ];
+}
+
 function draw(c: ResolvedBuildingConfig): Layer[] {
-    return buildingVolumes(c).flatMap((v) => {
+    const volumes = buildingVolumes(c);
+    return volumes.flatMap((v) => {
         const dx = v.x * TILE_SIZE;
         const dy = v.y * TILE_SIZE;
-        return drawVolume(v.config, v.roof, v.door, v.x).map((layer) => ({ ...layer, x: layer.x + dx, y: layer.y + dy }));
+        const layers = drawVolume(v.config, v.roof, v.door, v.x).map((layer) => ({ ...layer, x: layer.x + dx, y: layer.y + dy }));
+        // The side wall is drawn after the lower volume and before the taller one, so the taller one's roof and corner are over it.
+        const low = volumes.find((other) => other !== v);
+        // The line is drawn over the lower volume, before the taller one.
+        return v.sideWall && low ? [...drawSideLine(c, v, low, v.sideWall), ...layers] : layers;
     });
 }
 
