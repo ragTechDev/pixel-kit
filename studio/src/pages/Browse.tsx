@@ -2,8 +2,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ICON_SIZE, defaultTileTheme, buildIcon, buildObject, buildTile, colorableIconIds, iconCategories, iconColors, idleIconIds, objectColors, objectIds, objectInfo, seasonalObjectIds, tileIds, toVariant, type ColorName, type HexColor, type IconId, type ObjectId, type Raster, type TileId } from "@ragtechdev/pixel-sprites";
 import { iconKeywords, objectKeywords, tileKeywords } from "../keywords";
 import { categoryLabel, idLabel, objectLabel, tileGroup, tileGroups } from "../labels";
-import { colorOf, damageOf, href, idleOf, setQuery as setRouteQuery, themeOf, tileColorsOf, variantOf, type Route } from "../router";
-import { Art, ColorDots, Detail, Popover, TileColours, VariantBar } from "../ui";
+import { colorOf, damageOf, growOf, href, idleOf, setQuery as setRouteQuery, themeOf, tileColorsOf, variantOf, type Route } from "../router";
+import { Art, ColorDots, Detail, FruitTreeControls, Popover, TileColours, VariantBar } from "../ui";
 
 interface Item {
     id: string;
@@ -118,7 +118,7 @@ const kinds: Record<"icons" | "tiles" | "objects", Kind> = {
         groups: ["standing", "ground"],
         groupLabel: (g) => (g === "standing" ? "Standing" : "On the ground"),
         items: objectIds.map((id) => ({ id, group: objectInfo[id].layer, search: `${id} ${objectLabel[id]} ${objectInfo[id].layer} ${objectKeywords[id]}` })),
-        build: (id, route) => buildObject(id as ObjectId, themeOf(route), colorFor(id, route), damageOf(route)),
+        build: (id, route) => buildObject(id as ObjectId, themeOf(route), colorFor(id, route), damageOf(route), id === "fruit_tree" ? growOf(route) : undefined),
         facts: (id) => {
             const info = objectInfo[id as ObjectId];
             return [
@@ -137,8 +137,11 @@ const kinds: Record<"icons" | "tiles" | "objects", Kind> = {
             const picked = colorOf(route);
             const color = picked && (picked.startsWith("#") ? (objectColors[id as ObjectId] ?? []).length > 0 : (objectColors[id as ObjectId] ?? []).includes(picked as ColorName)) ? picked : undefined;
             const hurt = damageOf(route);
-            const props = [seasonal && `theme="${theme}"`, color && `color="${color}"`, hurt && `damage="${hurt}"`].filter(Boolean) as string[];
-            const args = hurt ? `, ${seasonal ? `"${theme}"` : "undefined"}, ${color ? `"${color}"` : "undefined"}, "${hurt}"` : color ? `, ${seasonal ? `"${theme}"` : "undefined"}, "${color}"` : seasonal ? `, "${theme}"` : "";
+            const tree = id === "fruit_tree" ? growOf(route) : undefined;
+            const grown = tree && { stage: tree.stage !== "mature" && `stage="${tree.stage}"`, bearing: tree.stage === "mature" && tree.bearing !== "none" && `bearing="${tree.bearing}"`, crop: tree.crop !== "apple" && `crop="${tree.crop}"` };
+            const props = [seasonal && `theme="${theme}"`, color && `color="${color}"`, hurt && `damage="${hurt}"`, ...(grown ? [grown.stage, grown.bearing, grown.crop] : [])].filter(Boolean) as string[];
+            const options = tree && `{ ${[`stage: "${tree.stage}"`, tree.stage === "mature" && `bearing: "${tree.bearing}"`, `crop: "${tree.crop}"`].filter(Boolean).join(", ")} }`;
+            const args = options ? `, ${seasonal ? `"${theme}"` : "undefined"}, ${color ? `"${color}"` : "undefined"}, ${hurt ? `"${hurt}"` : "undefined"}, ${options}` : hurt ? `, ${seasonal ? `"${theme}"` : "undefined"}, ${color ? `"${color}"` : "undefined"}, "${hurt}"` : color ? `, ${seasonal ? `"${theme}"` : "undefined"}, "${color}"` : seasonal ? `, "${theme}"` : "";
             return snippets("WorldObject", "buildObject", id, route, props, args);
         },
         themes: true,
@@ -215,7 +218,7 @@ export function BrowsePage({ route, kind }: { route: Route; kind: keyof typeof k
                         onIdle={k.idle && (idleIconIds as readonly string[]).includes(selected) ? (on) => setRouteQuery(route, { idle: on ? "1" : undefined }) : undefined}
                         onPalette={(p) => setRouteQuery(route, { palette: p })} facts={k.facts(selected)} snippets={k.snippets(selected, route)}
                         onClose={() => { location.hash = href([k.path], route); }}
-                        colors={(k.colors?.(selected).length ?? 0) > 0 && !(k.idle && idleOf(route) && (idleIconIds as readonly string[]).includes(selected)) ? (
+                        colors={selected === "fruit_tree" ? <FruitTreeControls route={route} /> : (k.colors?.(selected).length ?? 0) > 0 && !(k.idle && idleOf(route) && (idleIconIds as readonly string[]).includes(selected)) ? (
                             <ColorDots label="Main colour" value={colorOf(route)} options={k.colors!(selected)} onPick={(c) => setRouteQuery(route, { color: c })} />
                         ) : undefined} />
                 </Popover>

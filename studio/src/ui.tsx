@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon, PixelImage } from "@ragtechdev/pixel-sprites/react";
-import { colorDepths, colorRamps, paletteNames, palettePresets, defaultTileTheme, parseHex, tileColorGroups, tilePalettes, tileThemes, type ColorName, type HexColor, toSvg, toVariant, variantSizes, type Raster, type IconId, type PalettePreset, type VariantOptions } from "@ragtechdev/pixel-sprites";
+import { colorDepths, colorRamps, paletteNames, treeBearings, treeCrops, treeStages, palettePresets, defaultTileTheme, parseHex, tileColorGroups, tilePalettes, tileThemes, type ColorName, type HexColor, toSvg, toVariant, variantSizes, type Raster, type IconId, type PalettePreset, type VariantOptions } from "@ragtechdev/pixel-sprites";
 import { CustomColours } from "./CustomColours";
 import { useMediaQuery } from "./hooks";
 import { recolor, type ColorMap } from "./recolor";
-import { damageOf, idleOf, setQuery, themeOf, tileColorsOf, tileGroupNames, variantOf, type Route } from "./router";
+import { damageOf, growOf, idleOf, setQuery, themeOf, tileColorsOf, tileGroupNames, variantOf, type Route } from "./router";
 
 const BIT_LABEL: Record<number, string> = { 1: "1-bit (2 colours)", 2: "2-bit (4 greys)" };
 
@@ -118,6 +118,21 @@ export function Chips<T extends string | number>({ label, value, options, show, 
                 </button>
             ))}
             {nativeLast && native}
+        </div>
+    );
+}
+
+/** The fruit tree's own options, shown with its details: how far it has grown, what it bears and which crop it is. */
+export function FruitTreeControls({ route }: { route: Route }) {
+    const tree = growOf(route);
+    return (
+        <div className="stack">
+            <Chips label="Stage" value={tree.stage} options={treeStages} nativeLabel={false}
+                onPick={(g) => g && setQuery(route, { stage: g === "mature" ? undefined : g })} />
+            <Chips label={tree.stage === "mature" ? "Bearing" : "Bearing (mature only)"} value={tree.bearing} options={treeBearings} nativeLabel={false}
+                onPick={(b) => b && setQuery(route, { bearing: b === "none" ? undefined : b })} />
+            <Chips label="Crop" value={tree.crop} options={treeCrops} nativeLabel={false}
+                onPick={(c) => c && setQuery(route, { crop: c === "apple" ? undefined : c })} />
         </div>
     );
 }
