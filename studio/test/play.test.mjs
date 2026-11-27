@@ -84,7 +84,7 @@ test("walking up the path to the door goes inside, and walking down out of the d
     hold(p, "up", 0.5);
     assert.equal(p.place(), "town", "still short of the door");
     holdThroughDoor(p, "up"); // onto the door at (7,5)
-    assert.equal(p.place(), "interior", "the door warps");
+    assert.equal(p.place(), "restaurant", "the door warps");
     assert.deepEqual(at(p), [7, 9], "arriving in front of the interior door");
     assert.equal(p.hero.facing, "up");
     holdThroughDoor(p, "down"); // onto the interior door at (7,10)
@@ -93,15 +93,15 @@ test("walking up the path to the door goes inside, and walking down out of the d
     assert.equal(p.hero.facing, "down");
 });
 
-test("a shop stands on the pavement: its door leads in, and the way out puts the hero back in front of it", () => {
+test("a grocer's stands on the pavement: its door leads in, and the way out puts the hero back in front of it", () => {
     const p = play();
     put(p, 12, 13, "up");
-    holdThroughDoor(p, "up"); // onto the shop door at (12,12)
-    assert.equal(p.place(), "shop");
-    assert.deepEqual(at(p), [7, 9], "arriving in front of the shop's inner door");
+    holdThroughDoor(p, "up"); // onto the grocer door at (12,12)
+    assert.equal(p.place(), "grocer");
+    assert.deepEqual(at(p), [7, 9], "arriving in front of the grocer's inner door");
     holdThroughDoor(p, "down");
     assert.equal(p.place(), "town");
-    assert.deepEqual(at(p), [12, 13], "on the pavement in front of the shop door, not at the house");
+    assert.deepEqual(at(p), [12, 13], "on the pavement in front of the grocer door, not at the restaurant");
     assert.equal(p.hero.facing, "down");
 });
 
@@ -154,7 +154,7 @@ test("a hero behind a building is covered by it, and one in front covers it", ()
 test("the hero cannot walk onto the water part of the shore, only the grass and sand above it", () => {
     const p = play();
     // The shore row at y = 14 is grass, then sand, then water from its pixel row 9.
-    put(p, 9, 12, "down"); // grass beside the shop
+    put(p, 9, 12, "down"); // grass beside the grocer
     hold(p, "down", 2);
     assert.equal(p.hero.feet.y + p.hero.feet.height, 14 * 16 + 9, "stopped at the edge of the water, on the sand");
     hold(p, "right", 1);
@@ -454,7 +454,7 @@ test("the camera stays inside the world wherever the hero is", () => {
     }
     put(p, 7, 7, "up");
     hold(p, "up", 0.6); // up to the door at (7,5)
-    assert.equal(p.place(), "interior");
+    assert.equal(p.place(), "restaurant");
     p.game.advance(frame);
     assert.ok(p.camera.x >= 0 && p.camera.x <= 256 - 240 && p.camera.y >= 0 && p.camera.y <= 192 - 144, "inside, too");
 });
@@ -670,7 +670,7 @@ test("the world works at any view width a phone produces, not only whole tiles",
         }
         put(p, 7, 7, "up");
         hold(p, "up", 0.6); // through the door
-        assert.equal(p.place(), "interior");
+        assert.equal(p.place(), "restaurant");
         p.game.advance(frame);
         assert.ok(p.camera.x >= 0 && p.camera.x <= 256 - view.width, `${screen}px inside: ${p.camera.x}`);
         const ctx = fakeContext();
@@ -690,4 +690,13 @@ test("randomizing the looks leaves the world playable", () => {
     put(p, 7, 8, "up");
     hold(p, "up", 0.25);
     assert.deepEqual(at(p), [7, 7], "the hero still walks");
+});
+
+test("every character stands on open floor, and every door has open floor in front of it, in each place", () => {
+    for (const place of Object.values(maps.places)) {
+        const solid = maps.solidBoxes(place.map);
+        const blocked = (tx, ty) => solid.some((b) => 16 * tx + 8 >= b.x && 16 * tx + 8 < b.x + b.width && 16 * ty + 8 >= b.y && 16 * ty + 8 < b.y + b.height);
+        for (const npc of place.npcs) assert.equal(blocked(npc.x, npc.y), false, `${place.id}: a character at (${npc.x}, ${npc.y}) is inside something`);
+        assert.equal(blocked(place.arrive.x, place.arrive.y), false, `${place.id}: arriving at (${place.arrive.x}, ${place.arrive.y})`);
+    }
 });
