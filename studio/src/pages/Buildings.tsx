@@ -7,6 +7,7 @@ import {
     buildingDepths,
     buildingMap,
     buildingProps,
+    buildingRooftops,
     buildingStoreys,
     buildingWings,
     buildingWalls,
@@ -63,7 +64,8 @@ interface Tab {
 const TABS: Tab[] = [
     { id: "roof", label: "Roof", sections: [
         { field: "roof", title: "Shape", hint: "How the roof looks from above and in front. A gable and a hip roof have a ridge running front to back; a hip roof has a sloping face at the front instead of a gable on the wall. A saltbox has its ridge off to one side.", options: roofShapes },
-        { field: "wing", title: "Front wing", hint: "A section in the middle that sticks out in front, with the same kind of roof. A gable roof gets a cross gable, a flat roof a notch and a barrel roof a rounded front. The door is on the wing.", options: buildingWings },
+        { field: "wing", title: "Wing", hint: "A second section. A front wing sticks out in the middle with the same kind of roof (a gable roof gets a cross gable, a flat one a notch) and has the door. A left or right wing is a lower, one-storey section beside a two-storey main part, so a flat roof steps down.", options: buildingWings },
+        { field: "rooftop", title: "On the roof", hint: "Air conditioners and vents, a big air-handling unit, cardboard boxes, skylights, solar panels or a roof garden, on the flat part of a roof: the flat, hip flat and mansard roofs. The other roofs have no flat part.", options: buildingRooftops },
         { field: "pitch", title: "Pitch", hint: "A steep roof is one tile taller, with more of the slopes showing, and a narrower flat top on the roofs that have one.", options: roofPitches },
         { field: "depth", title: "Length", hint: "How long the building is from front to back. You look down on it, so a longer building is a roof that goes further up.", options: buildingDepths }
     ], colours: [{ field: "roofColor", title: "Roof colour" }] },
