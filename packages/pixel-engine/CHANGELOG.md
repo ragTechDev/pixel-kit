@@ -10,7 +10,10 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-engin
 
 <!-- next-release -->
 
-## [Unreleased]
+## [0.2.0] - 2026-11-27
+
+### Changed
+- **The `pixel-sprites` peer range is now `>=0.11.0 <1.0.0`.** `createMover` reads the pixel-accurate collision (`solidBoxes`) that arrived in `pixel-sprites` 0.11.0. Upgrade the sprites package before the engine.
 
 ### Added
 - **`createMover`, `isOpen` and `overlaps`: movement that is not tied to tiles.** A mover stands at any pixel and moves a pixel at a time, with a small box at its feet that collides, so it stops flush against the drawn outline of a building instead of a tile away. The roof rows of a building are open, so it can walk up behind one (draw with the sprites package's `mapDrawables` and it is covered). `assist` optionally nudges it round a corner or into a doorway. `createWalker` is unchanged. Core grows from about 1.5 KB to 2.1 KB gzipped, and the budgets are raised to match.

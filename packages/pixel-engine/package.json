@@ -55,7 +55,7 @@
     "prepublishOnly": "pnpm run typecheck && pnpm test"
   },
   "peerDependencies": {
-    "@ragtechdev/pixel-sprites": ">=0.9.0 <1.0.0",
+    "@ragtechdev/pixel-sprites": ">=0.11.0 <1.0.0",
     "react": ">=18"
   },
   "peerDependenciesMeta": {
