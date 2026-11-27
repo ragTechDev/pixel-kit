@@ -355,6 +355,40 @@ hero.x; hero.y;     // its position in world pixels, rounded, for drawing`} />
                 <li><strong>A walker mid-step is <code>busy</code></strong> and keeps its direction until it arrives.</li>
                 <li><code>hero.teleport(x, y, facing)</code> puts it on a tile at once, which is how you place it after a warp.</li>
             </ul>
+            <h2>Walking freely</h2>
+            <p>
+                A mover is not tied to tiles: it stands at any pixel, moves a pixel at a time and stops flush against whatever is in its way, so it can come right up to the drawn outline of a wall.
+                Its position is the top-left of a tile-sized cell, and only a small box at the bottom of the cell, the feet, collides (10 by 4 pixels by default).
+            </p>
+            <CodeBlock code={`import { createMover, isOpen } from "@ragtechdev/pixel-engine";
+
+const hero = createMover({ x: 7 * 16, y: 8 * 16, facing: "up" });
+
+// Each update: walk in the direction held (or undefined to stand still); pass 2 as the last argument to run.
+hero.step(dt, input.heldDirection(), (feet) => isOpen(map, feet));
+
+hero.x; hero.y;   // world pixels, for drawing
+hero.feet;        // the colliding box; its bottom edge is the line it stands on`} />
+            <p>
+                <code>isOpen(map, box, also)</code> is false off the map and on anything in <code>solidBoxes(map)</code>, plus any boxes you pass as <code>also</code>, such as a character.
+                Terrain and water fill whole tiles. A standing object is solid where it is drawn on its blocking cells, so a tree is its trunk. A building is solid where its wall is drawn, from the outline on each side to the line it stands on, and the foot of its door is open, so a mover can walk in without lining up to the pixel (<code>assist</code> nudges it round a corner, and is off by default).
+            </p>
+            <h2>Behind a building</h2>
+            <p>
+                The roof rows of a building are open, so a mover can walk up behind it. To have the building cover it, draw with <code>mapDrawables</code> instead of <code>buildMap</code>: the ground first, then each standing object and building, and the movers, sorted by the pixel row they stand on.
+            </p>
+            <CodeBlock code={`import { mapDrawables } from "@ragtechdev/pixel-sprites";
+
+const { ground, standing } = mapDrawables(map, "summer");
+drawRaster(ctx, ground, -camera.x, -camera.y);
+const things = [
+    ...standing.map((d) => ({ sortY: d.sortY, x: d.x, y: d.y, raster: d.raster })),
+    { sortY: hero.y + 16, x: hero.x, y: hero.y - 8, raster: heroRaster },
+].sort((a, b) => a.sortY - b.sortY);
+for (const t of things) drawRaster(ctx, t.raster, t.x - camera.x, t.y - camera.y);`} />
+            <p>
+                A door is a box too: <code>doorBoxes(map)</code> lists them, and when the mover's <code>feet</code> overlap one (<code>overlaps(a, b)</code>), it is the moment to warp.
+            </p>
             <h2>What blocks the way</h2>
             <p>
                 <code>isWalkable</code> reads the sprites package's map data, so collision always agrees with what you drew. It is false off the map, on solid terrain, on water, and on the blocking cells of an object.
