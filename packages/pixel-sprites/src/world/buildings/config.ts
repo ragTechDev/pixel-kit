@@ -97,8 +97,8 @@ export type ResolvedBuildingConfig = Required<BuildingConfig>;
 /** What is drawn: a resolved config whose width may be any whole number of tiles, because the front wing of a building is narrower than the lists allow. */
 export type VolumeConfig = Omit<ResolvedBuildingConfig, "width"> & {
     width: number;
-    /** Tiles at the left and right of the volume that are hidden under a neighbouring volume it joins to. Nothing is put on them. */
-    hidden?: { readonly left: number; readonly right: number };
+    /** The edges where this volume carries on into the volume beside it: its wall runs out to the edge there, with no gap for the roof's overhang. */
+    joined?: { readonly left: boolean; readonly right: boolean };
 };
 
 export const defaultBuildingConfig: ResolvedBuildingConfig = {

@@ -65,8 +65,12 @@ function bounds(s: Shape) {
     return x1 < 0 ? null : { x0, y0, x1, y1 };
 }
 
-/** The shaded layer for a shape in a ramp (an outline, a highlight top and left, a shadow bottom and right), with a pattern painted over its inside (never over its edge). */
-export function paint(s: Shape, ramp: Ramp, pattern?: Pattern): Layer[] {
+/**
+ * The shaded layer for a shape in a ramp (an outline, a highlight top and left, a shadow bottom and right), with a pattern painted over
+ * its inside (never over its edge). A side marked `open` is not an edge, because the shape carries on into another one there, so
+ * the pattern runs out to it.
+ */
+export function paint(s: Shape, ramp: Ramp, pattern?: Pattern, open: { readonly left?: boolean; readonly right?: boolean } = {}): Layer[] {
     const b = bounds(s);
     if (!b) return [];
     const { x0, y0, x1, y1 } = b;
@@ -83,7 +87,8 @@ export function paint(s: Shape, ramp: Ramp, pattern?: Pattern): Layer[] {
         const px = new Uint8Array(base.width * base.height);
         for (let y = y0; y <= y1; y += 1) {
             for (let x = x0; x <= x1; x += 1) {
-                const inside = filled(s, x, y) && filled(s, x - 1, y) && filled(s, x + 1, y) && filled(s, x, y - 1) && filled(s, x, y + 1);
+                const inside =
+                    filled(s, x, y) && (filled(s, x - 1, y) || (open.left === true && x === 0)) && (filled(s, x + 1, y) || (open.right === true && x === s.w - 1)) && filled(s, x, y - 1) && filled(s, x, y + 1);
                 if (inside) px[(y - y0 + 1) * base.width + (x - x0 + 1)] = pattern(x, y);
             }
         }

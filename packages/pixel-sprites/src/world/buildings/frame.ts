@@ -61,8 +61,9 @@ export function makeFrame(c: VolumeConfig, xOffset = 0): Frame {
         roofTiles: box.roofTiles,
         yw,
         yb: yw + 4,
-        wx0: 4,
-        wx1: W - 4,
+        // The wall is set in from the edge by the roof's overhang, except where it joins the volume beside it.
+        wx0: c.joined?.left ? 0 : 4,
+        wx1: W - (c.joined?.right ? 0 : 4),
         ground: H - 1,
         ramps: {
             roof: rampOf(c.roofColor),

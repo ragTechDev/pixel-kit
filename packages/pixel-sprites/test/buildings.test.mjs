@@ -216,6 +216,23 @@ test("a side wing is joined to the main part: the ground floor wall is one wall,
     }
 });
 
+test("the roof of a side wing is complete at the end where it joins the main part: it is closed with an edge, not cut off", () => {
+    for (const wing of ["left", "right"]) {
+        for (const roof of roofShapes) {
+            const config = { wing, width: 8, roof, roofColor: "red" };
+            const raster = buildBuilding(config);
+            const at = (x, y) => raster.colors[raster.px[y * raster.width + x]];
+            // The lower part is three tiles wide, and its top is two storeys-worth of rows (2 tiles) down from the top of the taller part.
+            const join = wing === "left" ? 3 * TILE_SIZE : 5 * TILE_SIZE;
+            const x = wing === "left" ? join - 1 : join;
+            const roofRows = buildingBox({ roof, wing: "none", storeys: 1 }).roofTiles * TILE_SIZE;
+            let edge = 0;
+            for (let y = 2 * TILE_SIZE; y < 2 * TILE_SIZE + roofRows; y += 1) if (at(x, y) === colorRamps.red.outline) edge += 1;
+            assert.ok(edge >= 6, `${wing} ${roof}: only ${edge} rows of the roof's edge at the join`);
+        }
+    }
+});
+
 test("a building with a front wing has the door on the wing, which sticks out in front of the rest", () => {
     for (const roof of roofShapes) {
         for (const width of buildingWidths) {

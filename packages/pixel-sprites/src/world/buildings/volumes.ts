@@ -6,7 +6,8 @@ import type { RoofKind } from "./roof";
 // A building is one volume, or two when it has a wing, each drawn on its own (its wall, roof and facade) and placed in the
 // picture. A front wing is a narrower volume in the middle that sticks out two tiles in front of the main part, closer to you,
 // so it is drawn lower and over it; it has the door. A side wing is a lower, one-storey volume beside the main part, which is
-// then two storeys tall and has the door.
+// then two storeys tall and has the door. The two are set against each other, each with a complete roof, and their walls run
+// out to the join (`joined` in the volume's config) so the ground floor is one wall across it.
 
 /** One volume of a building: what to draw, and where its top-left tile is in the picture. */
 export interface Volume {
@@ -16,8 +17,6 @@ export interface Volume {
     readonly door: boolean;
     readonly x: number;
     readonly y: number;
-    /** Whether it is drawn over a lower volume it joins to: its wall then has no outline where it meets that volume's wall. */
-    readonly joined?: boolean;
 }
 
 /** How many tiles a front wing sticks out in front of the rest of the building. */
@@ -58,29 +57,30 @@ function frontWing(c: ResolvedBuildingConfig): Volume[] {
 
 function sideWing(c: ResolvedBuildingConfig, side: "left" | "right"): Volume[] {
     const annexWidth = c.width >= 7 ? 3 : 2;
-    // The taller part has the door and always two storeys; the lower part beside it has one and no door. The lower part
-    // runs a tile under the taller one, so the two are one building: the ground floor wall is one wall across the join.
-    const tall: VolumeConfig = { ...c, wing: "none", width: c.width - annexWidth, storeys: 2, door: "centre" };
+    // The taller part has the door and always two storeys; the lower part beside it has one and no door. Each is a whole
+    // building with a complete roof, set against the other, and their walls run out to the join, so the ground floor
+    // wall is one wall across it.
+    const tall: VolumeConfig = { ...c, wing: "none", width: c.width - annexWidth, storeys: 2, door: "centre", joined: side === "left" ? { left: true, right: false } : { left: false, right: true } };
     const low: VolumeConfig = {
         ...c,
         wing: "none",
-        width: annexWidth + 1,
+        width: annexWidth,
         storeys: 1,
         roof: wingRoofs[c.roof],
         chimney: "none",
         porch: "none",
         props: c.props === "barrels" ? "none" : c.props,
-        hidden: side === "left" ? { left: 0, right: 1 } : { left: 1, right: 0 }
+        joined: side === "left" ? { left: false, right: true } : { left: true, right: false }
     };
     const lowY = volumeBox(tall).height - volumeBox(low).height;
     return side === "left"
         ? [
               { config: low, roof: low.roof, door: false, x: 0, y: lowY },
-              { config: tall, roof: tall.roof, door: true, x: annexWidth, y: 0, joined: true }
+              { config: tall, roof: tall.roof, door: true, x: annexWidth, y: 0 }
           ]
         : [
-              { config: low, roof: low.roof, door: false, x: tall.width - 1, y: lowY },
-              { config: tall, roof: tall.roof, door: true, x: 0, y: 0, joined: true }
+              { config: low, roof: low.roof, door: false, x: tall.width, y: lowY },
+              { config: tall, roof: tall.roof, door: true, x: 0, y: 0 }
           ];
 }
 

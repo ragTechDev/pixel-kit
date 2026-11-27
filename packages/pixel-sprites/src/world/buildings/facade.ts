@@ -31,9 +31,7 @@ export function drawFacade(f: Frame, { door: hasDoor = true }: { door?: boolean 
         const groundFloor = storey === c.storeys - 1;
         // Windows start below the shadow the eave casts on the wall (the wall shows from `top`, the roof's edge and its shadow take the first 7 rows).
         const windowTop = top + (groundFloor ? 14 : 9);
-        // Windows go on the part of the wall that shows: not on the tiles hidden under a volume this one joins to.
-        const hidden = c.hidden ?? { left: 0, right: 0 };
-        const shown = windowColumns(f.tiles - hidden.left - hidden.right, c.windows, groundFloor && hasDoor ? door - hidden.left : undefined).map((col) => col + hidden.left);
+        const shown = windowColumns(f.tiles, c.windows, groundFloor && hasDoor ? door : undefined);
         for (const col of shown) {
             layers.push(...placeParts(f, windowParts(c.windowStyle), col * TILE_SIZE + 8, windowTop));
             if (c.props === "planters" && groundFloor) layers.push(...placeParts(f, flowerBoxParts, col * TILE_SIZE + 8, windowTop));

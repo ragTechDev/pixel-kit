@@ -34,16 +34,19 @@ export function drawWall(f: Frame): Layer[] {
     const texture = wallPattern(c.wall, H, f.xOffset);
     const layers: Layer[] = [];
 
-    layers.push(...paint(addRect(f.here(), wx0, yw, wx1, ground), ramps.wall, (x, y) => (y >= yb && y < yb + 3 ? SHADOW : texture(x, y))));
-    layers.push(...paint(addRect(f.here(), wx0, H - 4, wx1, ground), ramps.stone, (x, y) => ((x + f.xOffset + (y % 2) * 3) % 6 === 0 ? SHADOW : 0)));
+    // Where the wall carries on into the next volume, its pattern runs out to the edge.
+    const open = { left: c.joined?.left, right: c.joined?.right };
+    layers.push(...paint(addRect(f.here(), wx0, yw, wx1, ground), ramps.wall, (x, y) => (y >= yb && y < yb + 3 ? SHADOW : texture(x, y)), open));
+    layers.push(...paint(addRect(f.here(), wx0, H - 4, wx1, ground), ramps.stone, (x, y) => ((x + f.xOffset + (y % 2) * 3) % 6 === 0 ? SHADOW : 0), open));
 
     if (c.wall === "timber") {
         const beams = f.here();
         addRect(beams, wx0, yb + 3, wx1, yb + 6);
         addRect(beams, wx0, H - 8, wx1, H - 4);
         if (c.storeys === 2) addRect(beams, wx0, yw + 31, wx1, yw + 34);
-        addRect(beams, wx0, yw, wx0 + 3, H - 4);
-        addRect(beams, wx1 - 3, yw, wx1, H - 4);
+        // A post at each corner, but not where the wall carries on into the next volume.
+        if (!c.joined?.left) addRect(beams, wx0, yw, wx0 + 3, H - 4);
+        if (!c.joined?.right) addRect(beams, wx1 - 3, yw, wx1, H - 4);
         for (let k = 1; k < f.tiles; k += 1) addRect(beams, k * TILE_SIZE - 1, yw, k * TILE_SIZE + 1, H - 4);
         layers.push(...paint(beams, ramps.wood));
     }

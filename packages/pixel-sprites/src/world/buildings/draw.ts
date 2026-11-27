@@ -32,23 +32,46 @@ export function buildingFootprint(config?: BuildingConfig): readonly string[] {
     return cells.map((row) => row.join(""));
 }
 
-function drawVolume(c: VolumeConfig, roof: RoofKind, door: boolean, x: number, joined: boolean): Layer[] {
+/**
+ * Opens the edge of a volume's wall where it carries on into the volume beside it: the outline there is dropped and the lit
+ * and shaded edge become plain wall, so the two walls touch and are one wall. Only the shaded base of each part has an
+ * edge (the layers over it, the brick or the boards, have none).
+ */
+function openJoinedEdges(layers: Layer[], width: number, joined: NonNullable<VolumeConfig["joined"]>): Layer[] {
+    return layers.map((layer) => {
+        const { sprite } = layer;
+        if (!sprite.px.includes(SLOT.outline)) return layer;
+        const px = new Uint8Array(sprite.px);
+        for (let sy = 0; sy < sprite.height; sy += 1) {
+            for (let sx = 0; sx < sprite.width; sx += 1) {
+                const x = layer.x + sprite.originX + sx;
+                const onRight = joined.right && x >= width - 1;
+                if (!onRight && !(joined.left && x <= 0)) continue;
+                const slot = px[sy * sprite.width + sx];
+                if (slot === SLOT.outline) {
+                    px[sy * sprite.width + sx] = 0;
+                } else if (slot === SLOT.shadow || slot === SLOT.highlight) {
+                    // A lit or shaded pixel with another of the same beside it, further in, is part of the top or bottom edge, which carries on across the join.
+                    const inward = px[sy * sprite.width + sx + (onRight ? -1 : 1)];
+                    if (inward !== slot) px[sy * sprite.width + sx] = SLOT.base;
+                }
+            }
+        }
+        return { ...layer, sprite: { ...sprite, px } };
+    });
+}
+
+function drawVolume(c: VolumeConfig, roof: RoofKind, door: boolean, x: number): Layer[] {
     const frame = makeFrame(c, x * TILE_SIZE);
-    let wall = drawWall(frame);
-    if (joined) {
-        // Over the wall of the lower volume it joins, the outline and the lit and shaded edges are left out, so the two walls are one wall.
-        // Only the shaded base of each part has an edge (the layers over it, the brick or the boards, have no outline).
-        const tones = [frame.ramps.wall, frame.ramps.stone, frame.ramps.wood].flatMap((ramp) => Object.values(ramp));
-        wall = wall.map((layer) => (layer.sprite.px.includes(SLOT.outline) ? { ...layer, noOutlineOver: tones, noHighlightOver: tones, noShadowOver: tones } : layer));
-    }
-    return [...wall, ...drawRoof(frame, roof), ...drawChimney(frame, roof), ...drawFacade(frame, { door })];
+    const wall = drawWall(frame);
+    return [...(c.joined ? openJoinedEdges(wall, frame.W, c.joined) : wall), ...drawRoof(frame, roof), ...drawChimney(frame, roof), ...drawFacade(frame, { door })];
 }
 
 function draw(c: ResolvedBuildingConfig): Layer[] {
     return buildingVolumes(c).flatMap((v) => {
         const dx = v.x * TILE_SIZE;
         const dy = v.y * TILE_SIZE;
-        return drawVolume(v.config, v.roof, v.door, v.x, v.joined === true).map((layer) => ({ ...layer, x: layer.x + dx, y: layer.y + dy }));
+        return drawVolume(v.config, v.roof, v.door, v.x).map((layer) => ({ ...layer, x: layer.x + dx, y: layer.y + dy }));
     });
 }
 
