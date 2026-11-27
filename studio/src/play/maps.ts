@@ -72,5 +72,5 @@ export const places: Record<PlaceId, Place> = {
     }
 };
 
-/** Where the hero starts: on the path, facing the house. */
-export const start: { place: PlaceId; spawn: Spawn } = { place: "town", spawn: { x: 7, y: 8, facing: "up" } };
+/** Where the hero starts: on the path, facing the viewer. */
+export const start: { place: PlaceId; spawn: Spawn } = { place: "town", spawn: { x: 7, y: 8, facing: "down" } };

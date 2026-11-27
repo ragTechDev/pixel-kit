@@ -72,11 +72,11 @@ const at = (p) => [Math.floor((p.hero.feet.x + p.hero.feet.width / 2) / 16), Mat
 // Puts the hero in the top-left of a tile, as the world's doors and spawns do.
 const put = (p, tx, ty, facing) => p.hero.teleport(tx * 16, ty * 16, facing);
 
-test("the hero starts on the path in the town, facing the house", () => {
+test("the hero starts on the path in the town, facing the viewer", () => {
     const p = play();
     assert.equal(p.place(), "town");
     assert.deepEqual(at(p), [7, 8]);
-    assert.equal(p.hero.facing, "up");
+    assert.equal(p.hero.facing, "down");
 });
 
 test("walking up the path to the door goes inside, and walking down out of the door comes back", () => {
@@ -508,6 +508,8 @@ test("walking alternates two leg poses within a step, one of them the standing p
         p.game.render(ctx);
         return heroDraw(p, ctx)[0];
     };
+    p.game.advance(1);
+    put(p, 7, 8, "up"); // the hero starts facing down, and the walk is up
     p.game.advance(1);
     const standing = rasterAt();
     p.game.input.press("up");
