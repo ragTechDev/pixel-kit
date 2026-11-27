@@ -87,3 +87,19 @@ test("every standing object blocks only its foot, the same depth for all, so a m
         assert.ok(box.y < standing[0].sortY, `${id}: a mover at the top of the box is above the sort line, so it is drawn first`);
     }
 });
+
+test("a room's thin walls block only their strip of the tile, and a tileset checks its solidArea", () => {
+    const { houseTileset, defineTileSet, queryCell } = lib;
+    const room = defineMap(houseTileset, ["hhhhhhhh", "lffffffr", "LFEGSFFR"], []);
+    const boxes = solidBoxes(room);
+    const at = (x, y) => boxes.filter((b) => b.x < (x + 1) * TILE_SIZE && b.x + b.width > x * TILE_SIZE && b.y < (y + 1) * TILE_SIZE && b.y + b.height > y * TILE_SIZE);
+    assert.deepEqual(at(0, 2).map((b) => [b.x, b.width]), [[0, 8]], "the left wall is the left half of its tile");
+    assert.deepEqual(at(15, 2).map((b) => [b.x, b.width]), [[15 * TILE_SIZE + 8, 8]], "and the right wall the right half");
+    assert.deepEqual(at(4, 5).map((b) => [b.y, b.height]), [[5 * TILE_SIZE + 2, 14]], "the near wall starts 2 pixels into its tile");
+    assert.equal(at(6, 5).length + at(7, 5).length, 0, "nothing blocks in the gap");
+    assert.equal(queryCell(room, 0, 2).solid, true, "for tile movement the wall tile is solid");
+    assert.equal(queryCell(room, 6, 5).solid, false);
+    const blocks = { a: [["grass", "grass"], ["grass", "grass"]] };
+    for (const area of [[[0, 0, 0, 4]], [[0, 0, 17, 4]], [[2, 2, 1, 4]], [[0.5, 0, 4, 4]], [[0, 0, 4]]]) assert.throws(() => defineTileSet({ id: "x", blocks, solidArea: { grass: area } }), /solidArea/);
+    assert.throws(() => defineTileSet({ id: "x", blocks, solidArea: { nope: [[0, 0, 4, 4]] } }), /unknown tile/);
+});

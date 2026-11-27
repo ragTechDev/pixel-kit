@@ -40,5 +40,12 @@
   "untilled": "4256d1b9453d7368",
   "tilled": "fd375244f3d8e2a3",
   "seeded": "2f53c45a8b7e70da",
-  "sprouting": "3702d576df788f46"
+  "sprouting": "3702d576df788f46",
+  "room_wall_left": "c26f0e8664c5e881",
+  "room_wall_right": "4e327683bcfa1fb7",
+  "room_wall_front": "127c9023a0488ba8",
+  "room_wall_front_left": "949dc2e817d3a15a",
+  "room_wall_front_right": "a447c6063d9649c2",
+  "room_wall_front_end_left": "9db19e75856cbe7b",
+  "room_wall_front_end_right": "429eb3eac945757d"
 }

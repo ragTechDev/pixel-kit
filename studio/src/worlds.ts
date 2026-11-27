@@ -43,19 +43,19 @@ export const townMap = defineMap(townTileset, [
     { config: { width: 6, roof: "gable", wall: "brick", roofMaterial: "shingle", windows: 2, chimney: "left", doorColor: "red" }, x: 10, y: 8 }
 ]);
 
+// A room: the far wall face on, thin side walls seen from above, a near wall seen a little from the front, and a gap in it for the way out.
 export const houseMap = defineMap(houseTileset, [
     "hhhhhhhh",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "hhhhhhhh"
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "LFEGSFFR"
 ], [
     ...at("window", [3, 1], [11, 1]),
     ...at("bookshelf", [1, 2], [2, 2], [13, 2], [14, 2]),
     ...at("counter", [5, 4], [7, 4], [9, 4]),
-    ...at("rug", [7, 7]),
-    ...at("door", [7, 11])
+    ...at("rug", [7, 7])
 ]);
 
 // A street of buildings: each is drawn from fixed choices and placed in tile coordinates like an object.

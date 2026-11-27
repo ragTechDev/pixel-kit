@@ -4,14 +4,14 @@ import { townMap } from "../worlds";
 
 const at = (id: ObjectId, ...spots: [number, number][]): PlacedObject[] => spots.map(([x, y]) => ({ id, x, y }));
 
-/** The inside of the restaurant. A kitchen along the back wall, with a counter between it and the dining room. The door is one row up from the bottom edge, so the floor in front of it can be reached. */
+/** The inside of the restaurant. A kitchen along the back wall, with a counter between it and the dining room. The far wall is seen face on, the side walls from above and the near wall at an angle, with a gap in it for the way out. */
 export const restaurantMap = defineMap(houseTileset, [
     "hhhhhhhh",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "hhhhhhhh"
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "LFEGSFFR"
 ], [
     ...at("window", [3, 1], [12, 1]),
     ...at("chalkboard", [6, 1], [9, 1]),
@@ -26,18 +26,17 @@ export const restaurantMap = defineMap(houseTileset, [
     // Four tables, each with a chair at either end.
     ...at("table", [2, 6], [11, 6], [2, 8], [11, 8]),
     ...at("chair", [1, 6], [4, 6], [10, 6], [13, 6], [1, 8], [4, 8], [10, 8], [13, 8]),
-    ...at("rug", [7, 7]),
-    ...at("door", [7, 10])
+    ...at("rug", [7, 7])
 ]);
 
 /** The inside of the grocer's: shelves and fridges along the back, a till behind a counter, and crates and shelves of goods to walk between. */
 export const grocerMap = defineMap(houseTileset, [
     "hhhhhhhh",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "hhhhhhhh"
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "LFEGSFFR"
 ], [
     ...at("window", [3, 1], [12, 1]),
     ...at("chalkboard", [7, 1]),
@@ -48,8 +47,7 @@ export const grocerMap = defineMap(houseTileset, [
     ...at("cash_register", [7, 5]),
     ...at("produce_crate", [2, 6], [3, 6], [4, 6], [11, 6], [12, 6], [13, 6]),
     ...at("grocery_shelf", [2, 8], [3, 8], [12, 8], [13, 8]),
-    ...at("rug", [7, 7]),
-    ...at("door", [7, 10])
+    ...at("rug", [7, 7])
 ]);
 
 export type PlaceId = "town" | "restaurant" | "grocer";
@@ -102,17 +100,18 @@ export const places: Record<PlaceId, Place> = {
         map: restaurantMap,
         // The cook at the stoves, and a waiter in the dining room.
         npcs: [{ x: 3, y: 3, look: randomAvatar() }, { x: 8, y: 5, look: randomAvatar() }],
-        arrive: { x: 7, y: 9, facing: "up" },
-        exits: [{ x: 7, y: 10, to: "town" }]
+        arrive: { x: 7, y: 10, facing: "up" },
+        // The gap in the near wall, two tiles wide.
+        exits: [{ x: 6, y: 11, to: "town" }, { x: 7, y: 11, to: "town" }]
     },
     grocer: {
         id: "grocer",
         map: grocerMap,
         // The grocer, behind the counter.
         npcs: [{ x: 7, y: 3, look: randomAvatar() }],
-        arrive: { x: 7, y: 9, facing: "up" },
+        arrive: { x: 7, y: 10, facing: "up" },
         // Out of the grocer's to the pavement in front of its door.
-        exits: [{ x: 7, y: 10, to: "town", spawn: { x: 12, y: 13, facing: "down" } }]
+        exits: [{ x: 6, y: 11, to: "town", spawn: { x: 12, y: 13, facing: "down" } }, { x: 7, y: 11, to: "town", spawn: { x: 12, y: 13, facing: "down" } }]
     }
 };
 

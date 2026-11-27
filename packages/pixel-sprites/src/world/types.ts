@@ -17,7 +17,9 @@ export type TownTileId =
     | "beige_pavement_top_left" | "beige_pavement_top_right"
     | "beige_pavement_bottom_left" | "beige_pavement_bottom_right"
     // House wall edges. The roof's eave covers the top of a wall.
-    | "wall_left" | "wall_right" | "wall_base" | "wall_base_left" | "wall_base_right";
+    | "wall_left" | "wall_right" | "wall_base" | "wall_base_left" | "wall_base_right"
+    // The walls of a room seen from inside. The far wall is `wall`; the side walls are seen from above, and the near wall from above and a little in front.
+    | "room_wall_left" | "room_wall_right" | "room_wall_front" | "room_wall_front_left" | "room_wall_front_right" | "room_wall_front_end_left" | "room_wall_front_end_right";
 
 export type TileId = RoadTileId | TownTileId;
 

@@ -85,9 +85,9 @@ test("walking up the path to the door goes inside, and walking down out of the d
     assert.equal(p.place(), "town", "still short of the door");
     holdThroughDoor(p, "up"); // onto the door at (7,5)
     assert.equal(p.place(), "restaurant", "the door warps");
-    assert.deepEqual(at(p), [7, 9], "arriving in front of the interior door");
+    assert.deepEqual(at(p), [7, 10], "arriving just inside the gap in the near wall");
     assert.equal(p.hero.facing, "up");
-    holdThroughDoor(p, "down"); // onto the interior door at (7,10)
+    holdThroughDoor(p, "down"); // through the gap in the near wall, at (7,11)
     assert.equal(p.place(), "town");
     assert.deepEqual(at(p), [7, 6], "back in front of the house door");
     assert.equal(p.hero.facing, "down");
@@ -98,7 +98,7 @@ test("a grocer's stands on the pavement: its door leads in, and the way out puts
     put(p, 12, 13, "up");
     holdThroughDoor(p, "up"); // onto the grocer door at (12,12)
     assert.equal(p.place(), "grocer");
-    assert.deepEqual(at(p), [7, 9], "arriving in front of the grocer's inner door");
+    assert.deepEqual(at(p), [7, 10], "arriving just inside the gap in the near wall");
     holdThroughDoor(p, "down");
     assert.equal(p.place(), "town");
     assert.deepEqual(at(p), [12, 13], "on the pavement in front of the grocer door, not at the restaurant");
@@ -727,4 +727,27 @@ test("the hero can walk behind the counter, into the kitchen and to the grocer's
         }
         for (const [x, y] of behind) assert.ok(seen.has(`${x},${y}`), `${id}: (${x}, ${y}) can be reached on foot`);
     }
+});
+
+test("a room's walls: thin at the sides, a little thicker along the front, and a gap in the front wall is the way out", () => {
+    const p = play();
+    put(p, 7, 6, "up");
+    holdThroughDoor(p, "up");
+    assert.equal(p.place(), "restaurant");
+    // The side walls are 8 pixels thick, seen from above: the hero walks right up to them, not a whole tile away.
+    put(p, 5, 10, "left");
+    hold(p, "left", 2);
+    assert.equal(p.hero.feet.x, 8, "against the left wall");
+    put(p, 5, 10, "right");
+    hold(p, "right", 4);
+    assert.equal(p.hero.feet.x + p.hero.feet.width, 16 * 16 - 8, "against the right wall");
+    // The near wall's top starts 2 pixels into its tile, so the hero stops just in front of it.
+    put(p, 3, 10, "down");
+    hold(p, "down", 1);
+    assert.equal(p.place(), "restaurant");
+    assert.equal(p.hero.feet.y + p.hero.feet.height, 11 * 16 + 2, "against the near wall");
+    // Through the gap, there is no door: the hero just walks out.
+    put(p, 7, 10, "down");
+    holdThroughDoor(p, "down");
+    assert.equal(p.place(), "town");
 });

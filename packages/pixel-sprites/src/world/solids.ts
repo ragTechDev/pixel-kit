@@ -40,7 +40,10 @@ function compute(map: TileMap): Boxes {
             const cell = queryCell(map, tx, ty)!;
             // Only the terrain is whole tiles. A building's cells are covered by its drawn wall below, and an object's by what is drawn of it.
             const free = !cell.building && !cell.tent && !cell.door;
-            const from = free && map.tileset.solid.has(cell.tile) ? 0 : free ? (map.tileset.solidFrom.get(cell.tile) ?? -1) : -1;
+            // A tile that blocks only part of itself (the thin wall of a room) has its own boxes.
+            const areas = free ? map.tileset.solidArea.get(cell.tile) : undefined;
+            if (areas) for (const [x0, y0, x1, y1] of areas) solid.push({ x: tx * TILE_SIZE + x0, y: ty * TILE_SIZE + y0, width: x1 - x0, height: y1 - y0 });
+            const from = !areas && free && map.tileset.solid.has(cell.tile) ? 0 : free ? (map.tileset.solidFrom.get(cell.tile) ?? -1) : -1;
             if (!cell.building && !cell.tent && cell.door) doors.push({ x: tx * TILE_SIZE, y: ty * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE });
             // A run ends where the part that blocks changes.
             if (runStart >= 0 && from !== runFrom) close(tx);

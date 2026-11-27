@@ -1,4 +1,4 @@
-import { defineMap, doorBoxes, mapDrawables, mapTileSize, objectInfo, produceLimits, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box, type ObjectId, type PlacedObject, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
+import { defineMap, mapDrawables, mapTileSize, objectInfo, produceLimits, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box, type ObjectId, type PlacedObject, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 import { createCamera, createCarry, createGame, createPopups, createMover, isOpen, overlaps, type Camera, type Direction, type Game, type Mover, type Scene } from "@ragtechdev/pixel-engine";
 import { heroLook, places, start, type Npc, type Place, type PlaceId, type Spawn } from "./maps";
@@ -153,12 +153,8 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
             const map = mapNow();
             maps.set(place.id, defineMap(map.tileset, map.rows, found.left ? map.objects.map((x) => (x === o ? found.left! : x)) : map.objects.filter((x) => x !== o), map.buildings));
         };
-        const doors = doorBoxes(place.map);
-        // The door the hero's feet are on, by its tile.
-        const doorUnderfoot = () => {
-            const door = doors.find((d) => overlaps(hero.feet, d));
-            return door && place.exits.find((e) => e.x === door.x / TILE_SIZE && e.y === door.y / TILE_SIZE);
-        };
+        // The exit the hero's feet are on, by its tile: a door, or a gap in a wall.
+        const doorUnderfoot = () => place.exits.find((e) => overlaps(hero.feet, { x: e.x * TILE_SIZE, y: e.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }));
         return {
             enter() {
                 current = place.id;

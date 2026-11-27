@@ -52,6 +52,31 @@ import { tallGrassShadeMask } from "../masks/tiles/tallGrass/shade.mask";
 import { wallMask } from "../masks/tiles/wall.mask";
 import { waterLightMask } from "../masks/tiles/water/light.mask";
 import { waterShadeMask } from "../masks/tiles/water/shade.mask";
+import { roomWallLeftCastMask } from "../masks/tiles/roomWallLeft/cast.mask";
+import { roomWallLeftLineMask } from "../masks/tiles/roomWallLeft/line.mask";
+import { roomWallLeftShadeMask } from "../masks/tiles/roomWallLeft/shade.mask";
+import { roomWallLeftTopMask } from "../masks/tiles/roomWallLeft/top.mask";
+import { roomWallRightCastMask } from "../masks/tiles/roomWallRight/cast.mask";
+import { roomWallRightLineMask } from "../masks/tiles/roomWallRight/line.mask";
+import { roomWallRightShadeMask } from "../masks/tiles/roomWallRight/shade.mask";
+import { roomWallRightTopMask } from "../masks/tiles/roomWallRight/top.mask";
+import { roomWallFrontLineMask } from "../masks/tiles/roomWallFront/line.mask";
+import { roomWallFrontShadeMask } from "../masks/tiles/roomWallFront/shade.mask";
+import { roomWallFrontTopMask } from "../masks/tiles/roomWallFront/top.mask";
+import { roomWallFrontLeftCastMask } from "../masks/tiles/roomWallFrontLeft/cast.mask";
+import { roomWallFrontLeftLineMask } from "../masks/tiles/roomWallFrontLeft/line.mask";
+import { roomWallFrontLeftShadeMask } from "../masks/tiles/roomWallFrontLeft/shade.mask";
+import { roomWallFrontLeftTopMask } from "../masks/tiles/roomWallFrontLeft/top.mask";
+import { roomWallFrontRightCastMask } from "../masks/tiles/roomWallFrontRight/cast.mask";
+import { roomWallFrontRightLineMask } from "../masks/tiles/roomWallFrontRight/line.mask";
+import { roomWallFrontRightShadeMask } from "../masks/tiles/roomWallFrontRight/shade.mask";
+import { roomWallFrontRightTopMask } from "../masks/tiles/roomWallFrontRight/top.mask";
+import { roomWallFrontEndLeftLineMask } from "../masks/tiles/roomWallFrontEndLeft/line.mask";
+import { roomWallFrontEndLeftShadeMask } from "../masks/tiles/roomWallFrontEndLeft/shade.mask";
+import { roomWallFrontEndLeftTopMask } from "../masks/tiles/roomWallFrontEndLeft/top.mask";
+import { roomWallFrontEndRightLineMask } from "../masks/tiles/roomWallFrontEndRight/line.mask";
+import { roomWallFrontEndRightShadeMask } from "../masks/tiles/roomWallFrontEndRight/shade.mask";
+import { roomWallFrontEndRightTopMask } from "../masks/tiles/roomWallFrontEndRight/top.mask";
 import { TILE_SIZE } from "../size";
 import type { TileId } from "../types";
 import type { TileColor } from "./palettes";
@@ -103,6 +128,9 @@ const material = (base: TileColor, ...layers: [PixelMask, TileColor][]): Materia
     base,
     layers: layers.map(([mask, color]) => ({ mask, color }))
 });
+
+const room = (cast: PixelMask | undefined, top: PixelMask, shade: PixelMask, line: PixelMask): Material =>
+    material("floor", [floorMask, "floorLine"], ...(cast ? [[cast, "floorLine"] as [PixelMask, TileColor]] : []), [top, "wall"], [shade, "wallShade"], [line, "wallFoundation"]);
 
 const edge = (inner: TileId, family: EdgeFamily, ...sides: Side[]): EdgeTile => ({ inner, family, sides });
 
@@ -211,7 +239,16 @@ export const tileDefs: Record<TileId, TileDef> = {
     wall_right: edge("wall", wallEdges, "right"),
     wall_base: edge("wall", wallEdges, "bottom"),
     wall_base_left: edge("wall", wallEdges, "bottom", "left"),
-    wall_base_right: edge("wall", wallEdges, "bottom", "right")
+    wall_base_right: edge("wall", wallEdges, "bottom", "right"),
+
+    // The walls of a room: floor, then the shadow a wall casts on it, the top of the wall, its face (on the near wall) and its outline.
+    room_wall_left: room(roomWallLeftCastMask, roomWallLeftTopMask, roomWallLeftShadeMask, roomWallLeftLineMask),
+    room_wall_right: room(roomWallRightCastMask, roomWallRightTopMask, roomWallRightShadeMask, roomWallRightLineMask),
+    room_wall_front: room(undefined, roomWallFrontTopMask, roomWallFrontShadeMask, roomWallFrontLineMask),
+    room_wall_front_left: room(roomWallFrontLeftCastMask, roomWallFrontLeftTopMask, roomWallFrontLeftShadeMask, roomWallFrontLeftLineMask),
+    room_wall_front_right: room(roomWallFrontRightCastMask, roomWallFrontRightTopMask, roomWallFrontRightShadeMask, roomWallFrontRightLineMask),
+    room_wall_front_end_left: room(undefined, roomWallFrontEndLeftTopMask, roomWallFrontEndLeftShadeMask, roomWallFrontEndLeftLineMask),
+    room_wall_front_end_right: room(undefined, roomWallFrontEndRightTopMask, roomWallFrontEndRightShadeMask, roomWallFrontEndRightLineMask)
 };
 
 // ─── Resolving a tile to colour names ───────────────────────────────────────
