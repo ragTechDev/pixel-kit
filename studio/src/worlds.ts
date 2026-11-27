@@ -50,8 +50,8 @@ export const streetMap = defineMap(townTileset, [
     ...at("tree", [9, 10], [1, 3], [20, 4]),
     ...at("flower", [18, 11], [19, 10], [27, 9], [20, 10])
 ], [
-    { config: { width: 6, roof: "hipFlat", depth: "long", roofColor: "blue", doorColor: "red", chimney: "right" }, x: 3, y: 5 },
-    { config: { width: 7, storeys: 2, roof: "gable", pitch: "steep", depth: "medium", wall: "brick", roofColor: "purple", windowStyle: "shuttered", doorColor: "teal", door: "left", props: "barrels" }, x: 10, y: 3 },
+    { config: { width: 6, roof: "hipFlat", depth: "long", roofMaterial: "ceramic", doorColor: "red", chimney: "right" }, x: 3, y: 5 },
+    { config: { width: 7, storeys: 2, roof: "gable", pitch: "steep", depth: "medium", wall: "brick", roofMaterial: "wood", windowStyle: "shuttered", doorColor: "teal", door: "left", props: "barrels" }, x: 10, y: 3 },
     { config: { width: 5, roof: "flat", rooftop: "boxes", wall: "brick", wallColor: "yellow", roofColor: "grey", doorStyle: "arched", windowStyle: "arched", props: "planters", porch: "deck" }, x: 22, y: 6 }
 ]);
 

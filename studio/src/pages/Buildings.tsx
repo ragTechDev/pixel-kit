@@ -27,7 +27,8 @@ import {
     toMapVariant,
     windowCounts,
     windowStyles,
-    type BuildingColor,
+    type MaterialColor,
+    roofMaterials,
     type BuildingConfig,
     type ColorName,
     type Raster,
@@ -54,6 +55,8 @@ interface Section {
 interface Colour {
     field: ColourField;
     title: string;
+    /** The colour can be left as the material's own. */
+    natural?: boolean;
 }
 
 interface Tab {
@@ -66,17 +69,18 @@ interface Tab {
 const TABS: Tab[] = [
     { id: "roof", label: "Roof", sections: [
         { field: "roof", title: "Shape", hint: "How the roof looks from above and in front. A gable and a hip roof have a ridge running front to back; a hip roof has a sloping face at the front instead of a gable on the wall. A saltbox has its ridge off to one side.", options: roofShapes },
+        { field: "roofMaterial", title: "Covering", hint: "Slate shingles, terracotta tiles, thatch or wood shakes. A flat roof is a floor inside a parapet, so it has none.", options: roofMaterials, when: (look) => look.roof !== "flat" },
         { field: "wing", title: "Wing", hint: "A second section. A front wing sticks out in the middle with the same kind of roof (a gable roof gets a cross gable, a flat one a notch) and has the door. A left or right wing is a second section beside the main part, which has the door.", options: buildingWings },
         { field: "rooftop", title: "On the roof", hint: "Air conditioners and vents, a big air-handling unit, cardboard boxes, skylights, solar panels or a roof garden, on the flat part of a roof: the flat, hip flat and mansard roofs. The other roofs have no flat part.", options: buildingRooftops },
         { field: "pitch", title: "Pitch", hint: "A steep roof is one tile taller, with more of the slopes showing, and a narrower flat top on the roofs that have one.", options: roofPitches },
         { field: "depth", title: "Length", hint: "How long the building is from front to back. You look down on it, so a longer building is a roof that goes further up.", options: buildingDepths }
-    ], colours: [{ field: "roofColor", title: "Roof colour" }] },
+    ], colours: [{ field: "roofColor", title: "Roof colour", natural: true }] },
     { id: "walls", label: "Walls", sections: [
         { field: "wall", title: "Material", hint: "Timber is plaster between wooden beams.", options: buildingWalls },
         { field: "storeys", title: "Storeys", hint: "Of the building, or of its main part when it has a wing: the part with the door.", options: buildingStoreys },
         { field: "wingStoreys", title: "Wing storeys", hint: "How many storeys the wing has. A wing lower than the main part makes a step in the roofline; a taller one rises above it.", options: buildingStoreys, when: (look) => look.wing !== "none" },
         { field: "width", title: "Width", hint: "In tiles.", options: buildingWidths }
-    ], colours: [{ field: "wallColor", title: "Wall colour" }] },
+    ], colours: [{ field: "wallColor", title: "Wall colour", natural: true }] },
     { id: "door", label: "Door", sections: [
         { field: "door", title: "Position", options: doorPositions },
         { field: "doorStyle", title: "Style", options: doorStyles },
@@ -124,12 +128,19 @@ function OptionGrid({ section, look, choose }: { section: Section; look: Resolve
     );
 }
 
-function ColourPicker({ title, value, onPick }: { title: string; value: BuildingColor; onPick: (value: BuildingColor) => void }) {
-    const custom = (buildingColors as readonly string[]).includes(value) ? undefined : value;
+function ColourPicker({ title, value, natural, onPick }: { title: string; value: MaterialColor; natural?: boolean; onPick: (value: MaterialColor) => void }) {
+    const custom = value === "natural" || (buildingColors as readonly string[]).includes(value) ? undefined : value;
     return (
         <div className="opt-section">
             <div className="h opt-title">{title}</div>
             <div className="swatches">
+                {natural && (
+                    <div className="swatch-item">
+                        <button className="swatch" aria-pressed={value === "natural"} aria-label="natural" title="The colour of the material"
+                            style={{ background: "repeating-linear-gradient(45deg, #c9b99a 0 4px, #8f8269 4px 8px)" }} onClick={() => onPick("natural")} />
+                        <span className="swatch-name">natural</span>
+                    </div>
+                )}
                 {buildingColors.map((name: ColorName) => (
                     <div key={name} className="swatch-item">
                         <button className="swatch" aria-pressed={value === name} aria-label={name} title={name} style={{ background: colorRamps[name].base }} onClick={() => onPick(name)} />
@@ -175,7 +186,7 @@ export function BuildingsPage({ route }: { route: Route }) {
     const px = Math.max(1, Math.floor(Math.min(Math.max(stageWidth - 16, 1) / shown.width, 440 / shown.height)));
 
     const choose = (field: Field, value: string | number) => setCfg((prev) => ({ ...prev, [field]: value }));
-    const setColour = (field: ColourField, value: BuildingColor) => setCfg((prev) => ({ ...prev, [field]: value }));
+    const setColour = (field: ColourField, value: MaterialColor) => setCfg((prev) => ({ ...prev, [field]: value }));
 
     const changed = (Object.keys(defaultBuildingConfig) as (keyof BuildingConfig)[])
         .filter((k) => look[k] !== defaultBuildingConfig[k])
@@ -225,7 +236,7 @@ export function BuildingsPage({ route }: { route: Route }) {
                         </div>
                     ))}
                     {tab.colours?.map((colour) => (
-                        <ColourPicker key={colour.field} title={colour.title} value={look[colour.field]} onPick={(v) => setColour(colour.field, v)} />
+                        <ColourPicker key={colour.field} title={colour.title} value={look[colour.field]} natural={colour.natural} onPick={(v) => setColour(colour.field, v)} />
                     ))}
                 </section>
             </div>
