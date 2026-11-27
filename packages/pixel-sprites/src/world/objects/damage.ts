@@ -322,7 +322,7 @@ function keepConnected(c: Canvas, root: number) {
 const plain = (id: ObjectId, level: Level) => (id === "tree" || id === "fruit_tree") && level === "half";
 
 /** The ground objects scorch where they are, with no broken top, so they get no edges of lit stone. */
-const ground = new Set<ObjectId>(["rug", "flower", ...fruitIds, ...vegIds, ...cropIds.filter((id) => id !== "crop_corn")]);
+const ground = new Set<ObjectId>(["rug", "flower", ...fruitIds, ...vegIds]);
 
 /**
  * Returns the object's picture, damaged. `key` is the object's cache key, which seeds every choice, and `raster` is the object

@@ -160,7 +160,7 @@ test("a tree trunk blocks, but its canopy does not", () => {
     assert.ok(p.hero.feet.x < 16 * 16, "the canopy at (16,10) is open: the hero walks under it");
 });
 
-test("a fruit tree blocks only its foot, and a field can be walked across", () => {
+test("a fruit tree blocks only its foot, and a row of a field can be walked along", () => {
     const p = play();
     // The apple tree at (0,0) is 2 by 3 tiles: its crown rows are open and its bottom row, (0,2) and (1,2), is solid.
     put(p, 3, 0, "left");
@@ -169,10 +169,23 @@ test("a fruit tree blocks only its foot, and a field can be walked across", () =
     p.hero.teleport(3 * 16, 5 * 16 - 4, "left");
     hold(p, "left", 0.5);
     assert.ok(p.hero.feet.x >= 2 * 16, "the foot of the tree at (2,3) blocks");
-    // Crops do not block, so the hero walks over the field, soil and crops alike.
-    put(p, 5, 10, "left");
+    // The tilled row between the crops is open, so the hero walks along the field.
+    put(p, 5, 11, "left");
     hold(p, "left", 2);
-    assert.deepEqual(at(p), [0, 10], "across the whole row of vegetables");
+    assert.deepEqual(at(p), [0, 11], "along the whole open row");
+});
+
+test("crops block where they are drawn: the hero stops flush against a tomato, and walks behind the leaves of corn", () => {
+    const p = play();
+    // The tomato at (1,12) is a solid plant.
+    put(p, 1, 11, "down");
+    hold(p, "down", 1);
+    const bush = maps.solidBoxes(p.map()).find((b) => b.x >= 16 && b.x < 32 && b.y >= 12 * 16 && b.y < 13 * 16);
+    assert.ok(bush && p.hero.feet.y + p.hero.feet.height === bush.y, "right up to where it is drawn, not a tile away");
+    // The corn at (3,12) is two tiles tall and solid only at its foot, so the hero walks in behind its leaves and stops at its base.
+    put(p, 3, 11, "down");
+    hold(p, "down", 1);
+    assert.deepEqual(at(p), [3, 12], "walked in under the leaves");
 });
 
 const tap = (p, action) => {

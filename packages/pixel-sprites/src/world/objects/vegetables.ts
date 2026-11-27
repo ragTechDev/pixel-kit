@@ -23,7 +23,7 @@ import type { ObjectRampId } from "./ramps";
 // - `veg_<name>`: the vegetable picked, a 16x16 ground object to drop, carry or sell.
 // - `crop_<name>`: the vegetable in the field. A root vegetable (carrot, radish, turnip, beet) is a tuft of leaves over the top of its own
 //   mask, cut to its first few rows, so it looks buried in the soil below it. The others (cabbage, pumpkin, tomato, corn) grow above the
-//   ground, so they are drawn whole: a head, a vine, a bush, a stalk.
+//   ground, so they are drawn whole: a head, a vine, a bush, a stalk. A crop blocks movement where it is drawn, and corn only at its foot.
 
 /** The vegetables a game can grow, in the order a library lists them. */
 export const vegetables = ["carrot", "radish", "turnip", "beet", "cabbage", "pumpkin", "tomato", "corn"] as const satisfies readonly Vegetable[];
@@ -89,5 +89,5 @@ const record = <Id extends string>(ids: readonly Id[], prefix: string, pick: (lo
 /** The picked vegetables: 16×16 ground objects. */
 export const vegItemParts = record(vegIds, "veg_", (look) => look.item);
 
-/** The vegetables in a field. Corn is two tiles tall (16×32) and the rest one (16×16). */
+/** The vegetables in a field, standing objects that block where they are drawn. Corn is two tiles tall (16×32) and the rest one (16×16). */
 export const cropParts = record(cropIds, "crop_", (look) => look.field);

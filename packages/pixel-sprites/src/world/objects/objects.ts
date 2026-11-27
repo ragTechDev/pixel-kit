@@ -33,8 +33,9 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
     tree: { width: 1, height: 2, layer: "standing", footprint: [".", "#"] },
     fruit_tree: { width: 2, height: 3, layer: "standing", footprint: ["..", "..", "##"] },
     ...(Object.fromEntries(fruitIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<FruitId, ObjectInfo>),
-    // Crops in a field do not block walking. Corn is the one that stands taller than a person, so a walker goes behind it.
-    ...(Object.fromEntries(cropIds.map((id) => [id, id === "crop_corn" ? { width: 1, height: 2, layer: "standing", footprint: [".", "."] } : { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<CropId, ObjectInfo>),
+    // A crop is solid where it is drawn, like a tree trunk, so a character walks round a cabbage and stops flush against it. Corn is two tiles
+    // tall and blocks only its foot, so a character walks behind its leaves. Crops stand, and are drawn in order with the characters.
+    ...(Object.fromEntries(cropIds.map((id) => [id, id === "crop_corn" ? { width: 1, height: 2, layer: "standing", footprint: [".", "#"] } : { width: 1, height: 1, layer: "standing", footprint: ["#"] }])) as unknown as Record<CropId, ObjectInfo>),
     ...(Object.fromEntries(vegIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<VegId, ObjectInfo>),
     fence: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     door: { width: 1, height: 1, layer: "standing", footprint: ["."], door: true },

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
-    buildMap, buildObject, buildTile, defineMap, defineTileSet, houseTileset, mapTileSize,
+    buildMap, buildObject, buildTile, defineMap, defineTileSet, solidBoxes, houseTileset, mapTileSize,
     colorRamps, colorableObjectIds, cropIds, rootVegetables, treeCrops, treeStages, vegIds, vegetables, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
 } from "../dist/index.js";
 
@@ -412,7 +412,7 @@ test("a fruit tree can be placed with its options, and is damaged like a tree", 
     }
 });
 
-test("farmland tiles are the stages of working a field, and nothing about them blocks walking", () => {
+test("farmland tiles are the stages of working a field, and none of them blocks walking", () => {
     const stages = ["untilled", "tilled", "seeded", "sprouting"];
     for (const id of stages) {
         assert.ok(tileIds.includes(id), id);
@@ -439,20 +439,28 @@ test("every vegetable is a crop in a field and a picked item, and root crops sho
         assert.equal(crop.width, 16, v);
         assert.equal(crop.height, v === "corn" ? 32 : 16, v);
         assert.ok(crop.px.some(Boolean), v);
-        assert.equal(objectInfo[`crop_${v}`].footprint.join("").includes("#"), false, `${v} does not block walking`);
+        assert.equal(objectInfo[`crop_${v}`].layer, "standing", v);
+        assert.ok(objectInfo[`crop_${v}`].footprint.join("").includes("#"), `${v} blocks walking`);
+        assert.equal(objectInfo[`veg_${v}`].footprint.join("").includes("#"), false, `a picked ${v} does not`);
     }
     const area = (id) => buildObject(id).px.filter(Boolean).length;
-    for (const v of rootVegetables) assert.ok(area(`crop_${v}`) < area(`veg_${v}`) + 20 && objectInfo[`crop_${v}`].layer === "ground", v);
+    for (const v of rootVegetables) assert.ok(area(`crop_${v}`) < area(`veg_${v}`) + 20, v);
     // A root vegetable in the ground shows less of itself than the picked one; a vegetable above the ground shows all of it.
     const body = (id, ramp) => buildObject(id).px.filter((i) => i && buildObject(id).colors[i] === objectRamps[ramp].base).length;
     assert.ok(body("crop_carrot", "veg_carrot") < body("veg_carrot", "veg_carrot"));
     assert.equal(body("crop_cabbage", "veg_cabbage"), body("veg_cabbage", "veg_cabbage"));
-    assert.equal(objectInfo.crop_corn.layer, "standing");
+    assert.deepEqual(objectInfo.crop_corn.footprint, [".", "#"]);
 });
 
 test("a field is a map: soil tiles with crops on them, and picked vegetables on the ground", () => {
     const map = defineMap(townTileset, ["vvvv", "gggg"], [{ id: "crop_carrot", x: 0, y: 0 }, { id: "crop_corn", x: 2, y: 0 }, { id: "veg_beet", x: 4, y: 0 }]);
     const picture = buildMap(map);
     assert.equal(picture.width, 128);
-    assert.ok(queryCell(map, 0, 0).solid === false && queryCell(map, 2, 1).solid === false);
+    assert.equal(queryCell(map, 0, 0).solid, true, "a carrot blocks");
+    assert.equal(queryCell(map, 2, 0).solid, false, "the top of a corn plant is open");
+    assert.equal(queryCell(map, 2, 1).solid, true, "and its foot blocks");
+    assert.equal(queryCell(map, 4, 0).solid, false, "a picked beet does not");
+    // A crop blocks only where it is drawn: a cabbage fills most of its tile, a carrot far less.
+    const widthOf = (id) => solidBoxes(defineMap(townTileset, ["gg"], [{ id, x: 0, y: 0 }])).reduce((sum, b) => sum + b.width, 0);
+    assert.ok(widthOf("crop_carrot") < widthOf("crop_cabbage") && widthOf("crop_cabbage") <= 16);
 });
