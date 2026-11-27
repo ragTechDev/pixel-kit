@@ -31,7 +31,7 @@ export function drawGable(f: Frame, ridge: number = f.mid): Layer[] {
     layers.push(...paint(addPolygon(f.here(), [[rl, yb], [rr, yb], [ridge, apex[1] - 2]]), ramps.trim));
     const texture = wallPattern(c.wall, f.H, f.xOffset);
     layers.push(...paint(addPolygon(f.here(), [[rl + 3, yb], [rr - 3, yb], [ridge, apex[1] + 5]]), ramps.wall, (x, y) => (y >= yb - 2 ? SHADOW : texture(x, y))));
-    if (c.windows !== "none") layers.push(...placeParts(f, roundWindowParts, ridge, yb - 7));
+    if (c.windows > 0) layers.push(...placeParts(f, roundWindowParts, ridge, yb - 7));
     return layers;
 }
 

@@ -49,7 +49,7 @@ function frontWing(c: ResolvedBuildingConfig): Volume[] {
         storeys: c.wingStoreys,
         // A step longer than the main part, so its roof rises over the eave of the roof behind it.
         depth: longer(c),
-        windows: c.windows === "none" ? "none" : "some",
+        windows: Math.min(c.windows, 2),
         door: "centre",
         roof: wingRoofs[c.roof],
         chimney: "none",

@@ -42,8 +42,11 @@ export const buildingWalls = ["clapboard", "brick", "stone", "timber"] as const;
 /** Which tile column the door is in. */
 export const doorPositions = ["left", "centre", "right"] as const;
 export const doorStyles = ["plain", "arched"] as const;
-/** How many windows each storey has: none, one on each side, or as many as fit. */
-export const windowCounts = ["none", "some", "many"] as const;
+/**
+ * The most windows a storey can have, whatever the building: `windows` above this is brought down to it. What fits in a
+ * particular building depends on its width and the window style (`maxWindows`).
+ */
+export const MAX_WINDOWS = 6;
 export const windowStyles = ["plain", "arched", "shuttered"] as const;
 /** What is at the door: nothing, stone steps, or a wooden deck across the front. */
 export const porches = ["none", "steps", "deck"] as const;
@@ -64,7 +67,6 @@ export type BuildingDepth = (typeof buildingDepths)[number];
 export type BuildingWall = (typeof buildingWalls)[number];
 export type DoorPosition = (typeof doorPositions)[number];
 export type DoorStyle = (typeof doorStyles)[number];
-export type WindowCount = (typeof windowCounts)[number];
 export type WindowStyle = (typeof windowStyles)[number];
 export type Porch = (typeof porches)[number];
 export type Chimney = (typeof chimneys)[number];
@@ -93,7 +95,8 @@ export interface BuildingConfig {
     wall?: BuildingWall;
     door?: DoorPosition;
     doorStyle?: DoorStyle;
-    windows?: WindowCount;
+    /** How many windows each storey has, spaced evenly along the wall: 0 to `maxWindows(width, windowStyle)`, and no more than that however many are asked for. */
+    windows?: number;
     windowStyle?: WindowStyle;
     porch?: Porch;
     chimney?: Chimney;
@@ -129,7 +132,7 @@ export const defaultBuildingConfig: ResolvedBuildingConfig = {
     wall: "clapboard",
     door: "centre",
     doorStyle: "plain",
-    windows: "some",
+    windows: 2,
     windowStyle: "plain",
     porch: "steps",
     chimney: "none",
@@ -165,7 +168,7 @@ export function resolveBuildingConfig(config: BuildingConfig = {}): ResolvedBuil
         wall: oneOf(buildingWalls, c.wall, d.wall),
         door: oneOf(doorPositions, c.door, d.door),
         doorStyle: oneOf(doorStyles, c.doorStyle, d.doorStyle),
-        windows: oneOf(windowCounts, c.windows, d.windows),
+        windows: typeof c.windows === "number" && Number.isFinite(c.windows) ? Math.min(MAX_WINDOWS, Math.max(0, Math.round(c.windows))) : d.windows,
         windowStyle: oneOf(windowStyles, c.windowStyle, d.windowStyle),
         porch: oneOf(porches, c.porch, d.porch),
         chimney: oneOf(chimneys, c.chimney, d.chimney),
@@ -207,7 +210,7 @@ export function randomBuilding(seed: number = Math.floor(Math.random() * 4294967
         wall: pick(buildingWalls),
         door: pick(doorPositions),
         doorStyle: pick(doorStyles),
-        windows: pick(windowCounts),
+        windows: Math.floor(next() * (MAX_WINDOWS + 1)),
         windowStyle: pick(windowStyles),
         porch: pick(porches),
         chimney: pick(chimneys),

@@ -24,10 +24,10 @@ export { buildObject, objectIds, objectInfo, objectColors, colorableObjectIds, s
 export { objectRamps, type ObjectRampId } from "./world/objects/ramps";
 export {
     buildBuilding, buildingBox, buildingFootprint, buildingMap, randomBuilding, resolveBuildingConfig, defaultBuildingConfig,
-    buildingWidths, buildingStoreys, roofShapes, roofMaterials, buildingWings, buildingRooftops, roofPitches, buildingDepths, buildingWalls, doorPositions, doorStyles, windowCounts, windowStyles,
+    buildingWidths, buildingStoreys, roofShapes, roofMaterials, buildingWings, buildingRooftops, roofPitches, buildingDepths, buildingWalls, doorPositions, doorStyles, windowStyles, MAX_WINDOWS, maxWindows,
     porches, chimneys, buildingProps, buildingColors,
     type BuildingConfig, type ResolvedBuildingConfig, type BuildingWidth, type BuildingStoreys, type RoofShape, type BuildingWing, type BuildingRooftop, type RoofPitch, type BuildingDepth,
-    type BuildingWall, type DoorPosition, type DoorStyle, type WindowCount, type WindowStyle, type Porch, type Chimney,
+    type BuildingWall, type DoorPosition, type DoorStyle, type WindowStyle, type Porch, type Chimney,
     type BuildingProps, type BuildingColor, type MaterialColor, type RoofMaterial
 } from "./world/buildings";
 export { townTileset } from "./world/tilesets/town";

@@ -3,7 +3,7 @@ import test from "node:test";
 import {
     TILE_SIZE, colorRamps, buildBuilding, buildMap, buildingDepths, buildingWings, buildingRooftops, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
     chimneys, objectRamps, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes, roofMaterials,
-    townTileset, windowCounts, windowStyles
+    townTileset, windowStyles, maxWindows, MAX_WINDOWS
 } from "../dist/index.js";
 
 // Pixel values index each raster's own colour list, so compare the colours themselves.
@@ -13,7 +13,7 @@ const lowerRoof = { gable: "gable", hip: "hip", hipFlat: "hip", mansard: "hip", 
 const lowTopOf = (roof, width = 8) => (buildingBox({ roof, width, wing: "left", storeys: 2, wingStoreys: 1 }).height - buildingBox({ roof: lowerRoof[roof], width, storeys: 1 }).height) * TILE_SIZE;
 
 test("every choice draws a building a whole number of tiles wide and tall, standing on the bottom row", () => {
-    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, roofMaterial: roofMaterials, rooftop: buildingRooftops, wingStoreys: buildingStoreys, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: windowCounts, windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
+    const lists = { width: buildingWidths, storeys: buildingStoreys, roof: roofShapes, wing: buildingWings, pitch: roofPitches, depth: buildingDepths, roofMaterial: roofMaterials, rooftop: buildingRooftops, wingStoreys: buildingStoreys, wall: buildingWalls, door: doorPositions, doorStyle: doorStyles, windows: [0, 1, 2, 3, 4, 5, 6], windowStyle: windowStyles, porch: porches, chimney: chimneys, props: buildingProps };
     for (const [field, options] of Object.entries(lists)) {
         for (const option of options) {
             const config = { [field]: option };
@@ -44,7 +44,7 @@ test("a building is the same object each time, and its choices change the pictur
     assert.equal(buildBuilding({ roofColor: "blue" }), buildBuilding({ roofColor: "blue" }));
     const base = paint(buildBuilding({}));
     for (const change of [{ roofColor: "green" }, { wallColor: "pink" }, { trimColor: "white" }, { doorColor: "red" }, { wall: "brick" }, { wall: "stone" }, { wall: "timber" }, { roof: "hip" }, { roof: "flat" }, { wing: "front" }, { wing: "left" },
-        { chimney: "left" }, { props: "barrels" }, { props: "planters" }, { porch: "deck" }, { windows: "none" }, { windowStyle: "arched" }, { doorStyle: "arched" }]) {
+        { chimney: "left" }, { props: "barrels" }, { props: "planters" }, { porch: "deck" }, { windows: 0 }, { windowStyle: "arched" }, { doorStyle: "arched" }]) {
         assert.notDeepEqual(paint(buildBuilding(change)), base, JSON.stringify(change));
     }
     assert.notDeepEqual(paint(buildBuilding({ roofColor: "#336699" })), base);
@@ -79,14 +79,14 @@ test("each roof looks different, and a gable and a saltbox differ only in where 
     const pictures = roofShapes.map((roof) => JSON.stringify(paint(buildBuilding({ roof }))));
     assert.equal(new Set(pictures).size, roofShapes.length);
     // A hip roof has a sloping face where a gable has the wall: the wall rectangle is plain.
-    const gable = buildBuilding({ roof: "gable", windows: "none", wall: "brick" });
-    const hip = buildBuilding({ roof: "hip", windows: "none", wall: "brick" });
+    const gable = buildBuilding({ roof: "gable", windows: 0, wall: "brick" });
+    const hip = buildBuilding({ roof: "hip", windows: 0, wall: "brick" });
     assert.notDeepEqual(paint(gable), paint(hip));
 });
 
 test("nothing on the facade touches the roof or the shadow under its eave", () => {
-    const facade = { door: "left", doorStyle: "arched", windows: "many", windowStyle: "shuttered", porch: "deck", props: "planters" };
-    const bare = { door: "right", doorStyle: "plain", windows: "none", windowStyle: "plain", porch: "none", props: "none" };
+    const facade = { door: "left", doorStyle: "arched", windows: 4, windowStyle: "shuttered", porch: "deck", props: "planters" };
+    const bare = { door: "right", doorStyle: "plain", windows: 0, windowStyle: "plain", porch: "none", props: "none" };
     for (const roof of roofShapes) {
         for (const pitch of roofPitches) {
             for (const storeys of buildingStoreys) {
@@ -98,7 +98,7 @@ test("nothing on the facade touches the roof or the shadow under its eave", () =
                         const rows = box.roofTiles * TILE_SIZE + 7;
                         const above = (extra) => paint(buildBuilding({ ...config, ...extra })).slice(0, rows * box.width * TILE_SIZE);
                         // A gable (and a saltbox) has a round window of its own whenever the house has windows, so it is compared with a house that has some.
-                        assert.deepEqual(above(facade), above({ ...bare, ...(roof === "gable" || roof === "saltbox" ? { windows: "some" } : {}) }), JSON.stringify(config));
+                        assert.deepEqual(above(facade), above({ ...bare, ...(roof === "gable" || roof === "saltbox" ? { windows: 2 } : {}) }), JSON.stringify(config));
                     }
                 }
             }
@@ -360,8 +360,8 @@ test("a wing has its own storeys: the main part has `storeys`, the wing `wingSto
     };
     const wingTall = buildBuilding({ wing: "left", width: 8, roof: "gable", storeys: 1, wingStoreys: 2 });
     const wingLow = buildBuilding({ wing: "left", width: 8, roof: "gable", storeys: 1, wingStoreys: 1 });
-    // Down a column of the wing's windows (the wing is the left three tiles, its windows in the middle one, off the glazing bar): more panes when it has two storeys.
-    assert.ok(windowRows(wingTall, TILE_SIZE + 5) > windowRows(wingLow, TILE_SIZE + 5));
+    // Down a column of the wing's windows (the wing is the left three tiles, with two windows, the first one's glass left of the glazing bar): more panes when it has two storeys.
+    assert.ok(windowRows(wingTall, 12) > windowRows(wingLow, 12));
     // A front wing has its storeys too: a taller wing makes the picture taller when it is taller than the part behind plus what it sticks out.
     assert.equal(height({ wing: "front", width: 8, roof: "flat", storeys: 1, wingStoreys: 1 }), height({ width: 8, roof: "flat", storeys: 1 }) + 2);
     assert.ok(height({ wing: "front", width: 8, roof: "flat", storeys: 1, wingStoreys: 2 }) > height({ wing: "front", width: 8, roof: "flat", storeys: 1, wingStoreys: 1 }));
@@ -417,7 +417,7 @@ test("beside a front wing the ground in front of the main part is open, and only
 });
 
 test("unknown values fall back to the defaults and bad colours are dropped", () => {
-    const resolved = resolveBuildingConfig({ width: 99, storeys: "2", roof: "toString", pitch: "__proto__", wall: "glass", door: "up", windows: 7, porch: null, roofColor: "javascript:1", wallColor: "#ABC", trimColor: "nope", doorColor: 5 });
+    const resolved = resolveBuildingConfig({ width: 99, storeys: "2", roof: "toString", pitch: "__proto__", wall: "glass", door: "up", windows: "many", porch: null, roofColor: "javascript:1", wallColor: "#ABC", trimColor: "nope", doorColor: 5 });
     assert.deepEqual(resolved, { ...defaultBuildingConfig, wallColor: "#aabbcc" });
     assert.deepEqual(resolveBuildingConfig(), defaultBuildingConfig);
     assert.equal(resolveBuildingConfig({ roofColor: "teal" }).roofColor, "teal");
@@ -516,4 +516,32 @@ test("a roof covering and a wall take their natural colour unless one is given",
     assert.ok(colorsOf({ wall: "brick", wallColor: "yellow" }).has(colorRamps.yellow.base));
     // A flat roof has no covering to choose.
     assert.deepEqual(paint(buildBuilding({ roof: "flat", roofMaterial: "thatch" })), paint(buildBuilding({ roof: "flat", roofMaterial: "wood" })));
+});
+
+test("windows are a number, spaced evenly, and never more than fit", () => {
+    assert.equal(defaultBuildingConfig.windows, 2);
+    assert.equal(resolveBuildingConfig({ windows: 3.6 }).windows, 4);
+    assert.equal(resolveBuildingConfig({ windows: -2 }).windows, 0);
+    assert.equal(resolveBuildingConfig({ windows: 99 }).windows, MAX_WINDOWS);
+    assert.equal(resolveBuildingConfig({ windows: "some" }).windows, defaultBuildingConfig.windows);
+    const glass = (config) => { const r = buildBuilding(config); return r.px.reduce((n, i) => n + (r.colors[i] === objectRamps.glass.base ? 1 : 0), 0); };
+    // Each count up to what fits adds one window, on every storey, door or no door; past that the picture stops changing.
+    for (const width of buildingWidths) {
+        for (const door of doorPositions) {
+            const most = maxWindows(width, "plain", door);
+            assert.ok(most >= 2, `a ${width} tile wall fits at least two beside a door`);
+            const one = (windows, storeys = 1) => glass({ width, windows, storeys, door, roof: "flat" });
+            const pane = one(2) - one(1);
+            assert.ok(pane > 0);
+            for (let n = 1; n <= most; n += 1) {
+                assert.equal(one(n), one(1) + (n - 1) * pane, `${width} ${door}: ${n} on one storey`);
+                // Two storeys have n windows each: twice the windows of one.
+                assert.equal(one(n, 2) - one(0, 2), 2 * (one(n) - one(0)), `${width} ${door}: ${n} on two storeys`);
+            }
+            assert.equal(one(most + 1), one(most), `${width} ${door}: past the most, no more`);
+            assert.equal(one(99), one(most));
+        }
+    }
+    assert.ok(maxWindows(8, "shuttered") < maxWindows(8, "plain"));
+    assert.ok(maxWindows(8, "plain", "centre") < maxWindows(8, "plain"));
 });

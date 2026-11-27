@@ -4,6 +4,7 @@ import type { BuildingConfig } from "./buildings/config";
 import { townTileset } from "./tilesets/town";
 
 export * from "./buildings/config";
+export { maxWindows } from "./buildings/facade";
 export { buildBuilding, buildingBox, buildingFootprint } from "./buildings/draw";
 
 /**
