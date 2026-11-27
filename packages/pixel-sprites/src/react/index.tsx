@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { avatarKey, buildAvatar, buildIcon, buildMap, buildObject, buildTile, createCache, toMapVariant, toSvgPaths, toVariant } from "../index";
-import type { AvatarConfig, ColorName, HexColor, IconId, IconOptions, ObjectId, Raster, TileId, TileMap, TileColors, TileTheme, VariantOptions } from "../index";
+import { avatarKey, buildAvatar, buildBuilding, buildIcon, buildMap, buildObject, buildTile, createCache, toMapVariant, toSvgPaths, toVariant } from "../index";
+import type { AvatarConfig, BuildingConfig, ColorName, HexColor, IconId, IconOptions, ObjectId, Raster, TileId, TileMap, TileColors, TileTheme, VariantOptions } from "../index";
 
 const avatarCache = createCache<Raster>(512);
 
@@ -54,4 +54,9 @@ export function WorldObject({ id, theme, color, ...rest }: ImageProps & { id: Ob
  */
 export function World({ map, theme, colors, size, bits, palette, ...rest }: ImageProps & { map: TileMap; theme?: TileTheme; colors?: TileColors }) {
     return <PixelImage raster={toMapVariant(buildMap(map, theme, colors), { size, bits, palette })} {...rest} />;
+}
+
+/** A building, drawn from its choices (`BuildingConfig`). It is a whole number of tiles wide and tall at 16 px per tile. */
+export function Building({ pixelSize, className, title, size, bits, palette, ...config }: ImageProps & BuildingConfig) {
+    return <PixelImage raster={buildBuilding(config)} pixelSize={pixelSize} className={className} title={title} size={size} bits={bits} palette={palette} />;
 }

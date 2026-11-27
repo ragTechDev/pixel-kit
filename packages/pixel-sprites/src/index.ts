@@ -19,9 +19,17 @@ export { TILE_SIZE } from "./world/size";
 export { tilePalettes, tileThemes, defaultTileTheme, tileColorGroups, type TileColor, type TileColors, type TileColorGroup, type TileTheme } from "./world/tiles/palettes";
 export type { TileId, RoadTileId, TownTileId, ObjectId } from "./world/types";
 export { defineTileSet, type Block, type TileSet, type TileSetDefinition } from "./world/tileset";
-export { defineMap, buildMap, tileAt, queryCell, mapTileSize, type TileMap, type CellInfo, type PlacedObject } from "./world/map";
+export { defineMap, buildMap, tileAt, queryCell, mapTileSize, type TileMap, type CellInfo, type PlacedObject, type PlacedBuilding } from "./world/map";
 export { buildObject, objectIds, objectInfo, objectColors, colorableObjectIds, seasonalObjectIds, type ObjectInfo } from "./world/objects/objects";
 export { objectRamps, type ObjectRampId } from "./world/objects/ramps";
+export {
+    buildBuilding, buildingBox, buildingFootprint, buildingMap, randomBuilding, resolveBuildingConfig, defaultBuildingConfig,
+    buildingWidths, buildingStoreys, roofShapes, roofPitches, buildingWalls, doorPositions, doorStyles, windowCounts, windowStyles,
+    porches, chimneys, buildingProps, buildingColors,
+    type BuildingConfig, type ResolvedBuildingConfig, type BuildingWidth, type BuildingStoreys, type RoofShape, type RoofPitch,
+    type BuildingWall, type DoorPosition, type DoorStyle, type WindowCount, type WindowStyle, type Porch, type Chimney,
+    type BuildingProps, type BuildingColor
+} from "./world/buildings";
 export { townTileset } from "./world/tilesets/town";
 export { houseTileset } from "./world/tilesets/house";
 export type { Raster } from "./core/compose";

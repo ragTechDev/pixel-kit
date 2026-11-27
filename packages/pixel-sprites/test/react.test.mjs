@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { buildIcon, buildMap, buildObject, defineMap, toSvgPaths, townTileset } from "../dist/index.js";
-import { Avatar, Icon, PixelImage, Tile, World, WorldObject } from "../dist/react.js";
+import { buildBuilding, buildIcon, buildMap, buildObject, defineMap, toSvgPaths, townTileset } from "../dist/index.js";
+import { Avatar, Building, Icon, PixelImage, Tile, World, WorldObject } from "../dist/react.js";
 
 test("<Icon> renders the same pixels as buildIcon through <PixelImage>", () => {
     const viaIcon = renderToStaticMarkup(createElement(Icon, { id: "heart", pixelSize: 2 }));
@@ -33,4 +33,12 @@ test("<WorldObject> and <World> render the same pixels as buildObject and buildM
         renderToStaticMarkup(createElement(World, { map, theme: "winter" })),
         renderToStaticMarkup(createElement(World, { map }))
     );
+});
+
+test("<Building> renders the same pixels as buildBuilding through <PixelImage>", () => {
+    assert.equal(
+        renderToStaticMarkup(createElement(Building, { roof: "gable", roofColor: "blue", pixelSize: 2 })),
+        renderToStaticMarkup(createElement(PixelImage, { raster: buildBuilding({ roof: "gable", roofColor: "blue" }), pixelSize: 2 }))
+    );
+    assert.match(renderToStaticMarkup(createElement(Building, { title: "A house" })), /aria-label="A house"/);
 });

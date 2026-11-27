@@ -1,5 +1,9 @@
+import type { ColorName } from "../core/colors";
 import { composeSprites, type Layer, type Raster } from "../core/compose";
-import { objectIds, objectInfo, objectLayers } from "./objects/objects";
+import { parseHex, type HexColor } from "../core/customColor";
+import { buildingBox, buildingFootprint, buildingLayers } from "./buildings/draw";
+import { resolveBuildingConfig, type BuildingConfig } from "./buildings/config";
+import { objectColors, objectIds, objectInfo, objectLayers } from "./objects/objects";
 import { TILE_SIZE } from "./size";
 import { themeSlots, tileSprite } from "./tiles";
 import { resolveTheme, tileColorsKey, type TileColors } from "./tiles/palettes";
@@ -11,6 +15,19 @@ export interface PlacedObject {
     readonly id: ObjectId;
     readonly x: number;
     readonly y: number;
+    /** One of the object's common colours (`objectColors`) or a hex colour, replacing its main colour. Only for objects that have one. */
+    readonly color?: ColorName | HexColor;
+}
+
+/**
+ * A building placed on a map. `x` and `y` are the tile coordinates of the top-left tile of its box (its width and
+ * height are in tiles, see `buildingBox`). Its walls and roof are solid, and the tile at the foot of its door is
+ * open and has `door` set.
+ */
+export interface PlacedBuilding {
+    readonly config?: BuildingConfig;
+    readonly x: number;
+    readonly y: number;
 }
 
 /** A map is a grid of block characters plus placed objects. One character per block keeps maps tiny. */
@@ -18,6 +35,7 @@ export interface TileMap {
     readonly tileset: TileSet;
     readonly rows: readonly string[];
     readonly objects: readonly PlacedObject[];
+    readonly buildings: readonly PlacedBuilding[];
     /** Width in blocks. */
     readonly width: number;
     /** Height in blocks. */
@@ -28,6 +46,8 @@ export interface CellInfo {
     readonly tile: TileId;
     /** The object covering this cell. A standing object wins over a ground one. */
     readonly object?: ObjectId;
+    /** The building covering this cell. */
+    readonly building?: PlacedBuilding;
     /** True for solid terrain and for solid footprint cells of standing objects. */
     readonly solid: boolean;
     readonly water: boolean;
@@ -37,8 +57,9 @@ export interface CellInfo {
 }
 
 interface Occupant {
-    readonly object: PlacedObject;
-    /** Footprint character at this cell: `#` solid, `.` open. */
+    readonly object?: PlacedObject;
+    readonly building?: PlacedBuilding;
+    /** Footprint character at this cell: `#` solid, `.` open, `D` the foot of a door (open). */
     readonly mark: string;
 }
 
@@ -46,10 +67,11 @@ const occupancy = new WeakMap<TileMap, { standing: Map<number, Occupant>; ground
 
 /**
  * Validates a map against its tileset. Throws on ragged rows, unknown block
- * characters or objects, objects outside the map, and objects of the same
- * layer that overlap.
+ * characters or objects, objects outside the map, objects of the same
+ * layer that overlap, a `color` that is not valid for its object, and buildings that do not fit or that
+ * overlap an object or another building.
  */
-export function defineMap(tileset: TileSet, rows: readonly string[], objects: readonly PlacedObject[] = []): TileMap {
+export function defineMap(tileset: TileSet, rows: readonly string[], objects: readonly PlacedObject[] = [], buildings: readonly PlacedBuilding[] = []): TileMap {
     if (rows.length === 0) throw new Error("A map needs at least one row");
     const width = rows[0].length;
     rows.forEach((row, y) => {
@@ -71,6 +93,12 @@ export function defineMap(tileset: TileSet, rows: readonly string[], objects: re
         ) {
             throw new Error(`Object "${placed.id}" at (${placed.x}, ${placed.y}) does not fit in the map`);
         }
+        if (placed.color !== undefined) {
+            const common = objectColors[placed.id];
+            if (!common || !(common.includes(placed.color as ColorName) || parseHex(placed.color))) {
+                throw new Error(`Object "${placed.id}" cannot be coloured "${String(placed.color)}"`);
+            }
+        }
         const cells = index[info.layer];
         for (let dy = 0; dy < info.height; dy += 1) {
             for (let dx = 0; dx < info.width; dx += 1) {
@@ -83,10 +111,31 @@ export function defineMap(tileset: TileSet, rows: readonly string[], objects: re
         }
     }
 
+    const placedBuildings = buildings.map((b) => Object.freeze({ ...b, config: b.config && resolveBuildingConfig(b.config) }));
+    for (const placed of placedBuildings) {
+        const box = buildingBox(placed.config);
+        const footprint = buildingFootprint(placed.config);
+        if (
+            !Number.isInteger(placed.x) || !Number.isInteger(placed.y) ||
+            placed.x < 0 || placed.y < 0 || placed.x + box.width > tilesWide || placed.y + box.height > tilesHigh
+        ) {
+            throw new Error(`A building at (${placed.x}, ${placed.y}) does not fit in the map`);
+        }
+        for (let dy = 0; dy < box.height; dy += 1) {
+            for (let dx = 0; dx < box.width; dx += 1) {
+                const key = (placed.y + dy) * tilesWide + placed.x + dx;
+                if (index.standing.has(key)) throw new Error(`A building at (${placed.x}, ${placed.y}) overlaps another standing object or building`);
+                index.standing.set(key, { building: placed, mark: footprint[dy][dx] });
+            }
+        }
+    }
+
     const map: TileMap = Object.freeze({
         tileset,
         rows: Object.freeze([...rows]),
-        objects: Object.freeze([...objects]),
+        // A hex colour is kept as lowercase `#rrggbb`.
+        buildings: Object.freeze(placedBuildings),
+        objects: Object.freeze(objects.map((o) => (o.color === undefined || objectColors[o.id]?.includes(o.color as ColorName) ? o : { ...o, color: parseHex(o.color)! }))),
         width,
         height: rows.length
     });
@@ -119,15 +168,16 @@ export function queryCell(map: TileMap, tx: number, ty: number): CellInfo | unde
     const key = ty * mapTileSize(map).width + tx;
     const standing = index?.standing.get(key);
     const ground = index?.ground.get(key);
-    const info = standing && objectInfo[standing.object.id];
+    const info = standing?.object && objectInfo[standing.object.id];
     return {
         tile,
-        object: (standing ?? ground)?.object.id,
+        object: (standing ?? ground)?.object?.id,
+        building: standing?.building,
         solid: solid.has(tile) || standing?.mark === "#",
         water: water.has(tile),
         grass: grass.has(tile),
         counter: info?.counter === true,
-        door: info?.door === true
+        door: info?.door === true || standing?.mark === "D"
     };
 }
 
@@ -168,15 +218,13 @@ export function buildMap(map: TileMap, theme?: string, colors?: TileColors): Ras
                 }
             }
         }
-        // Ground objects first, then standing ones from back to front so that a
-        // tall object (a tree) covers whatever stands behind it.
-        const order = (a: PlacedObject, b: PlacedObject) => {
-            const layer = Number(objectInfo[a.id].layer === "standing") - Number(objectInfo[b.id].layer === "standing");
-            return layer || a.y + objectInfo[a.id].height - (b.y + objectInfo[b.id].height) || a.x - b.x;
-        };
-        for (const placed of [...map.objects].sort(order)) {
-            layers.push(...objectLayers(placed.id, placed.x * TILE_SIZE, placed.y * TILE_SIZE, resolved));
-        }
+        // Ground objects first, then standing ones and buildings from back to front so that a
+        // tall object (a tree, a house) covers whatever stands behind it.
+        const drawables = [
+            ...map.objects.map((o) => ({ standing: objectInfo[o.id].layer === "standing", bottom: o.y + objectInfo[o.id].height, x: o.x, layers: () => objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color) })),
+            ...map.buildings.map((b) => ({ standing: true, bottom: b.y + buildingBox(b.config).height, x: b.x, layers: () => buildingLayers(b.config, b.x * TILE_SIZE, b.y * TILE_SIZE) }))
+        ].sort((a, b) => Number(a.standing) - Number(b.standing) || a.bottom - b.bottom || a.x - b.x);
+        for (const drawable of drawables) layers.push(...drawable.layers());
         const { width, height } = mapTileSize(map);
         raster = composeSprites(layers, { x: 0, y: 0, width: width * TILE_SIZE, height: height * TILE_SIZE });
         byTheme.set(cacheKey, raster);
