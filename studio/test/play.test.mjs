@@ -268,11 +268,11 @@ test("A does nothing when nobody is in front", () => {
 test("holding B runs: a step takes about half as long", () => {
     const framesToStep = (running) => {
         const p = play();
-        p.hero.teleport(3, 1, "right");
+        p.hero.teleport(12, 1, "right");
         if (running) p.game.input.press("b");
         p.game.input.press("right");
         let frames = 0;
-        while (p.hero.tx === 3 && frames < 60) {
+        while (p.hero.tx === 12 && frames < 60) {
             p.game.advance(frame);
             frames += 1;
         }

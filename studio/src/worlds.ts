@@ -5,8 +5,8 @@ const at = (id: ObjectId, ...spots: [number, number][]): PlacedObject[] => spots
 // Terrain is one character per 2x2-tile block. Objects are placed in tile coordinates on top and shaded automatically.
 export const townMap = defineMap(townTileset, [
     "gggggggggg",
-    "gg<==>gggg",
-    "gg[__]gggg",
+    "gggggggggg",
+    "gggggggggg",
     "gggpggggtt",
     "gggpgABCgt",
     "gggpgDEFgt",
@@ -15,11 +15,10 @@ export const townMap = defineMap(townTileset, [
     "gggpwwwwwg"
 ], [
     ...at("tree", [0, 0], [2, 0], [17, 0], [19, 0], [1, 8], [16, 10]),
-    ...at("window", [5, 4], [10, 4]),
-    ...at("door", [7, 5]),
     ...at("fence", [10, 6], [11, 6], [12, 6], [13, 6]),
     ...at("flower", [2, 7], [3, 10], [4, 13], [18, 2])
-]);
+// The house is a building: its walls and roof are solid and the tile at the foot of its door is the way in.
+], [{ config: { width: 8, roof: "gable", roofMaterial: "ceramic", windows: 2, chimney: "right" }, x: 4, y: 1 }]);
 
 export const houseMap = defineMap(houseTileset, [
     "hhhhhhhh",
@@ -60,12 +59,10 @@ export type WorldName = keyof typeof worlds;
 
 /** A small town that fits in a card: a house, a path, a tree and some flowers (160x96 px). */
 export const miniTown = defineMap(townTileset, [
-    "k<=>k",
-    "g[_]g",
+    "ggggg",
+    "ggggg",
     "ggpgg"
 ], [
     ...at("tree", [0, 2]),
-    ...at("window", [2, 2], [6, 2]),
-    ...at("door", [4, 3]),
     ...at("flower", [8, 4])
-]);
+], [{ config: { width: 5, roof: "gable", roofMaterial: "ceramic", windows: 2 }, x: 2, y: 0 }]);
