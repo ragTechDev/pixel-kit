@@ -41,3 +41,24 @@ test("the footprint is solid with the doorway at the foot of the middle column",
         assert.equal(rows[rows.length - 1][Math.floor(size / 2)], "D");
     }
 });
+
+test("a placed tent blocks walking, has a doorway, covers what is behind it and is checked by defineMap", async () => {
+    const { defineMap, townTileset, queryCell, solidBoxes, doorBoxes, mapDrawables, buildMap } = await import("../dist/index.js");
+    const rows = ["gggg", "gggg", "gggg"];
+    const map = defineMap(townTileset, rows, [], [], [{ config: { size: 4, style: "dome" }, x: 1, y: 1 }]);
+    assert.equal(map.tents.length, 1);
+    assert.equal(queryCell(map, 1, 1).solid, true);
+    assert.equal(queryCell(map, 1, 1).tent, map.tents[0]);
+    const door = queryCell(map, 3, 3);
+    assert.equal(door.door, true);
+    assert.equal(door.solid, false);
+    assert.deepEqual(doorBoxes(map), [{ x: 3 * TILE_SIZE, y: 3 * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }]);
+    const covers = (x, y) => solidBoxes(map).some((b) => x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height);
+    assert.ok(covers(1 * TILE_SIZE + 2, 2 * TILE_SIZE));
+    assert.ok(covers(2 * TILE_SIZE, 3 * TILE_SIZE + 4));
+    assert.ok(!covers(3 * TILE_SIZE + 2, 3 * TILE_SIZE + 4));
+    assert.equal(mapDrawables(map).standing.length, 1);
+    assert.equal(buildMap(map).width, 8 * TILE_SIZE);
+    assert.throws(() => defineMap(townTileset, rows, [], [], [{ x: 6, y: 0 }]), /does not fit/);
+    assert.throws(() => defineMap(townTileset, rows, [], [], [{ x: 0, y: 0 }, { x: 2, y: 1 }]), /overlaps/);
+});

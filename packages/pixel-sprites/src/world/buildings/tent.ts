@@ -2,7 +2,7 @@ import { colorRamps } from "../../core/colors";
 import { composeSprites, type Layer, type Raster } from "../../core/compose";
 import { parseHex } from "../../core/customColor";
 import type { Ramp } from "../../core/sprite";
-import { bell, darken, seeded } from "../damageTools";
+import { bell, darken, rasterLayer, seeded } from "../damageTools";
 import { objectRamps } from "../objects/ramps";
 import { TILE_SIZE } from "../size";
 import type { BuildingColor } from "./config";
@@ -237,4 +237,9 @@ export function buildTent(config?: TentConfig): Raster {
         drawn.set(key, raster);
     }
     return raster;
+}
+
+/** Internal: the layers of a tent with its box's top-left corner at pixel (px, py). */
+export function tentLayers(config: TentConfig | undefined, px: number, py: number): Layer[] {
+    return [{ ...rasterLayer(buildTent(config)), x: px, y: py }];
 }

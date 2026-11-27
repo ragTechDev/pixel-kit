@@ -4,6 +4,7 @@ import { buildingVolumes } from "./buildings/volumes";
 import { resolveBuildingConfig } from "./buildings/config";
 import { doorColumn } from "./buildings/facade";
 import { makeFrame, volumeBox } from "./buildings/frame";
+import { tentBox, tentFootprint } from "./buildings/tent";
 import { queryCell, mapTileSize, type TileMap } from "./map";
 import { TILE_SIZE } from "./size";
 
@@ -38,9 +39,9 @@ function compute(map: TileMap): Boxes {
         for (let tx = 0; tx < width; tx += 1) {
             const cell = queryCell(map, tx, ty)!;
             // Only the terrain is whole tiles. A building's cells are covered by its drawn wall below, and an object's by what is drawn of it.
-            const free = !cell.building && !cell.door;
+            const free = !cell.building && !cell.tent && !cell.door;
             const from = free && map.tileset.solid.has(cell.tile) ? 0 : free ? (map.tileset.solidFrom.get(cell.tile) ?? -1) : -1;
-            if (!cell.building && cell.door) doors.push({ x: tx * TILE_SIZE, y: ty * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE });
+            if (!cell.building && !cell.tent && cell.door) doors.push({ x: tx * TILE_SIZE, y: ty * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE });
             // A run ends where the part that blocks changes.
             if (runStart >= 0 && from !== runFrom) close(tx);
             if (from >= 0 && runStart < 0) {
@@ -133,6 +134,21 @@ function compute(map: TileMap): Boxes {
             if (right > doorRight) solid.push({ x: doorRight, y: top, width: right - doorRight, height: bottom - top });
             if (doorTop > top) solid.push({ x: doorLeft, y: top, width: TILE_SIZE, height: doorTop - top });
         }
+    }
+    // A tent is solid as a block of whole tiles, with its doorway open at the foot. Unlike a building's roof, nothing of it is walk-behind.
+    for (const placed of map.tents) {
+        const box = tentBox(placed.config);
+        const footprint = tentFootprint(placed.config);
+        const door = footprint[box.height - 1].indexOf("D");
+        const left = placed.x * TILE_SIZE;
+        const top = placed.y * TILE_SIZE;
+        const bottom = (placed.y + box.height) * TILE_SIZE;
+        const doorLeft = (placed.x + door) * TILE_SIZE;
+        doors.push({ x: doorLeft, y: bottom - TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE });
+        solid.push({ x: left, y: top, width: box.width * TILE_SIZE, height: box.height * TILE_SIZE - TILE_SIZE });
+        if (doorLeft > left) solid.push({ x: left, y: bottom - TILE_SIZE, width: doorLeft - left, height: TILE_SIZE });
+        const right = (placed.x + box.width) * TILE_SIZE;
+        if (right > doorLeft + TILE_SIZE) solid.push({ x: doorLeft + TILE_SIZE, y: bottom - TILE_SIZE, width: right - doorLeft - TILE_SIZE, height: TILE_SIZE });
     }
     return { solid: Object.freeze(solid), doors: Object.freeze(doors) };
 }

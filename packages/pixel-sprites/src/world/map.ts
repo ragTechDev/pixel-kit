@@ -3,6 +3,7 @@ import { composeSprites, layerBounds, type Layer, type Raster } from "../core/co
 import { parseHex, type HexColor } from "../core/customColor";
 import { buildingBox, buildingFootprint, buildingLayers } from "./buildings/draw";
 import { resolveBuildingConfig, type BuildingConfig } from "./buildings/config";
+import { resolveTentConfig, tentBox, tentFootprint, tentLayers, type TentConfig } from "./buildings/tent";
 import { objectColors, objectDamage, objectIds, objectInfo, objectLayers, type ObjectDamage } from "./objects/objects";
 import { TILE_SIZE } from "./size";
 import { themeSlots, tileSprite } from "./tiles";
@@ -41,12 +42,23 @@ export interface PlacedBuilding {
     readonly y: number;
 }
 
+/**
+ * A tent placed on a map. `x` and `y` are the tile coordinates of the top-left tile of its box (see `tentBox`). Its canvas
+ * is solid, and the tile at the foot of its doorway is open and has `door` set.
+ */
+export interface PlacedTent {
+    readonly config?: TentConfig;
+    readonly x: number;
+    readonly y: number;
+}
+
 /** A map is a grid of block characters plus placed objects. One character per block keeps maps tiny. */
 export interface TileMap {
     readonly tileset: TileSet;
     readonly rows: readonly string[];
     readonly objects: readonly PlacedObject[];
     readonly buildings: readonly PlacedBuilding[];
+    readonly tents: readonly PlacedTent[];
     /** Width in blocks. */
     readonly width: number;
     /** Height in blocks. */
@@ -59,6 +71,8 @@ export interface CellInfo {
     readonly object?: ObjectId;
     /** The building covering this cell. */
     readonly building?: PlacedBuilding;
+    /** The tent covering this cell. */
+    readonly tent?: PlacedTent;
     /** True for solid terrain and for solid footprint cells of standing objects. */
     readonly solid: boolean;
     readonly water: boolean;
@@ -70,6 +84,7 @@ export interface CellInfo {
 interface Occupant {
     readonly object?: PlacedObject;
     readonly building?: PlacedBuilding;
+    readonly tent?: PlacedTent;
     /** Footprint character at this cell: `#` solid, `.` open, `D` the foot of a door (open). */
     readonly mark: string;
 }
@@ -80,9 +95,9 @@ const occupancy = new WeakMap<TileMap, { standing: Map<number, Occupant>; ground
  * Validates a map against its tileset. Throws on ragged rows, unknown block
  * characters or objects, objects outside the map, objects of the same
  * layer that overlap, a `color` that is not valid for its object, and buildings that do not fit or that
- * overlap an object or another building.
+ * overlap an object, a building or another tent.
  */
-export function defineMap(tileset: TileSet, rows: readonly string[], objects: readonly PlacedObject[] = [], buildings: readonly PlacedBuilding[] = []): TileMap {
+export function defineMap(tileset: TileSet, rows: readonly string[], objects: readonly PlacedObject[] = [], buildings: readonly PlacedBuilding[] = [], tents: readonly PlacedTent[] = []): TileMap {
     if (rows.length === 0) throw new Error("A map needs at least one row");
     const width = rows[0].length;
     rows.forEach((row, y) => {
@@ -148,11 +163,31 @@ export function defineMap(tileset: TileSet, rows: readonly string[], objects: re
         }
     }
 
+    const placedTents = tents.map((t) => Object.freeze({ ...t, config: t.config && resolveTentConfig(t.config) }));
+    for (const placed of placedTents) {
+        const box = tentBox(placed.config);
+        const footprint = tentFootprint(placed.config);
+        if (
+            !Number.isInteger(placed.x) || !Number.isInteger(placed.y) ||
+            placed.x < 0 || placed.y < 0 || placed.x + box.width > tilesWide || placed.y + box.height > tilesHigh
+        ) {
+            throw new Error(`A tent at (${placed.x}, ${placed.y}) does not fit in the map`);
+        }
+        for (let dy = 0; dy < box.height; dy += 1) {
+            for (let dx = 0; dx < box.width; dx += 1) {
+                const key = (placed.y + dy) * tilesWide + placed.x + dx;
+                if (index.standing.has(key)) throw new Error(`A tent at (${placed.x}, ${placed.y}) overlaps another standing object, building or tent`);
+                index.standing.set(key, { tent: placed, mark: footprint[dy][dx] });
+            }
+        }
+    }
+
     const map: TileMap = Object.freeze({
         tileset,
         rows: Object.freeze([...rows]),
         // A hex colour is kept as lowercase `#rrggbb`.
         buildings: Object.freeze(placedBuildings),
+        tents: Object.freeze(placedTents),
         objects: Object.freeze(objects.map((o) => (o.color === undefined || objectColors[o.id]?.includes(o.color as ColorName) ? o : { ...o, color: parseHex(o.color)! }))),
         width,
         height: rows.length
@@ -191,6 +226,7 @@ export function queryCell(map: TileMap, tx: number, ty: number): CellInfo | unde
         tile,
         object: (standing ?? ground)?.object?.id,
         building: standing?.building,
+        tent: standing?.tent,
         solid: solid.has(tile) || standing?.mark === "#",
         water: water.has(tile),
         grass: grass.has(tile),
@@ -240,7 +276,8 @@ export function buildMap(map: TileMap, theme?: string, colors?: TileColors): Ras
         // tall object (a tree, a house) covers whatever stands behind it.
         const drawables = [
             ...map.objects.map((o) => ({ standing: objectInfo[o.id].layer === "standing", bottom: o.y + objectInfo[o.id].height, x: o.x, layers: () => objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color, o.damage, o) })),
-            ...map.buildings.map((b) => ({ standing: true, bottom: b.y + buildingBox(b.config).height, x: b.x, layers: () => buildingLayers(b.config, b.x * TILE_SIZE, b.y * TILE_SIZE) }))
+            ...map.buildings.map((b) => ({ standing: true, bottom: b.y + buildingBox(b.config).height, x: b.x, layers: () => buildingLayers(b.config, b.x * TILE_SIZE, b.y * TILE_SIZE) })),
+            ...map.tents.map((t) => ({ standing: true, bottom: t.y + tentBox(t.config).height, x: t.x, layers: () => tentLayers(t.config, t.x * TILE_SIZE, t.y * TILE_SIZE) }))
         ].sort((a, b) => Number(a.standing) - Number(b.standing) || a.bottom - b.bottom || a.x - b.x);
         for (const drawable of drawables) layers.push(...drawable.layers());
         const { width, height } = mapTileSize(map);
@@ -315,6 +352,11 @@ export function mapDrawables(map: TileMap, theme?: string, colors?: TileColors):
             const buildingLayer = buildingLayers(b.config, b.x * TILE_SIZE, b.y * TILE_SIZE);
             const bounds = layerBounds(buildingLayer);
             standing.push({ raster: composeSprites(buildingLayer, bounds), x: bounds.x, y: bounds.y, sortY: (b.y + buildingBox(b.config).height) * TILE_SIZE, x0: b.x });
+        }
+        for (const t of map.tents) {
+            const tentLayer = tentLayers(t.config, t.x * TILE_SIZE, t.y * TILE_SIZE);
+            const bounds = layerBounds(tentLayer);
+            standing.push({ raster: composeSprites(tentLayer, bounds), x: bounds.x, y: bounds.y, sortY: (t.y + tentBox(t.config).height) * TILE_SIZE, x0: t.x });
         }
         standing.sort((a, b) => a.sortY - b.sortY || a.x0 - b.x0);
         const { width, height } = mapTileSize(map);

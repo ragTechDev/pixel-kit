@@ -239,7 +239,7 @@ tentBox({ size: 4 });       // { width: 4, height: 3 }
 tentFootprint({ size: 4 }); // ["####", "####", "##D#"]: canvas, with the doorway at the foot of the middle column
 ```
 
-`style` is `"ridge"` (an A-frame), `"dome"` or `"lean"` (a tarp on two poles, open at the front); `size` is `3`, `4` or `5` tiles wide and one tile less tall; `color` is `"canvas"` (the default), a common colour name or a hex colour (`parseHex`); `damage` is `"none"` or `"ruin"`, a collapsed, scorched and torn tent with the same footprint. `resolveTentConfig` replaces anything not in a list with its default. Tents are not placed through `defineMap` yet: draw one with `buildTent` at its tile position and use `tentFootprint` for its cells.
+`style` is `"ridge"` (an A-frame), `"dome"` or `"lean"` (a tarp on two poles, open at the front); `size` is `3`, `4` or `5` tiles wide and one tile less tall; `color` is `"canvas"` (the default), a common colour name or a hex colour (`parseHex`); `damage` is `"none"` or `"ruin"`, a collapsed, scorched and torn tent with the same footprint. `resolveTentConfig` replaces anything not in a list with its default. `defineMap` takes placed tents as a fifth argument (`{ config, x, y }` in tiles, `PlacedTent`): the canvas is solid, the tile at the foot of the doorway is open with `door` set (`queryCell` also gives the `tent`), `solidBoxes` and `doorBoxes` cover it, and `buildMap` and `mapDrawables` draw it with the standing objects. Unlike a building's roof, no part of a tent is walk-behind.
 
 <p align="center"><img src="docs/images/themes.svg" alt="The same village in the spring, summer, autumn and winter palettes" width="100%"></p>
 
