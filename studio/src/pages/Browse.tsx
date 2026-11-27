@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { ICON_SIZE, defaultTileTheme, buildIcon, buildObject, buildTile, colorableIconIds, iconCategories, iconColors, idleIconIds, objectColors, objectIds, objectInfo, seasonalObjectIds, tileIds, toVariant, type ColorName, type HexColor, type IconId, type ObjectId, type Raster, type TileId } from "@ragtechdev/pixel-sprites";
 import { iconKeywords, objectKeywords, tileKeywords } from "../keywords";
-import { categoryLabel, idLabel, objectLabel, tileGroup, tileGroups } from "../labels";
+import { categoryLabel, idLabel, objectGroup, objectGroupLabel, objectGroups, objectLabel, tileGroup, tileGroups } from "../labels";
 import { colorOf, damageOf, growOf, href, idleOf, setQuery as setRouteQuery, themeOf, tileColorsOf, variantOf, type Route } from "../router";
 import { Art, ColorDots, Detail, FruitTreeControls, Popover, TileColours, VariantBar } from "../ui";
 
@@ -113,11 +113,11 @@ const kinds: Record<"icons" | "tiles" | "objects", Kind> = {
     },
     objects: {
         title: "Objects",
-        blurb: "Things that stand on terrain: trees, doors, furniture. Each has a footprint that says where you can walk. Trees and flowers change with the season.",
+        blurb: "Things that stand on or sit on terrain, grouped by what they are for: furniture and fences, trees and flowers, crops growing in a field and the produce you pick from them. Each has a footprint that says where you can walk. Trees and flowers change with the season.",
         path: "objects",
-        groups: ["standing", "ground"],
-        groupLabel: (g) => (g === "standing" ? "Standing" : "On the ground"),
-        items: objectIds.map((id) => ({ id, group: objectInfo[id].layer, search: `${id} ${objectLabel[id]} ${objectInfo[id].layer} ${objectKeywords[id]}` })),
+        groups: objectGroups,
+        groupLabel: objectGroupLabel,
+        items: objectIds.map((id) => ({ id, group: objectGroup(id), search: `${id} ${objectLabel[id]} ${objectGroupLabel(objectGroup(id))} ${objectInfo[id].layer} ${objectKeywords[id]}` })),
         build: (id, route) => buildObject(id as ObjectId, themeOf(route), colorFor(id, route), damageOf(route), id === "fruit_tree" ? growOf(route) : undefined),
         facts: (id) => {
             const info = objectInfo[id as ObjectId];

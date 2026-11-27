@@ -1,6 +1,22 @@
-import { buildingBox, defineMap, houseTileset, townTileset, type BuildingConfig, type ObjectDamage, type ObjectId, type PlacedObject } from "@ragtechdev/pixel-sprites";
+import { buildingBox, defineMap, houseTileset, townTileset, type BuildingConfig, type ObjectDamage, type ObjectId, type PlacedObject, type Vegetable } from "@ragtechdev/pixel-sprites";
 
 const at = (id: ObjectId, ...spots: [number, number][]): PlacedObject[] => spots.map(([x, y]) => ({ id, x, y }));
+
+// An orchard of fruit trees at every stage, in the corner behind the house. Each is 2 by 3 tiles and blocks only its foot.
+const orchard: PlacedObject[] = [
+    { id: "fruit_tree", x: 0, y: 0, stage: "mature", bearing: "fruit", crop: "apple" },
+    { id: "fruit_tree", x: 2, y: 0, stage: "mature", bearing: "flowers", crop: "cherry" },
+    { id: "fruit_tree", x: 0, y: 3, stage: "mature", bearing: "fruit", crop: "orange" },
+    { id: "fruit_tree", x: 2, y: 3, stage: "young", crop: "pear" }
+];
+
+// A field beside the path. Its top rows are the soil stages (untilled, seeded, sprouting, as tiles), and the tilled rows below carry a
+// vegetable each, as objects: the root vegetables show only their tops.
+const crop = (veg: Vegetable, x: number, y: number): PlacedObject => ({ id: `crop_${veg}`, x, y });
+const field: PlacedObject[] = [
+    ...(["carrot", "radish", "turnip", "beet", "cabbage", "pumpkin"] as const).map((veg, i) => crop(veg, i, 10)),
+    crop("carrot", 0, 12), crop("tomato", 1, 12), crop("tomato", 2, 12), crop("corn", 3, 12), crop("corn", 4, 12), crop("corn", 5, 12)
+];
 
 // Terrain is one character per 2x2-tile block. Objects are placed in tile coordinates on top and shaded automatically.
 export const townMap = defineMap(townTileset, [
@@ -8,15 +24,17 @@ export const townMap = defineMap(townTileset, [
     "gggggggggg",
     "gggggggggg",
     "gggpggggtt",
-    "gggpgABCgt",
-    "gggpgDEFgt",
-    "gggpgGHIgt",
+    "uxypgABCgt",
+    "vvvpgDEFgt",
+    "vvvpgGHIgt",
     "gggpsssssg",
     "gggpwwwwwg"
 ], [
-    ...at("tree", [0, 0], [2, 0], [17, 0], [19, 0], [1, 8], [16, 10]),
+    ...at("tree", [17, 0], [19, 0], [16, 10]),
     ...at("fence", [10, 6], [11, 6], [12, 6], [13, 6]),
-    ...at("flower", [2, 7], [3, 10], [4, 13], [18, 2])
+    ...at("flower", [2, 7], [18, 2]),
+    ...orchard,
+    ...field
 // The house is a building: its walls and roof are solid and the tile at the foot of its door is the way in.
 ], [{ config: { width: 8, roof: "gable", roofMaterial: "ceramic", windows: 2, chimney: "right" }, x: 4, y: 1 }]);
 

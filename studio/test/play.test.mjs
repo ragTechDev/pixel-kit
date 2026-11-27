@@ -152,12 +152,27 @@ test("a tree trunk blocks, but its canopy does not", () => {
     const p = play();
     // The trunk is drawn 8 px wide and ends 3 px above its tile's bottom edge, and it blocks where it is drawn. The hero's cell
     // starts 4 px higher than the tile, so its feet are well inside the trunk's rows (a hero that only grazes the base is nudged past).
-    p.hero.teleport(3 * 16, 1 * 16 - 4, "left");
+    p.hero.teleport(17 * 16, 11 * 16 - 4, "left");
     hold(p, "left", 0.5);
-    assert.equal(p.hero.feet.x, 2 * 16 + 12, "the trunk at (2,1) blocks, right up to its drawn edge, 4 px inside the tile");
+    assert.equal(p.hero.feet.x, 16 * 16 + 12, "the trunk at (16,11) blocks, right up to its drawn edge, 4 px inside the tile");
+    put(p, 17, 10, "left");
+    hold(p, "left", 0.5);
+    assert.ok(p.hero.feet.x < 16 * 16, "the canopy at (16,10) is open: the hero walks under it");
+});
+
+test("a fruit tree blocks only its foot, and a field can be walked across", () => {
+    const p = play();
+    // The apple tree at (0,0) is 2 by 3 tiles: its crown rows are open and its bottom row, (0,2) and (1,2), is solid.
     put(p, 3, 0, "left");
     hold(p, "left", 0.5);
-    assert.ok(p.hero.feet.x < 2 * 16, "the canopy at (2,0) is open: the hero walks under it");
+    assert.ok(p.hero.feet.x < 2 * 16 && p.hero.feet.x >= 0, "the crown at (2,0) is open");
+    p.hero.teleport(3 * 16, 5 * 16 - 4, "left");
+    hold(p, "left", 0.5);
+    assert.ok(p.hero.feet.x >= 2 * 16, "the foot of the tree at (2,3) blocks");
+    // Crops do not block, so the hero walks over the field, soil and crops alike.
+    put(p, 5, 10, "left");
+    hold(p, "left", 2);
+    assert.deepEqual(at(p), [0, 10], "across the whole row of vegetables");
 });
 
 test("a character in the way blocks the hero", () => {
