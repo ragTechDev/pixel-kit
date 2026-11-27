@@ -21,7 +21,7 @@ export function WorldsPage({ route }: { route: Route }) {
     // Every building and object on the map, damaged the same way: the map is made again with `damage` on each.
     const whole = worlds[name];
     const map = useMemo(
-        () => damage === undefined ? whole : defineMap(whole.tileset, whole.rows, whole.objects.map((o) => ({ ...o, damage })), whole.buildings.map((b) => ({ ...b, config: { ...b.config, damage } }))),
+        () => damage === undefined ? whole : defineMap(whole.tileset, whole.rows, whole.objects.map((o) => ({ ...o, damage })), whole.buildings.map((b) => ({ ...b, config: { ...b.config, damage } })), whole.tents.map((t) => ({ ...t, config: { ...t.config, damage: "ruin" as const } }))),
         [whole, damage]
     );
     const colors = tileColorsOf(route);

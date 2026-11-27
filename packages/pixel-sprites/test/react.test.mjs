@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { buildBuilding, buildIcon, buildMap, buildObject, defineMap, toSvgPaths, townTileset } from "../dist/index.js";
-import { Avatar, Building, Icon, PixelImage, Tile, World, WorldObject } from "../dist/react.js";
+import { buildBuilding, buildIcon, buildMap, buildObject, buildTent, defineMap, toSvgPaths, townTileset } from "../dist/index.js";
+import { Avatar, Building, Icon, PixelImage, Tent, Tile, World, WorldObject } from "../dist/react.js";
 
 test("<Icon> renders the same pixels as buildIcon through <PixelImage>", () => {
     const viaIcon = renderToStaticMarkup(createElement(Icon, { id: "heart", pixelSize: 2 }));
@@ -41,4 +41,11 @@ test("<Building> renders the same pixels as buildBuilding through <PixelImage>",
         renderToStaticMarkup(createElement(PixelImage, { raster: buildBuilding({ roof: "gable", roofColor: "blue" }), pixelSize: 2 }))
     );
     assert.match(renderToStaticMarkup(createElement(Building, { title: "A house" })), /aria-label="A house"/);
+});
+
+test("<Tent> renders the same pixels as buildTent through <PixelImage>", () => {
+    assert.equal(
+        renderToStaticMarkup(createElement(Tent, { style: "dome", tentSize: 3, color: "blue", pixelSize: 2 })),
+        renderToStaticMarkup(createElement(PixelImage, { raster: buildTent({ style: "dome", size: 3, color: "blue" }), pixelSize: 2 }))
+    );
 });

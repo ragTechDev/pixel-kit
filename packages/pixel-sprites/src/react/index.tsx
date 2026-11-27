@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { avatarKey, buildAvatar, buildBuilding, buildIcon, buildMap, buildObject, buildTile, createCache, toMapVariant, toSvgPaths, toVariant } from "../index";
-import type { AvatarConfig, BuildingConfig, ColorName, FruitTreeOptions, HexColor, IconId, IconOptions, ObjectDamage, ObjectId, Raster, TileId, TileMap, TileColors, TileTheme, VariantOptions } from "../index";
+import { avatarKey, buildAvatar, buildBuilding, buildTent, buildIcon, buildMap, buildObject, buildTile, createCache, toMapVariant, toSvgPaths, toVariant } from "../index";
+import type { AvatarConfig, BuildingConfig, TentConfig, ColorName, FruitTreeOptions, HexColor, IconId, IconOptions, ObjectDamage, ObjectId, Raster, TileId, TileMap, TileColors, TileTheme, VariantOptions } from "../index";
 
 const avatarCache = createCache<Raster>(512);
 
@@ -59,4 +59,9 @@ export function World({ map, theme, colors, size, bits, palette, ...rest }: Imag
 /** A building, drawn from its choices (`BuildingConfig`). It is a whole number of tiles wide and tall at 16 px per tile. */
 export function Building({ pixelSize, className, title, size, bits, palette, ...config }: ImageProps & BuildingConfig) {
     return <PixelImage raster={buildBuilding(config)} pixelSize={pixelSize} className={className} title={title} size={size} bits={bits} palette={palette} />;
+}
+
+/** A tent, drawn from its choices (`TentConfig`). It is a whole number of tiles wide and tall at 16 px per tile. */
+export function Tent({ pixelSize, className, title, size: variantSize, bits, palette, style, tentSize, color, damage }: ImageProps & Pick<TentConfig, "style" | "color" | "damage"> & { tentSize?: TentConfig["size"] }) {
+    return <PixelImage raster={buildTent({ style, size: tentSize, color, damage })} pixelSize={pixelSize} className={className} title={title} size={variantSize} bits={bits} palette={palette} />;
 }

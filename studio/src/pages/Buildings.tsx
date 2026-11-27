@@ -38,6 +38,7 @@ import { useWidth } from "../hooks";
 import { CustomColours } from "../CustomColours";
 import { recolor, type ColorMap } from "../recolor";
 import { themeOf, variantOf, type Route } from "../router";
+import { TentBuilder } from "./Tents";
 import { Chips, CodeBlock, SaveMenu, VariantBar, downloadPng, downloadSvg } from "../ui";
 
 type ColourField = "roofColor" | "wallColor" | "trimColor" | "doorColor";
@@ -144,17 +145,17 @@ function CountInput({ section, look, choose }: { section: Section; look: Resolve
     );
 }
 
-function ColourPicker({ title, value, natural, onPick }: { title: string; value: MaterialColor; natural?: boolean; onPick: (value: MaterialColor) => void }) {
-    const custom = value === "natural" || (buildingColors as readonly string[]).includes(value) ? undefined : value;
+export function ColourPicker({ title, value, natural, naturalId = "natural", onPick }: { title: string; value: MaterialColor | "canvas"; natural?: boolean; naturalId?: "natural" | "canvas"; onPick: (value: MaterialColor | "canvas") => void }) {
+    const custom = value === naturalId || (buildingColors as readonly string[]).includes(value) ? undefined : value;
     return (
         <div className="opt-section">
             <div className="h opt-title">{title}</div>
             <div className="swatches">
                 {natural && (
                     <div className="swatch-item">
-                        <button className="swatch" aria-pressed={value === "natural"} aria-label="natural" title="The colour of the material"
-                            style={{ background: "repeating-linear-gradient(45deg, #c9b99a 0 4px, #8f8269 4px 8px)" }} onClick={() => onPick("natural")} />
-                        <span className="swatch-name">natural</span>
+                        <button className="swatch" aria-pressed={value === naturalId} aria-label={naturalId} title="The colour of the material"
+                            style={{ background: "repeating-linear-gradient(45deg, #c9b99a 0 4px, #8f8269 4px 8px)" }} onClick={() => onPick(naturalId)} />
+                        <span className="swatch-name">{naturalId}</span>
                     </div>
                 )}
                 {buildingColors.map((name: ColorName) => (
@@ -176,7 +177,7 @@ function ColourPicker({ title, value, natural, onPick }: { title: string; value:
     );
 }
 
-export function BuildingsPage({ route }: { route: Route }) {
+function HouseBuilder({ route }: { route: Route }) {
     const [cfg, setCfg] = useState<BuildingConfig>(loadLook);
     const [tabId, setTabId] = useState(TABS[0].id);
     const [stage, stageWidth] = useWidth<HTMLDivElement>();
@@ -202,7 +203,7 @@ export function BuildingsPage({ route }: { route: Route }) {
     const px = Math.max(1, Math.floor(Math.min(Math.max(stageWidth - 16, 1) / shown.width, 440 / shown.height)));
 
     const choose = (field: Field, value: string | number) => setCfg((prev) => ({ ...prev, [field]: value }));
-    const setColour = (field: ColourField, value: MaterialColor) => setCfg((prev) => ({ ...prev, [field]: value }));
+    const setColour = (field: ColourField, value: MaterialColor | "canvas") => setCfg((prev) => ({ ...prev, [field]: value as MaterialColor }));
 
     const changed = (Object.keys(defaultBuildingConfig) as (keyof BuildingConfig)[])
         .filter((k) => look[k] !== defaultBuildingConfig[k])
@@ -214,12 +215,9 @@ export function BuildingsPage({ route }: { route: Route }) {
 
     return (
         <div className="stack">
-            <div>
-                <h1 className="h" style={{ fontSize: 18 }}>Buildings</h1>
-                <p className="muted" style={{ maxWidth: 720, marginTop: 4 }}>
-                    Build a house: pick a tab, tap what you like. It is drawn from the front and well above, the way houses look in most pixel-art games, so you see the slopes of the roof. Your building is saved in this browser.
-                </p>
-            </div>
+            <p className="muted" style={{ maxWidth: 720 }}>
+                Build a house: pick a tab, tap what you like. It is drawn from the front and well above, the way houses look in most pixel-art games, so you see the slopes of the roof. Your building is saved in this browser.
+            </p>
             <VariantBar route={route} themes native={{ width: 16, height: 16 }} sizeLabel="Pixels per tile" />
 
             <div className="creator">
@@ -271,6 +269,30 @@ export function BuildingsPage({ route }: { route: Route }) {
                 <CodeBlock code={`import { defineMap, townTileset } from "@ragtechdev/pixel-sprites";\n\nconst map = defineMap(townTileset, Array(8).fill("gggggggg"), [], [\n  { config: ${config}, x: 2, y: 1 } // x and y are in tiles\n]);`} />
                 {hasCustom && <p className="muted">You edited single colours. They are in the preview and in Save PNG, but not in this code: the library only uses its fixed colours.</p>}
             </div>
+        </div>
+    );
+}
+
+const KINDS = ["house", "tent"] as const;
+
+/** The Buildings page: a house (the customizer above) or a tent (`Tents.tsx`), for a camp or a shelter. */
+export function BuildingsPage({ route }: { route: Route }) {
+    const [kind, setKind] = useState<(typeof KINDS)[number]>(() => {
+        try { return localStorage.getItem("pixel-kit-studio:building-kind") === "tent" ? "tent" : "house"; } catch { return "house"; }
+    });
+    const pick = (k: (typeof KINDS)[number]) => {
+        setKind(k);
+        try { localStorage.setItem("pixel-kit-studio:building-kind", k); } catch { /* Not remembered. */ }
+    };
+    return (
+        <div className="stack">
+            <div>
+                <h1 className="h" style={{ fontSize: 18 }}>Buildings</h1>
+                <div className="row" role="group" aria-label="What to build" style={{ marginTop: 8 }}>
+                    {KINDS.map((k) => <button key={k} className="chip" aria-pressed={kind === k} onClick={() => pick(k)}>{k}</button>)}
+                </div>
+            </div>
+            {kind === "house" ? <HouseBuilder route={route} /> : <TentBuilder route={route} />}
         </div>
     );
 }

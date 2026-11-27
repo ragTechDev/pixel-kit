@@ -73,6 +73,19 @@ const map = defineMap(townTileset, Array(8).fill("gggggggg"), [], [
 ]);
 
 <Building roof="gable" wall="brick" roofColor="blue" pixelSize={4} />`} />
+            <p>
+                A tent, for a camp or a shelter, is its own small thing next to buildings: <code>buildTent</code> (or <code>{"<Tent>"}</code>) with a <code>style</code> (<code>"ridge"</code>, <code>"dome"</code> or <code>"lean"</code>), a <code>size</code> of 3, 4 or 5 tiles wide, a <code>color</code> and <code>damage</code> (<code>"none"</code> or <code>"ruin"</code>, a collapsed one).
+                Put one on a map with the fifth argument of <code>defineMap</code>: the canvas is solid and the foot of its doorway is open, with <code>door</code> set.
+            </p>
+            <CodeBlock code={`import { buildTent, defineMap, townTileset } from "@ragtechdev/pixel-sprites";
+import { Tent } from "@ragtechdev/pixel-sprites/react";
+
+const map = defineMap(townTileset, Array(8).fill("gggggggg"), [], [], [
+  { config: { style: "dome", size: 4, color: "green" }, x: 2, y: 1 }
+]);
+
+buildTent({ style: "ridge", damage: "ruin" });
+<Tent style="lean" tentSize={5} pixelSize={4} />`} />
             <p>An object placed on a map can also take a <code>color</code> (<code>{'{ id: "door", x: 3, y: 2, color: "blue" }'}</code>), a common colour or a hex colour, for the objects that have one.</p>
             <p>
                 For a war-torn city there is a fifth palette, <code>ash</code> (dead grass, soot, smoke and burnt trees; it is not a season), five damaged ground tiles, and blocks for them in <code>townTileset</code>: <code>J</code> road, <code>M</code> cracked road, <code>L</code> cracked pavement, <code>N</code> scorched earth, <code>O</code> rubble and <code>Q</code> rubble in scorched earth. The <a href="#/worlds">Ruins map</a> is built from them.
