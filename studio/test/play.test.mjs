@@ -222,27 +222,45 @@ test("A in front of a crop picks it: the hero holds the vegetable, and the crop 
     assert.equal(p.carrying(), "veg_carrot");
 });
 
-test("picking a tomato or corn leaves the bare plant in the field, and it has nothing more to give", () => {
+test("picking from a tomato or corn plant takes one, and the bare plant stays when none are left", () => {
     const p = play();
-    const plant = (id) => p.map().objects.find((o) => o.id === id && o.x === 1 && o.y === 12);
+    const plant = (id, x) => p.map().objects.find((o) => o.id === id && o.x === x && o.y === 12);
+    // The tomato at (1,12) carries 3. Each pick takes one; put it down to pick again.
+    const pick = () => {
+        put(p, 1, 11, "down");
+        hold(p, "down", 1);
+        tap(p, "a");
+        wait(p, 1.2);
+    };
+    const putDown = () => {
+        put(p, 8, 14, "right");
+        tap(p, "a");
+    };
+    assert.equal(plant("crop_tomato", 1).count, 3);
+    pick();
+    assert.equal(p.carrying(), "veg_tomato", "a tomato is picked");
+    assert.equal(plant("crop_tomato", 1).count, 2, "and two are left");
+    assert.notEqual(plant("crop_tomato", 1).bearing, "none");
+    putDown();
+    pick();
+    assert.equal(plant("crop_tomato", 1).count, 1);
+    putDown();
+    pick();
+    assert.ok(plant("crop_tomato", 1), "the plant is still there");
+    assert.deepEqual([plant("crop_tomato", 1).count, plant("crop_tomato", 1).bearing], [0, "none"], "bare once the last is gone");
+    putDown();
+    assert.equal(p.carrying(), undefined);
     put(p, 1, 11, "down");
     hold(p, "down", 1);
     tap(p, "a");
-    assert.equal(p.carrying(), "veg_tomato", "the tomato is picked");
-    assert.ok(plant("crop_tomato"), "and the plant is still there");
-    assert.equal(plant("crop_tomato").bearing, "none", "bare");
-    wait(p, 1.2);
-    tap(p, "a"); // puts the tomato down: nothing in front is left to pick
-    assert.equal(p.carrying(), undefined);
-    tap(p, "a");
     assert.equal(p.carrying(), undefined, "a bare plant gives nothing");
-    // Corn is the same: it keeps its stalk. The hero walks in behind its leaves to its foot.
+    // Corn is the same: the plant at (4,12) carries 2 cobs.
     put(p, 4, 11, "down");
     hold(p, "down", 1);
     tap(p, "a");
     assert.equal(p.carrying(), "veg_corn");
-    const corn = p.map().objects.find((o) => o.id === "crop_corn" && o.x === 4);
-    assert.equal(corn.bearing, "none");
+    assert.equal(plant("crop_corn", 4).count, 1);
+    assert.notEqual(plant("crop_corn", 4).bearing, "none");
     // A carrot is taken up whole.
     put(p, 0, 9, "down");
     wait(p, 1.2);
@@ -283,20 +301,35 @@ test("hands full: A does not pick up a second thing, and A with nothing in front
     assert.equal(p.carrying(), undefined, "put down");
 });
 
-test("A under a tree that bears fruit picks its fruit, and the tree bears nothing after", () => {
+test("A under a tree that bears fruit picks one, and the tree carries one fewer", () => {
     const p = play();
     put(p, 0, 7, "up");
     hold(p, "up", 1);
+    const orange = () => p.map().objects.find((o) => o.id === "fruit_tree" && o.x === 0 && o.y === 3);
+    assert.equal(orange().count, 5, "the orange tree carries five");
     tap(p, "a");
     assert.equal(p.carrying(), "fruit_orange", "the orange tree at (0,3) is bearing fruit");
-    const tree = p.map().objects.find((o) => o.id === "fruit_tree" && o.x === 0 && o.y === 3);
-    assert.equal(tree.bearing, "none");
-    assert.equal(tree.crop, "orange");
+    assert.deepEqual([orange().bearing, orange().count, orange().crop], ["fruit", 4, "orange"]);
     wait(p, 1.2);
-    p.game.input.press("a");
-    p.game.advance(frame);
-    p.game.input.release("a");
-    assert.equal(p.carrying(), undefined, "A at the same tree, now bare, puts the orange down instead of picking again");
+    tap(p, "a");
+    assert.equal(orange().count, 4, "hands are full, so it keeps its four");
+    // Put the orange down, then pick the rest: the tree is bare after the last.
+    for (let left = 4; left > 0; left -= 1) {
+        put(p, 8, 14, "right");
+        tap(p, "a");
+        put(p, 0, 7, "up");
+        hold(p, "up", 1);
+        tap(p, "a");
+        wait(p, 1.2);
+        assert.equal(orange().count, left - 1);
+    }
+    assert.equal(orange().bearing, "none", "bare once the last is picked");
+    put(p, 8, 14, "right");
+    tap(p, "a");
+    put(p, 0, 7, "up");
+    hold(p, "up", 1);
+    tap(p, "a");
+    assert.equal(p.carrying(), undefined, "and it gives nothing more");
 });
 
 test("a tree in blossom or still young gives nothing", () => {

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { ICON_SIZE, defaultTileTheme, buildIcon, buildObject, buildTile, colorableIconIds, iconCategories, iconColors, idleIconIds, objectColors, objectIds, objectInfo, seasonalObjectIds, tileIds, toVariant, type ColorName, type HexColor, type IconId, type ObjectId, type Raster, type TileId } from "@ragtechdev/pixel-sprites";
+import { ICON_SIZE, produceLimits, defaultTileTheme, buildIcon, buildObject, buildTile, colorableIconIds, iconCategories, iconColors, idleIconIds, objectColors, objectIds, objectInfo, seasonalObjectIds, tileIds, toVariant, type ColorName, type HexColor, type IconId, type ObjectId, type Raster, type TileId } from "@ragtechdev/pixel-sprites";
 import { iconKeywords, objectKeywords, tileKeywords } from "../keywords";
 import { categoryLabel, idLabel, objectGroup, objectGroupLabel, objectGroups, objectLabel, tileGroup, tileGroups } from "../labels";
 import { colorOf, damageOf, growOf, href, idleOf, setQuery as setRouteQuery, themeOf, tileColorsOf, variantOf, type Route } from "../router";
@@ -138,9 +138,10 @@ const kinds: Record<"icons" | "tiles" | "objects", Kind> = {
             const color = picked && (picked.startsWith("#") ? (objectColors[id as ObjectId] ?? []).length > 0 : (objectColors[id as ObjectId] ?? []).includes(picked as ColorName)) ? picked : undefined;
             const hurt = damageOf(route);
             const tree = id === "fruit_tree" ? growOf(route) : undefined;
-            const grown = tree && { stage: tree.stage !== "mature" && `stage="${tree.stage}"`, bearing: tree.stage === "mature" && tree.bearing !== "none" && `bearing="${tree.bearing}"`, crop: tree.crop !== "apple" && `crop="${tree.crop}"` };
-            const props = [seasonal && `theme="${theme}"`, color && `color="${color}"`, hurt && `damage="${hurt}"`, ...(grown ? [grown.stage, grown.bearing, grown.crop] : [])].filter(Boolean) as string[];
-            const options = tree && `{ ${[`stage: "${tree.stage}"`, tree.stage === "mature" && `bearing: "${tree.bearing}"`, `crop: "${tree.crop}"`].filter(Boolean).join(", ")} }`;
+            const full = produceLimits.fruit_tree ?? 8;
+            const grown = tree && { count: tree.stage === "mature" && tree.bearing !== "none" && tree.count < full && `count={${tree.count}}`, stage: tree.stage !== "mature" && `stage="${tree.stage}"`, bearing: tree.stage === "mature" && tree.bearing !== "none" && `bearing="${tree.bearing}"`, crop: tree.crop !== "apple" && `crop="${tree.crop}"` };
+            const props = [seasonal && `theme="${theme}"`, color && `color="${color}"`, hurt && `damage="${hurt}"`, ...(grown ? [grown.stage, grown.bearing, grown.count, grown.crop] : [])].filter(Boolean) as string[];
+            const options = tree && `{ ${[`stage: "${tree.stage}"`, tree.stage === "mature" && `bearing: "${tree.bearing}"`, tree.stage === "mature" && tree.bearing !== "none" && tree.count < full && `count: ${tree.count}`, `crop: "${tree.crop}"`].filter(Boolean).join(", ")} }`;
             const args = options ? `, ${seasonal ? `"${theme}"` : "undefined"}, ${color ? `"${color}"` : "undefined"}, ${hurt ? `"${hurt}"` : "undefined"}, ${options}` : hurt ? `, ${seasonal ? `"${theme}"` : "undefined"}, ${color ? `"${color}"` : "undefined"}, "${hurt}"` : color ? `, ${seasonal ? `"${theme}"` : "undefined"}, "${color}"` : seasonal ? `, "${theme}"` : "";
             return snippets("WorldObject", "buildObject", id, route, props, args);
         },

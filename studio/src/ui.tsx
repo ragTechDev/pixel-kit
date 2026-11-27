@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon, PixelImage } from "@ragtechdev/pixel-sprites/react";
-import { colorDepths, colorRamps, paletteNames, treeBearings, treeCrops, treeStages, palettePresets, defaultTileTheme, parseHex, tileColorGroups, tilePalettes, tileThemes, type ColorName, type HexColor, toSvg, toVariant, variantSizes, type Raster, type IconId, type PalettePreset, type VariantOptions } from "@ragtechdev/pixel-sprites";
+import { colorDepths, colorRamps, paletteNames, produceLimits, treeBearings, treeCrops, treeStages, palettePresets, defaultTileTheme, parseHex, tileColorGroups, tilePalettes, tileThemes, type ColorName, type HexColor, toSvg, toVariant, variantSizes, type Raster, type IconId, type PalettePreset, type VariantOptions } from "@ragtechdev/pixel-sprites";
 import { CustomColours } from "./CustomColours";
 import { useMediaQuery } from "./hooks";
 import { recolor, type ColorMap } from "./recolor";
@@ -131,6 +131,8 @@ export function FruitTreeControls({ route }: { route: Route }) {
                 onPick={(g) => g && setQuery(route, { stage: g === "mature" ? undefined : g })} />
             <Chips label={tree.stage === "mature" ? "Bearing" : "Bearing (mature only)"} value={tree.bearing} options={treeBearings} nativeLabel={false}
                 onPick={(b) => b && setQuery(route, { bearing: b === "none" ? undefined : b })} />
+            <Chips label={tree.stage === "mature" && tree.bearing !== "none" ? "Fruit or flowers" : "Fruit or flowers (mature, bearing only)"} value={tree.count} options={Array.from({ length: (produceLimits.fruit_tree ?? 8) + 1 }, (_, n) => n)} nativeLabel={false}
+                onPick={(n) => n !== undefined && setQuery(route, { count: n === (produceLimits.fruit_tree ?? 8) ? undefined : String(n) })} />
             <Chips label="Crop" value={tree.crop} options={treeCrops} nativeLabel={false}
                 onPick={(c) => c && setQuery(route, { crop: c === "apple" ? undefined : c })} />
         </div>

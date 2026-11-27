@@ -6,17 +6,17 @@ const at = (id: ObjectId, ...spots: [number, number][]): PlacedObject[] => spots
 const orchard: PlacedObject[] = [
     { id: "fruit_tree", x: 0, y: 0, stage: "mature", bearing: "fruit", crop: "apple" },
     { id: "fruit_tree", x: 2, y: 0, stage: "mature", bearing: "flowers", crop: "cherry" },
-    { id: "fruit_tree", x: 0, y: 3, stage: "mature", bearing: "fruit", crop: "orange" },
+    { id: "fruit_tree", x: 0, y: 3, stage: "mature", bearing: "fruit", crop: "orange", count: 5 },
     { id: "fruit_tree", x: 2, y: 3, stage: "young", crop: "pear" }
 ];
 
 // A field beside the path. Its top rows are the soil stages (untilled, seeded, sprouting, as tiles), and the tilled rows below carry a
-// vegetable each, as objects: the root vegetables show only their tops. A crop blocks only its base, so a character walks behind the leaves,
+// vegetable each, as objects (a tomato or corn plant shows a `count` of what it carries, and the orange tree above too): the root vegetables show only their tops. A crop blocks only its base, so a character walks behind the leaves,
 // and the empty tile at (3,12) is a way through between the tomatoes and the corn.
-const crop = (veg: Vegetable, x: number, y: number): PlacedObject => ({ id: `crop_${veg}`, x, y });
+const crop = (veg: Vegetable, x: number, y: number, count?: number): PlacedObject => ({ id: `crop_${veg}`, x, y, ...(count === undefined ? {} : { count }) });
 const field: PlacedObject[] = [
     ...(["carrot", "radish", "turnip", "beet", "cabbage", "pumpkin"] as const).map((veg, i) => crop(veg, i, 10)),
-    crop("carrot", 0, 12), crop("tomato", 1, 12), crop("tomato", 2, 12), crop("corn", 4, 12), crop("corn", 5, 12)
+    crop("carrot", 0, 12), crop("tomato", 1, 12, 3), crop("tomato", 2, 12), crop("corn", 4, 12, 2), crop("corn", 5, 12)
 ];
 
 // Terrain is one character per 2x2-tile block. Objects are placed in tile coordinates on top and shaded automatically.

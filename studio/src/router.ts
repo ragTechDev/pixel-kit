@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { colorDepths, objectDamage, paletteNames, treeBearings, treeCrops, treeStages, variantSizes, type ColorDepth, type FruitTreeOptions, type ObjectDamage, type PalettePreset, type VariantOptions, type VariantSize } from "@ragtechdev/pixel-sprites";
+import { colorDepths, objectDamage, produceLimits, paletteNames, treeBearings, treeCrops, treeStages, variantSizes, type ColorDepth, type FruitTreeOptions, type ObjectDamage, type PalettePreset, type VariantOptions, type VariantSize } from "@ragtechdev/pixel-sprites";
 import { colorRamps, defaultTileTheme, parseHex, tileColorGroups, tileThemes, type ColorName, type HexColor, type TileColorGroup, type TileColors, type TileTheme } from "@ragtechdev/pixel-sprites";
 
 export interface Route {
@@ -32,7 +32,7 @@ export function useRoute(): Route {
 
 /** The view options that stay in the address, so a link shares what you were looking at. */
 export const tileGroupNames = Object.keys(tileColorGroups) as TileColorGroup[];
-const KEPT = ["size", "bits", "palette", "theme", "idle", "color", "damage", "stage", "bearing", "crop", ...tileGroupNames.map((g) => `tile-${g}`)] as const;
+const KEPT = ["size", "bits", "palette", "theme", "idle", "color", "damage", "stage", "bearing", "crop", "count", ...tileGroupNames.map((g) => `tile-${g}`)] as const;
 
 export function href(path: string[], from: Route, extra: Record<string, string | undefined> = {}): string {
     const query = new URLSearchParams();
@@ -70,9 +70,12 @@ export function damageOf(from: Route): Exclude<ObjectDamage, "none"> | undefined
 }
 
 /** What the fruit tree is drawn as: its stage, what it bears and its crop. Anything else is the default. */
+const fruitLimit = produceLimits.fruit_tree ?? 8;
+
 export function growOf(from: Route): Required<FruitTreeOptions> {
     const pick = <T extends string>(key: string, list: readonly T[], fallback: T): T => list.find((v) => v === from.query.get(key)) ?? fallback;
-    return { stage: pick("stage", treeStages, "mature"), bearing: pick("bearing", treeBearings, "none"), crop: pick("crop", treeCrops, "apple") };
+    const count = Number(from.query.get("count"));
+    return { stage: pick("stage", treeStages, "mature"), bearing: pick("bearing", treeBearings, "none"), crop: pick("crop", treeCrops, "apple"), count: from.query.get("count") !== null && Number.isInteger(count) && count >= 0 ? Math.min(count, fruitLimit) : fruitLimit };
 }
 
 export function idleOf(from: Route): boolean {

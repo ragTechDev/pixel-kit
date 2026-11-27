@@ -1,4 +1,4 @@
-import { bushVegetables, defineMap, doorBoxes, mapDrawables, mapTileSize, objectInfo, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box, type ObjectId, type PlacedObject, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
+import { defineMap, doorBoxes, mapDrawables, mapTileSize, objectInfo, produceLimits, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box, type ObjectId, type PlacedObject, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 import { createCamera, createCarry, createGame, createMover, isOpen, overlaps, type Camera, type Direction, type Game, type Mover, type Scene } from "@ragtechdev/pixel-engine";
 import { heroLook, places, start, type Npc, type Place, type PlaceId, type Spawn } from "./maps";
@@ -51,14 +51,22 @@ export interface Play {
 }
 
 /**
- * What a crop or a tree gives when it is picked, and what is left in its place. A crop in a field gives its vegetable and is gone, except a
- * bush (tomato, corn), which stays, bare; a mature fruit tree bearing fruit gives its fruit and bears nothing until a game says it does again.
+ * What a crop or a tree gives when it is picked, and what is left in its place. A tree or a bush (tomato, corn) carries a count of fruit and gives
+ * one at a time, and with none left it stays, bare. The other crops give their vegetable and are gone.
  */
 function harvest(o: PlacedObject): { item: ObjectId; left: PlacedObject | null } | undefined {
-    // A bush (tomato, corn) stays in the field, bare, and has nothing more to give; the other crops come up whole.
-    if (o.id.startsWith("crop_") && (bushVegetables as readonly string[]).includes(o.id.slice(5))) return o.bearing === "none" ? undefined : { item: `veg_${o.id.slice(5)}` as ObjectId, left: { ...o, bearing: "none" } };
+    const limit = produceLimits[o.id];
+    // A tree or a bush carries a count of fruit: picking takes one, and when none are left it bears nothing. A tomato or corn plant stays in the
+    // field, bare; the other crops come up whole.
+    if (limit !== undefined) {
+        const bush = o.id.startsWith("crop_");
+        const stock = Math.min(o.count ?? limit, limit);
+        const ripe = bush ? o.bearing !== "none" : (o.stage ?? "mature") === "mature" && o.bearing === "fruit";
+        if (!ripe || stock <= 0) return undefined;
+        const item = (bush ? `veg_${o.id.slice(5)}` : `fruit_${o.crop ?? "apple"}`) as ObjectId;
+        return { item, left: stock === 1 ? { ...o, count: 0, bearing: "none" } : { ...o, count: stock - 1 } };
+    }
     if (o.id.startsWith("crop_")) return { item: `veg_${o.id.slice(5)}` as ObjectId, left: null };
-    if (o.id === "fruit_tree" && (o.stage ?? "mature") === "mature" && o.bearing === "fruit") return { item: `fruit_${o.crop ?? "apple"}` as ObjectId, left: { ...o, bearing: "none" } };
     return undefined;
 }
 
