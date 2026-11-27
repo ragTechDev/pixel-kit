@@ -4,7 +4,7 @@ import gameSource from "../play/game.ts?raw";
 import { createPlay, DESKTOP_VIEW, HANDHELD_VIEW, type Play } from "../play/game";
 import { Handheld } from "../play/Handheld";
 import { PlayCanvas } from "../play/PlayCanvas";
-import { useHandheld } from "../hooks";
+import { useHandheld, useMediaQuery, useWidth } from "../hooks";
 import { href, setQuery, themeOf, type Route } from "../router";
 import { Chips, CodeBlock } from "../ui";
 
@@ -45,14 +45,22 @@ export function PlayPage({ route }: { route: Route }) {
     // The page's current route, for the callback below: it runs long after the render that made it.
     const current = useRef(route);
     current.current = route;
-    // A phone gets the handheld's 160 by 144 screen, a page gets a wider one. Changing between them starts the world again.
+    // Held upright, the phone's screen spans the page like the home page's demo: a whole-number zoom, and a view just wide
+    // enough to fill the element's own width at it. On its side it is the handheld's 160 by 144 screen between the controls.
+    const upright = !useMediaQuery("(orientation: landscape)");
+    const [wrap, measured] = useWidth<HTMLDivElement>();
+    const width = measured || document.documentElement.clientWidth;
+    const span = handheld && upright;
+    const scale = width <= 480 ? 2 : 3;
+    const view = span ? { width: Math.min(Math.floor(width / scale), DESKTOP_VIEW.width), height: HANDHELD_VIEW.height } : handheld ? HANDHELD_VIEW : DESKTOP_VIEW;
+    // Changing the view starts the world again.
     const play = useMemo(
         () => createPlay(
             { theme, onTheme: (next) => setQuery(current.current, { theme: next === defaultTileTheme ? undefined : next }) },
-            handheld ? HANDHELD_VIEW : DESKTOP_VIEW
+            view
         ),
         // The theme only seeds the first world; the line below keeps it in step afterwards.
-        [handheld]
+        [view.width, view.height]
     );
     // The game reads this on every frame, so changing the season needs no restart.
     play.options.theme = theme;
@@ -66,8 +74,8 @@ export function PlayPage({ route }: { route: Route }) {
 
     if (handheld) {
         return (
-            <div className="stack" style={{ gap: 0 }}>
-                <Handheld play={play} exitHref={href([], route)} />
+            <div className="stack" style={{ gap: 0 }} ref={wrap}>
+                <Handheld play={play} exitHref={href([], route)} span={span ? scale : undefined} />
                 <div className="gb-about">
                     <section className="panel stack"><Actions play={play} route={route} /></section>
                     <About />

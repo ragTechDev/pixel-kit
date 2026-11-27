@@ -144,7 +144,7 @@ export function ConsoleDeck({ input }: { input: Input }) {
  * the right, and START in the middle. Held upright the screen is on top; on its side the pad and buttons move to the
  * sides. The picture stays at a whole-number zoom, so every game pixel is the same size.
  */
-export function Handheld({ play, exitHref }: { play: Play; exitHref: string }) {
+export function Handheld({ play, exitHref, span }: { play: Play; exitHref: string; span?: number }) {
     const { width, height } = useViewport();
     const landscape = useMediaQuery("(orientation: landscape)");
     const { view } = play;
@@ -153,16 +153,17 @@ export function Handheld({ play, exitHref }: { play: Play; exitHref: string }) {
     const fit = landscape
         ? Math.min(Math.floor((width - 316) / view.width), Math.floor((height - 40) / view.height))
         : Math.floor((width - 36) / view.width);
-    const scale = Math.max(1, Math.min(3, fit));
+    // With `span` (the zoom) the screen fills the width edge to edge and the view was sized to match, so use that zoom as it is.
+    const scale = span ?? Math.max(1, Math.min(3, fit));
     const input = play.game.input;
     return (
         <div className="gb">
             <div className="gb-top">
                 <a className="gb-exit" href={exitHref}>◂ Exit</a>
             </div>
-            <div className="gb-bezel">
+            <div className={`gb-bezel${span ? " gb-span" : ""}`}>
                 <span className="gb-led" aria-hidden />
-                <PlayCanvas play={play} scale={scale} pad={false} />
+                <PlayCanvas play={play} scale={scale} pad={false} fill={!!span} />
                 <span className="gb-label" aria-hidden>ragTech Pixel Kit</span>
             </div>
             <Controls input={input} />
