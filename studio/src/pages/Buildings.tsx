@@ -47,6 +47,8 @@ interface Section {
     title: string;
     hint?: string;
     options: readonly (string | number)[];
+    /** Only shown for some buildings, such as the choices for a wing when there is one. */
+    when?: (look: ResolvedBuildingConfig) => boolean;
 }
 
 interface Colour {
@@ -64,14 +66,15 @@ interface Tab {
 const TABS: Tab[] = [
     { id: "roof", label: "Roof", sections: [
         { field: "roof", title: "Shape", hint: "How the roof looks from above and in front. A gable and a hip roof have a ridge running front to back; a hip roof has a sloping face at the front instead of a gable on the wall. A saltbox has its ridge off to one side.", options: roofShapes },
-        { field: "wing", title: "Wing", hint: "A second section. A front wing sticks out in the middle with the same kind of roof (a gable roof gets a cross gable, a flat one a notch) and has the door. A left or right wing is a lower, one-storey section beside a two-storey main part, so a flat roof steps down.", options: buildingWings },
+        { field: "wing", title: "Wing", hint: "A second section. A front wing sticks out in the middle with the same kind of roof (a gable roof gets a cross gable, a flat one a notch) and has the door. A left or right wing is a second section beside the main part, which has the door.", options: buildingWings },
         { field: "rooftop", title: "On the roof", hint: "Air conditioners and vents, a big air-handling unit, cardboard boxes, skylights, solar panels or a roof garden, on the flat part of a roof: the flat, hip flat and mansard roofs. The other roofs have no flat part.", options: buildingRooftops },
         { field: "pitch", title: "Pitch", hint: "A steep roof is one tile taller, with more of the slopes showing, and a narrower flat top on the roofs that have one.", options: roofPitches },
         { field: "depth", title: "Length", hint: "How long the building is from front to back. You look down on it, so a longer building is a roof that goes further up.", options: buildingDepths }
     ], colours: [{ field: "roofColor", title: "Roof colour" }] },
     { id: "walls", label: "Walls", sections: [
         { field: "wall", title: "Material", hint: "Timber is plaster between wooden beams.", options: buildingWalls },
-        { field: "storeys", title: "Storeys", options: buildingStoreys },
+        { field: "storeys", title: "Storeys", hint: "Of the building, or of its main part when it has a wing: the part with the door.", options: buildingStoreys },
+        { field: "wingStoreys", title: "Wing storeys", hint: "How many storeys the wing has. A wing lower than the main part makes a step in the roofline; a taller one rises above it.", options: buildingStoreys, when: (look) => look.wing !== "none" },
         { field: "width", title: "Width", hint: "In tiles.", options: buildingWidths }
     ], colours: [{ field: "wallColor", title: "Wall colour" }] },
     { id: "door", label: "Door", sections: [
@@ -214,7 +217,7 @@ export function BuildingsPage({ route }: { route: Route }) {
                             </button>
                         ))}
                     </div>
-                    {tab.sections.map((section) => (
+                    {tab.sections.filter((section) => !section.when || section.when(look)).map((section) => (
                         <div key={section.field} className="opt-section">
                             <div className="h opt-title">{section.title}</div>
                             {section.hint && <p className="muted opt-note">{section.hint}</p>}
