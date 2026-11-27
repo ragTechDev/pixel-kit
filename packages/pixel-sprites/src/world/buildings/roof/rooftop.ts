@@ -1,8 +1,6 @@
 import type { Layer } from "../../../core/compose";
 import type { Frame } from "../frame";
-import { acUnitParts, cardboardBoxParts, hvacUnitParts, placeParts, roofVentParts, skylightParts, solarPanelParts } from "../parts";
-import { addRect, flat, paint } from "../shapes";
-import { LIGHT, SHADOW } from "./common";
+import { acUnitParts, cardboardBoxParts, flowerBedParts, hvacUnitParts, placeParts, roofVentParts, shrubBedParts, skylightParts, solarPanelParts } from "../parts";
 
 /** A flat area of a roof, from (x0, y0) up to, not including, (x1, y1). */
 export interface Area {
@@ -52,6 +50,7 @@ export function drawRooftop(f: Frame, area: Area): Layer[] {
     const vent = (x: number, y: number) => roof.put({ x: x - 1, y, w: 6, h: 10 }, at(roofVentParts, x, y));
     const skylight = (x: number, y: number) => roof.put({ x, y, w: 14, h: 12 }, at(skylightParts, x, y));
     const panel = (x: number, y: number) => roof.put({ x, y, w: 14, h: 9 }, at(solarPanelParts, x, y));
+    const bed = (x: number, y: number, withShrub: boolean) => roof.put({ x, y: y - 2, w: 22, h: 13 }, at(withShrub ? shrubBedParts : flowerBedParts, x, y));
     const hvac = (x: number, y: number) => roof.put({ x, y, w: 24, h: 14 }, at(hvacUnitParts, x, y));
     const box = (x: number, y: number) => roof.put({ x, y, w: 10, h: 9 }, at(cardboardBoxParts, x, y));
     const stack = (x: number, bottom: number) =>
@@ -101,21 +100,12 @@ export function drawRooftop(f: Frame, area: Area): Layer[] {
             break;
         }
         case "garden": {
-            if (w < 8 || h < 8) break;
-            // A raised bed: its soil from above, and its wooden front. The flowers go in rows, every other row shifted.
-            roof.put({ x: area.x0, y: area.y0, w, h }, () => {
-                const layers: Layer[] = [];
-                const bed = addRect(f.here(), area.x0, area.y0, area.x1, area.y1 - 3);
-                layers.push(...paint(addRect(f.here(), area.x0, area.y1 - 4, area.x1, area.y1), ramps.wood));
-                layers.push(...paint(bed, ramps.leaf, (x, y) => ((x * 7 + y * 13) % 19 === 0 ? LIGHT : (x * 5 + y * 3) % 23 === 0 ? SHADOW : 0)));
-                const reds = f.here();
-                const yellows = f.here();
-                for (let y = area.y0 + 4, row = 0; y < area.y1 - 8; y += 8, row += 1) {
-                    for (let x = area.x0 + 4 + (row % 2) * 6, n = 0; x < area.x1 - 4; x += 12, n += 1) addRect(n % 2 ? yellows : reds, x, y, x + 2, y + 2);
-                }
-                layers.push(...flat(reds, ramps.flower), ...flat(yellows, { ...ramps.flower, base: ramps.gold.base }));
-                return layers;
-            });
+            // Raised planter beds in rows with paths between them, a shrub in some and flowers in the rest, every other one alike.
+            const cols = Math.floor((w + 3) / 25);
+            const rows = Math.floor((h + 3) / 16);
+            const left = area.x0 + Math.round((w - (cols * 25 - 3)) / 2);
+            const top = area.y0 + Math.round((h - (rows * 16 - 3)) / 2);
+            for (let r = 0; r < rows; r += 1) for (let col = 0; col < cols; col += 1) bed(left + col * 25, top + 2 + r * 16, (col + r) % 2 === 0);
             break;
         }
         default:

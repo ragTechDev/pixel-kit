@@ -267,6 +267,24 @@ test("where a side wing joins, the taller part's corner is a line straight down 
     for (let y = 2 * TILE_SIZE + 12; y < 2 * TILE_SIZE + 30; y += 1) assert.ok(![colorRamps.yellow.outline, colorRamps.yellow.shadow].includes(at(3 * TILE_SIZE - 1, y)), `the flat roof goes past the line at row ${y}`);
 });
 
+test("a roof garden is raised planter beds with plants in them, with the floor showing between: not a painted field", () => {
+    const raster = buildBuilding({ roof: "flat", rooftop: "garden", width: 8, depth: "medium", roofColor: "grey", wall: "clapboard", wallColor: "white" });
+    const count = (colour) => {
+        const index = raster.colors.indexOf(colour);
+        return index < 0 ? 0 : raster.px.filter((p) => p === index).length;
+    };
+    // Wooden beds, soil, leaves, and flowers in three colours.
+    assert.ok(count(objectRamps.wood.base) > 100, "wooden beds");
+    assert.ok(count("#47301F") > 100, "soil");
+    assert.ok(count(objectRamps.leaf.base) > 20, "shrubs");
+    for (const flower of [objectRamps.flower_red.base, objectRamps.flower_yellow.base, objectRamps.flower_pink.base]) assert.ok(count(flower) > 8, `flowers ${flower}`);
+    // The roof's floor still shows between and around the beds: the garden is not a solid green field.
+    const roofRows = buildingBox({ roof: "flat", width: 8, depth: "medium" }).roofTiles * TILE_SIZE;
+    let green = 0;
+    for (let y = 0; y < roofRows; y += 1) for (let x = 0; x < raster.width; x += 1) if (raster.colors[raster.px[y * raster.width + x]] === objectRamps.leaf.base) green += 1;
+    assert.ok(green < roofRows * raster.width * 0.08, "the garden is not a field of green");
+});
+
 test("a chimney is not on anything else on the roof: rooftop equipment keeps clear of it", () => {
     // The colours of the equipment (air conditioners and vents, skylights, solar panels, boxes), none of which may be in the chimney's footprint.
     const equipment = new Set(["#C3C8CE", "#E8EBEE", "#2E4A7C", "#5B7FB8", "#213A63", "#9CC7DB", "#D6EBF5", "#C79A6B", "#E8EBEE"]);

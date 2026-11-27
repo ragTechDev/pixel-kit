@@ -5,10 +5,11 @@ import { buildingDepths, type VolumeConfig } from "./config";
 import { rampOf, shape, type Shape } from "./shapes";
 
 /** The ramps a building is drawn in: its own colours, and the fixed ones for materials. */
-export type Role = "roof" | "wall" | "trim" | "door" | "wood" | "glass" | "gold" | "stone" | "brick" | "flower" | "leaf" | "metal" | "solar" | "cardboard";
+export type Role = "roof" | "wall" | "trim" | "door" | "wood" | "glass" | "gold" | "stone" | "brick" | "flower" | "leaf" | "metal" | "solar" | "cardboard" | "soil" | "pink";
 
 const stone: Ramp = { outline: "#4A4C50", base: "#A9ADB4", shadow: "#868A92", highlight: "#CBCED3" };
 const metal: Ramp = { outline: "#3C4046", base: "#C3C8CE", shadow: "#8E949C", highlight: "#E8EBEE" };
+const soil: Ramp = { outline: "#2B1A10", base: "#47301F", shadow: "#36251A", highlight: "#5C4029" };
 const solar: Ramp = { outline: "#142038", base: "#2E4A7C", shadow: "#213A63", highlight: "#5B7FB8" };
 
 /**
@@ -89,7 +90,9 @@ export function makeFrame(c: VolumeConfig, xOffset = 0): Frame {
             leaf: objectRamps.leaf,
             metal,
             solar,
-            cardboard: objectRamps.wood_light
+            cardboard: objectRamps.wood_light,
+            soil,
+            pink: objectRamps.flower_pink
         },
         xOffset,
         here: () => shape(W, H)

@@ -33,10 +33,16 @@ import { houseWindowGlassMask } from "../masks/buildings/houseWindow/glass.mask"
 import { houseWindowGlintMask } from "../masks/buildings/houseWindow/glint.mask";
 import { houseWindowShutterMask } from "../masks/buildings/houseWindow/shutter.mask";
 import { houseWindowSlatsMask } from "../masks/buildings/houseWindow/slats.mask";
+import { plantBedBloomMask } from "../masks/buildings/plantBed/bloom.mask";
+import { plantBedBodyMask } from "../masks/buildings/plantBed/body.mask";
+import { plantBedFrontMask } from "../masks/buildings/plantBed/front.mask";
+import { plantBedSoilMask } from "../masks/buildings/plantBed/soil.mask";
 import { roofVentCapMask } from "../masks/buildings/roofVent/cap.mask";
 import { roofVentPipeMask } from "../masks/buildings/roofVent/pipe.mask";
 import { roundWindowGlassMask } from "../masks/buildings/roundWindow/glass.mask";
 import { roundWindowRingMask } from "../masks/buildings/roundWindow/ring.mask";
+import { shrubBodyMask } from "../masks/buildings/shrub/body.mask";
+import { shrubLightMask } from "../masks/buildings/shrub/light.mask";
 import { skylightFrameMask } from "../masks/buildings/skylight/frame.mask";
 import { skylightFrontMask } from "../masks/buildings/skylight/front.mask";
 import { skylightGlassMask } from "../masks/buildings/skylight/glass.mask";
@@ -166,4 +172,34 @@ export const cardboardBoxParts: Part[] = [
     { mask: cardboardBoxBodyMask, role: "cardboard", dx: 0, dy: 0 },
     { mask: cardboardBoxTapeMask, role: "cardboard", dx: 4, dy: 1, tone: "highlight" },
     { mask: cardboardBoxFrontMask, role: "cardboard", dx: 0, dy: 6, tone: "shadow" }
+];
+
+const bloom = (role: Role, dx: number, dy: number): Part => ({ mask: plantBedBloomMask, role, dx, dy, tone: "base" });
+
+/** The planter bed itself: its wooden box and the soil in it. Anchor: the top-left of the bed. */
+const plantBed: Part[] = [
+    { mask: plantBedBodyMask, role: "wood", dx: 0, dy: 0 },
+    { mask: plantBedFrontMask, role: "wood", dx: 0, dy: 7, tone: "shadow" },
+    { mask: plantBedSoilMask, role: "soil", dx: 2, dy: 1, tone: "base" }
+];
+
+/** A bed with a shrub and a few flowers beside it. */
+export const shrubBedParts: Part[] = [
+    ...plantBed,
+    { mask: shrubBodyMask, role: "leaf", dx: 2, dy: -2 },
+    { mask: shrubLightMask, role: "leaf", dx: 3, dy: -1, tone: "highlight" },
+    bloom("flower", 11, 3),
+    bloom("gold", 14, 1),
+    bloom("pink", 17, 3)
+];
+
+/** A bed of flowers in two rows. */
+export const flowerBedParts: Part[] = [
+    ...plantBed,
+    bloom("flower", 3, 1),
+    bloom("gold", 9, 1),
+    bloom("pink", 15, 1),
+    bloom("pink", 5, 3),
+    bloom("flower", 11, 3),
+    bloom("gold", 16, 3)
 ];
