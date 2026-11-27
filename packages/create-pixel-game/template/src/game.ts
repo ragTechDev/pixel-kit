@@ -1,4 +1,4 @@
-import { buildAvatar, buildMap, mapTileSize, queryCell, TILE_SIZE, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
+import { buildAvatar, buildMap, mapTileSize, TILE_SIZE, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
 import { createCamera, createGame, createWalker, isWalkable, type Direction, type Game, type Scene } from "@ragtechdev/pixel-engine";
 import { house, town } from "./maps";
@@ -13,13 +13,13 @@ interface Place {
     map: TileMap;
     /** Where the hero appears when they come in through a door. */
     arrive: { x: number; y: number; facing: Direction };
-    /** Stepping onto the tile "x,y" goes to another place. */
+    /** Stepping onto the tile "x,y" goes to another place: a door, or a gap in a wall. */
     doors: Readonly<Record<string, PlaceName>>;
 }
 
 const places: Record<PlaceName, Place> = {
     town: { map: town, arrive: { x: 7, y: 6, facing: "down" }, doors: { "7,5": "house" } },
-    house: { map: house, arrive: { x: 7, y: 9, facing: "up" }, doors: { "7,10": "town" } }
+    house: { map: house, arrive: { x: 7, y: 10, facing: "up" }, doors: { "6,11": "town", "7,11": "town" } }
 };
 
 // One avatar per way of facing. Change the options to change how the hero looks (see the Avatars page in the docs).
@@ -37,7 +37,7 @@ const pixels = (map: TileMap) => {
 };
 
 /**
- * A town and a house, joined by a door. The hero walks a tile at a time, and water, trees, walls and furniture stop
+ * A town and a house, joined by a door and a gap in the house's wall. The hero walks a tile at a time, and water, trees, walls and furniture stop
  * them, because collision reads the same map data that drew the world.
  */
 export function createWorld(): Game<Ctx> {
@@ -57,10 +57,10 @@ export function createWorld(): Game<Ctx> {
             update(dt) {
                 const direction = game.input.heldDirection();
                 if (direction) walker.walk(direction, canEnter);
-                // Arriving on a door tile is the moment to go through it.
+                // Arriving on a door tile (or a gap in a wall) is the moment to go through it.
                 if (walker.update(dt)) {
                     const to = place.doors[`${walker.tx},${walker.ty}`];
-                    if (to && queryCell(place.map, walker.tx, walker.ty)?.door) {
+                    if (to) {
                         game.scenes.replace(scene(game, to));
                         return;
                     }

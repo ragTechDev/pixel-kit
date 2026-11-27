@@ -22,18 +22,19 @@ export const town = defineMap(townTileset, [
     ...at("flower", [2, 7], [3, 10], [4, 13], [18, 2])
 ]);
 
-// The inside of the house. The door is one row up from the bottom, so the floor in front of it can be reached.
+// The inside of the house. The far wall is seen face on, the side walls from above and the near wall from above and a little in
+// front (l, r, L, F, R). The gap in the near wall (G, with E and S at its ends) is the way out: there is no door, so
+// stepping onto the gap goes back to the town.
 export const house = defineMap(houseTileset, [
     "hhhhhhhh",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "ffffffff",
-    "hhhhhhhh"
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "lffffffr",
+    "LFEGSFFR"
 ], [
     ...at("window", [3, 1], [11, 1]),
     ...at("bookshelf", [1, 2], [2, 2], [13, 2], [14, 2]),
     ...at("counter", [5, 4], [7, 4], [9, 4]),
-    ...at("rug", [7, 7]),
-    ...at("door", [7, 10])
+    ...at("rug", [7, 7])
 ]);

@@ -10,6 +10,11 @@ To draft the next entry from the commit history, run `pnpm changelog create-pixe
 
 <!-- next-release -->
 
+## Unreleased
+
+### Changed
+- **The starter's house is a room with thin walls.** The far wall is seen face on, the side walls from above and the near wall from above and a little in front, and there is no door in the house: the way back to the town is a gap in the near wall. The town's door is unchanged. This uses the room tiles and `solidArea` that are unreleased in `@ragtechdev/pixel-sprites` (see its changelog), so release that first, then raise the starter's range in `template/_package.json` and run `verify` before releasing this.
+
 ## [0.1.1] - 2026-11-27
 
 ### Fixed

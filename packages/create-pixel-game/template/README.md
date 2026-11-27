@@ -1,6 +1,6 @@
 # {{title}}
 
-A pixel-art game built with [ragTech Pixel Kit](https://github.com/ragTechDev/pixel-kit). It starts as a small town and a house you can walk into: arrow keys or WASD to walk, and step onto the door.
+A pixel-art game built with [ragTech Pixel Kit](https://github.com/ragTechDev/pixel-kit). It starts as a small town and a house you can walk into: arrow keys or WASD to walk, and step onto the door, and out through the gap in the wall to come back.
 
 ```sh
 pnpm install
@@ -12,7 +12,7 @@ pnpm dev
 ## Where to start
 
 - `src/maps.ts` is the world. Change a letter in a map, or add an object, and the picture and what blocks the hero change together.
-- `src/game.ts` is what happens: the places, the door between them, the hero and the camera.
+- `src/game.ts` is what happens: the places, the way between them, the hero and the camera.
 - `src/main.ts` connects it to the page.
 
 The guides are at <https://ragtechdev.github.io/pixel-kit/#/docs/start>: the sprites (tiles, objects, avatars, colours) and the engine (the loop, input, camera, walking, doors and scenes).
