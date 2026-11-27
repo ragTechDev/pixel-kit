@@ -12,6 +12,9 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 
 ## Unreleased
 
+### Changed
+- **A counter, a till (`cash_register`) and a table block only their front.** They now have a `foot` (the lowest 12 pixels of what is drawn, 11 for the till), so a mover can walk up behind one until its feet are at the back edge of the top, and the object is drawn over its legs, as with a tree trunk. `solidBoxes` for a placed `counter` is shorter at the top (4 pixels into its tile instead of 1); `queryCell` is unchanged.
+
 ### Fixed
 - **A character could walk onto the water of a shore tile.** A shore tile is grass and sand over the water's edge, but it was not solid, so `solidBoxes` let a mover stand on the water drawn in its lower part. A tileset can now list `solidFrom`, tiles that block only from a pixel row down (1 to 15), and `townTileset` has `{ shore: 9 }`, so a mover walks on the grass and sand and stops at the water. `queryCell` is unchanged: the shore cell is still walkable for tile movement.
 

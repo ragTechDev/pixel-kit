@@ -25,7 +25,7 @@ export interface ObjectInfo {
     readonly footprint: readonly string[];
     /**
      * Only the lowest this many pixels of what is drawn in the blocking cells block movement, so a character can walk in behind the rest
-     * of the object (a bush's leaves) and fit between plants. The default is all of what is drawn there.
+     * of the object (a bush's leaves, or the other side of a counter) and fit between plants. The default is all of what is drawn there.
      */
     readonly foot?: number;
     /** A warp, such as a door. */
@@ -45,16 +45,18 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
     fence: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     door: { width: 1, height: 1, layer: "standing", footprint: ["."], door: true },
     window: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
-    counter: { width: 2, height: 1, layer: "standing", footprint: ["##"], counter: true },
+    // A counter, a till and a table block only the front of what is drawn, so a character can stand right behind one with its legs
+    // hidden by it (`foot`: the lowest 12 pixels, so the blocked part starts at the back edge of the top).
+    counter: { width: 2, height: 1, layer: "standing", footprint: ["##"], foot: 12, counter: true },
     bookshelf: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
     rug: { width: 2, height: 2, layer: "ground", footprint: ["..", ".."] },
     flower: { width: 1, height: 1, layer: "ground", footprint: ["."] },
-    table: { width: 2, height: 1, layer: "standing", footprint: ["##"] },
+    table: { width: 2, height: 1, layer: "standing", footprint: ["##"], foot: 12 },
     chair: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     stove: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     sink: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     fridge: { width: 2, height: 2, layer: "standing", footprint: ["##", "##"] },
-    cash_register: { width: 1, height: 1, layer: "standing", footprint: ["#"], counter: true },
+    cash_register: { width: 1, height: 1, layer: "standing", footprint: ["#"], foot: 11, counter: true },
     grocery_shelf: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
     produce_crate: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     chalkboard: { width: 1, height: 1, layer: "standing", footprint: ["#"] }

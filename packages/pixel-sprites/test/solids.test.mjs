@@ -66,3 +66,18 @@ test("drawn in order, the ground and the drawables are the same picture as build
     }
     assert.deepEqual(out, Array.from(whole.px, (i) => whole.colors[i]));
 });
+
+test("a counter, a till and a table block only their front, so a mover can stand right behind one and be covered by it", () => {
+    for (const [id, width] of [["counter", 2], ["cash_register", 1], ["table", 2]]) {
+        const room = defineMap(townTileset, Array(4).fill("gggg"), [{ id, x: 2, y: 3 }]);
+        const [box] = solidBoxes(room);
+        const top = 3 * TILE_SIZE;
+        assert.ok(box.y > top + 2 && box.y < top + 8, `${id}: the blocked part starts at the back edge of its top, not the top of the picture (${box.y - top})`);
+        assert.equal(box.y + box.height, top + TILE_SIZE, `${id}: and runs to the foot`);
+        assert.ok(box.width > (width - 1) * TILE_SIZE, `${id}: as wide as drawn`);
+        // A mover whose feet are at the box's top edge is above the object's sort line, so it is drawn first and the object covers it.
+        const { standing } = mapDrawables(room, "summer");
+        assert.equal(standing[0].sortY, top + TILE_SIZE);
+        assert.ok(box.y < standing[0].sortY);
+    }
+});
