@@ -10,6 +10,11 @@ To draft the next entry from the commit history, run `pnpm changelog create-pixe
 
 <!-- next-release -->
 
+## [0.1.1] - 2026-11-27
+
+### Fixed
+- **New games start on the current kit:** the starter now depends on `@ragtechdev/pixel-sprites` `^0.11.0` and `@ragtechdev/pixel-engine` `^0.2.0`, so it can use composable buildings, pixel-accurate collision and `createMover`.
+
 ## [0.1.0] - 2026-11-26
 
 First release: `npm create @ragtechdev/pixel-game my-game` starts a pixel-art game on ragTech Pixel Kit. It has no dependencies and needs Node 20 or newer.
