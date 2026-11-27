@@ -10,6 +10,12 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-sprit
 
 <!-- next-release -->
 
+## [Unreleased]
+
+### Added
+- **`solidBoxes(map)` and `doorBoxes(map)`: collision in pixels.** Terrain and water are whole tiles, but a standing object is solid where it is drawn on its blocking cells (a tree is its trunk, as wide as the trunk) and a building where its wall is drawn, from the outline on each side down to the line it stands on, so something can come right up to either. The roof rows above the wall are open, and the foot of the door is a box in `doorBoxes`. `queryCell` and `buildingFootprint` are unchanged and still cover the whole box in tiles, for tile-by-tile movement.
+- **`mapDrawables(map, theme, colors)`** returns the map split into its `ground` and each standing object and building as its own raster with a `sortY`, so a game can draw a character behind a building and have the roof cover it. Drawn in order with nothing between, it is the same picture as `buildMap`.
+
 ## [0.10.0] - 2026-11-27
 
 ### Breaking changes

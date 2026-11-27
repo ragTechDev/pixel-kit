@@ -1,5 +1,5 @@
 import type { ColorName } from "../core/colors";
-import { composeSprites, type Layer, type Raster } from "../core/compose";
+import { composeSprites, layerBounds, type Layer, type Raster } from "../core/compose";
 import { parseHex, type HexColor } from "../core/customColor";
 import { buildingBox, buildingFootprint, buildingLayers } from "./buildings/draw";
 import { resolveBuildingConfig, type BuildingConfig } from "./buildings/config";
@@ -230,4 +230,79 @@ export function buildMap(map: TileMap, theme?: string, colors?: TileColors): Ras
         byTheme.set(cacheKey, raster);
     }
     return raster;
+}
+
+/** One thing that stands on the ground, drawn on its own so a game can put a walker in front of or behind it. */
+export interface MapDrawable {
+    readonly raster: Raster;
+    /** World pixel of the raster's top-left corner. */
+    readonly x: number;
+    readonly y: number;
+    /**
+     * The world pixel row its footprint ends on. Draw it after anything whose feet are above this row and before anything
+     * whose feet are at or below it, so a building covers a walker behind it and a walker in front covers the building.
+     */
+    readonly sortY: number;
+}
+
+export interface MapDrawables {
+    /** The terrain and the ground objects (rugs, flowers): always drawn first. Same size as `buildMap`'s raster. */
+    readonly ground: Raster;
+    /** Standing objects and buildings, back to front. */
+    readonly standing: readonly MapDrawable[];
+}
+
+const drawablesCache = new WeakMap<TileMap, Map<string, MapDrawables>>();
+
+/**
+ * The map split for drawing with walkers between its parts: the ground, then each standing object and building as its
+ * own raster with the row it sorts on. Drawn in this order with nothing between them it looks the same as `buildMap`.
+ * Memoised per map, palette and colours.
+ */
+export function mapDrawables(map: TileMap, theme?: string, colors?: TileColors): MapDrawables {
+    const resolved = resolveTheme(theme);
+    const cacheKey = `${resolved}|${tileColorsKey(colors)}`;
+    let byTheme = drawablesCache.get(map);
+    if (!byTheme) {
+        byTheme = new Map();
+        drawablesCache.set(map, byTheme);
+    }
+    let found = byTheme.get(cacheKey);
+    if (!found) {
+        const slots = themeSlots(resolved, colors);
+        const size = map.tileset.blockSize;
+        const layers: Layer[] = [];
+        for (let by = 0; by < map.height; by += 1) {
+            for (let bx = 0; bx < map.width; bx += 1) {
+                const block = map.tileset.blocks[map.rows[by][bx]];
+                for (let ty = 0; ty < size; ty += 1) {
+                    for (let tx = 0; tx < size; tx += 1) {
+                        layers.push({ sprite: tileSprite(block[ty][tx]), slots, x: (bx * size + tx) * TILE_SIZE, y: (by * size + ty) * TILE_SIZE });
+                    }
+                }
+            }
+        }
+        const standing: (MapDrawable & { readonly x0: number })[] = [];
+        for (const o of map.objects) {
+            const info = objectInfo[o.id];
+            const objectLayer = objectLayers(o.id, o.x * TILE_SIZE, o.y * TILE_SIZE, resolved, o.color);
+            if (info.layer === "ground") {
+                layers.push(...objectLayer);
+                continue;
+            }
+            const bounds = layerBounds(objectLayer);
+            standing.push({ raster: composeSprites(objectLayer, bounds), x: bounds.x, y: bounds.y, sortY: (o.y + info.height) * TILE_SIZE, x0: o.x });
+        }
+        for (const b of map.buildings) {
+            const buildingLayer = buildingLayers(b.config, b.x * TILE_SIZE, b.y * TILE_SIZE);
+            const bounds = layerBounds(buildingLayer);
+            standing.push({ raster: composeSprites(buildingLayer, bounds), x: bounds.x, y: bounds.y, sortY: (b.y + buildingBox(b.config).height) * TILE_SIZE, x0: b.x });
+        }
+        standing.sort((a, b) => a.sortY - b.sortY || a.x0 - b.x0);
+        const { width, height } = mapTileSize(map);
+        const ground = composeSprites(layers, { x: 0, y: 0, width: width * TILE_SIZE, height: height * TILE_SIZE });
+        found = { ground, standing: standing.map(({ raster, x, y, sortY }) => ({ raster, x, y, sortY })) };
+        byTheme.set(cacheKey, found);
+    }
+    return found;
 }
