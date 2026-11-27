@@ -36,7 +36,26 @@ export const houseMap = defineMap(houseTileset, [
     ...at("door", [7, 11])
 ]);
 
-export const worlds = { Town: townMap, House: houseMap } as const;
+// A street of buildings: each is drawn from fixed choices and placed in tile coordinates like an object.
+export const streetMap = defineMap(townTileset, [
+    "gggggggggggggg",
+    "gggggggggggggg",
+    "gggggggggggggg",
+    "gggggggggggggg",
+    "gggggggggggggg",
+    "gggggggggggggg",
+    "pppppppppppppp",
+    "pppppppppppppp"
+], [
+    ...at("tree", [9, 10], [1, 3], [20, 4]),
+    ...at("flower", [12, 10], [13, 11], [27, 9], [20, 10])
+], [
+    { config: { width: 6, roofColor: "blue", doorColor: "red", chimney: "right" }, x: 3, y: 7 },
+    { config: { width: 7, storeys: 2, roof: "gable", pitch: "steep", wall: "brick", roofColor: "purple", windowStyle: "shuttered", doorColor: "teal", door: "left", props: "barrels" }, x: 10, y: 3 },
+    { config: { width: 5, wall: "timber", roofColor: "green", doorStyle: "arched", windowStyle: "arched", props: "planters", porch: "deck" }, x: 22, y: 7 }
+]);
+
+export const worlds = { Town: townMap, House: houseMap, Street: streetMap } as const;
 export type WorldName = keyof typeof worlds;
 
 /** A small town that fits in a card: a house, a path, a tree and some flowers (160x96 px). */

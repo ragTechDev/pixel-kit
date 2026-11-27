@@ -61,6 +61,19 @@ buildIcon("cottage", { idle: true });`} />
 <Tile id="grass" theme="autumn" />
 <WorldObject id="tree" />
 <World map={map} theme="winter" pixelSize={2} />`} />
+            <p>
+                A building is chosen from fixed lists, like an avatar, and drawn from them: roof shape and pitch, wall material, storeys and width, the door and its step, windows, a chimney, props at the front, and colours for the roof, walls, trim and door.
+                It is seen from the front and a little above, as in most pixel-art games. Put one on a map with the fourth argument of <code>defineMap</code>, with <code>x</code> and <code>y</code> in tiles. Its walls and roof are solid, and the tile at the foot of its door is open and has <code>door</code> set, so a walker can step in.
+            </p>
+            <CodeBlock code={`import { defineMap, townTileset } from "@ragtechdev/pixel-sprites";
+import { Building } from "@ragtechdev/pixel-sprites/react";
+
+const map = defineMap(townTileset, Array(8).fill("gggggggg"), [], [
+  { config: { width: 7, storeys: 2, roof: "gable", wall: "brick", roofColor: "blue" }, x: 2, y: 1 }
+]);
+
+<Building roof="gable" wall="brick" roofColor="blue" pixelSize={4} />`} />
+            <p>An object placed on a map can also take a <code>color</code> (<code>{'{ id: "door", x: 3, y: 2, color: "blue" }'}</code>), a common colour or a hex colour, for the objects that have one.</p>
         </>
     ),
     variants: () => (

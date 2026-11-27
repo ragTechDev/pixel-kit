@@ -3,6 +3,7 @@ import { useHandheld, useHeight } from "./hooks";
 import { href, useRoute } from "./router";
 import { AvatarsPage } from "./pages/Avatars";
 import { BrowsePage } from "./pages/Browse";
+import { BuildingsPage } from "./pages/Buildings";
 import { DocsPage } from "./pages/Docs";
 import { docSections, docTitle } from "./pages/docTopics";
 import { HomePage } from "./pages/Home";
@@ -14,6 +15,7 @@ const library = [
     ["icons", "Icons"],
     ["tiles", "Tiles"],
     ["objects", "Objects"],
+    ["buildings", "Buildings"],
     ["avatars", "Avatars"],
     ["worlds", "Worlds"]
 ] as const;
@@ -53,6 +55,7 @@ export default function App() {
             case "icons": return <BrowsePage route={route} kind="icons" />;
             case "tiles": return <BrowsePage route={route} kind="tiles" />;
             case "objects": return <BrowsePage route={route} kind="objects" />;
+            case "buildings": return <BuildingsPage route={route} />;
             case "avatars": return <AvatarsPage route={route} />;
             case "worlds": return <WorldsPage route={route} />;
             case "play": return <PlayPage route={route} />;
