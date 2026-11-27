@@ -4,9 +4,11 @@ import {
     buildBuilding,
     buildMap,
     buildingColors,
+    buildingDepths,
     buildingMap,
     buildingProps,
     buildingStoreys,
+    buildingWings,
     buildingWalls,
     buildingWidths,
     chimneys,
@@ -60,8 +62,10 @@ interface Tab {
 
 const TABS: Tab[] = [
     { id: "roof", label: "Roof", sections: [
-        { field: "roof", title: "Shape", hint: "A hip roof slopes on all four sides. A gable roof has its ridge running front to back, so you see a left and a right slope, with the gable on the wall and a round window in it when the house has windows.", options: roofShapes },
-        { field: "pitch", title: "Pitch", hint: "A steep roof is one tile taller, with more of the slopes showing.", options: roofPitches }
+        { field: "roof", title: "Shape", hint: "How the roof looks from above and in front. A gable and a hip roof have a ridge running front to back; a hip roof has a sloping face at the front instead of a gable on the wall. A saltbox has its ridge off to one side.", options: roofShapes },
+        { field: "wing", title: "Front wing", hint: "A section in the middle that sticks out in front, with the same kind of roof. A gable roof gets a cross gable, a flat roof a notch and a barrel roof a rounded front. The door is on the wing.", options: buildingWings },
+        { field: "pitch", title: "Pitch", hint: "A steep roof is one tile taller, with more of the slopes showing, and a narrower flat top on the roofs that have one.", options: roofPitches },
+        { field: "depth", title: "Length", hint: "How long the building is from front to back. You look down on it, so a longer building is a roof that goes further up.", options: buildingDepths }
     ], colours: [{ field: "roofColor", title: "Roof colour" }] },
     { id: "walls", label: "Walls", sections: [
         { field: "wall", title: "Material", hint: "Timber is plaster between wooden beams.", options: buildingWalls },
@@ -99,17 +103,18 @@ function loadLook(): BuildingConfig {
 }
 
 function OptionGrid({ section, look, choose }: { section: Section; look: ResolvedBuildingConfig; choose: (field: Field, value: string | number) => void }) {
+    const arts: Raster[] = section.options.map((id) => buildBuilding({ ...look, [section.field]: id }));
+    // One scale for the whole row, so a short building does not look bigger than a tall one, and small enough that the tallest fits its card.
+    const biggest = arts.reduce((m, a) => ({ w: Math.max(m.w, a.width), h: Math.max(m.h, a.height) }), { w: 1, h: 1 });
+    const scale = Math.min(1, 120 / biggest.h, 136 / biggest.w);
     return (
         <div className="opt-grid opt-grid-tall">
-            {section.options.map((id) => {
-                const art: Raster = buildBuilding({ ...look, [section.field]: id });
-                return (
-                    <button key={id} className="opt" aria-pressed={look[section.field] === id} onClick={() => choose(section.field, id)}>
-                        <span className="opt-art" aria-hidden><PixelImage raster={art} pixelSize={1} /></span>
-                        <span>{words(id)}</span>
-                    </button>
-                );
-            })}
+            {section.options.map((id, i) => (
+                <button key={id} className="opt" aria-pressed={look[section.field] === id} onClick={() => choose(section.field, id)}>
+                    <span className="opt-art" aria-hidden><PixelImage raster={arts[i]} pixelSize={scale} /></span>
+                    <span>{words(id)}</span>
+                </button>
+            ))}
         </div>
     );
 }
