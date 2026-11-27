@@ -1,6 +1,6 @@
 {
   "name": "@ragtechdev/pixel-engine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A small, framework-agnostic game runtime for pixel-art worlds: fixed-step loop, input, camera, tile movement and scenes.",
   "author": "RAGTECH PTE. LTD.",
   "license": "MIT",
