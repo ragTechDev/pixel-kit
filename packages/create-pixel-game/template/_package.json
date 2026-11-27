@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ragtechdev/pixel-engine": "^0.1.0",
+    "@ragtechdev/pixel-engine": "^0.2.0",
     "@ragtechdev/pixel-sprites": "^0.11.0"
   },
   "devDependencies": {
