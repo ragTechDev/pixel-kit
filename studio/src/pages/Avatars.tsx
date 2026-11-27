@@ -6,6 +6,7 @@ import {
     backHairStylesFor,
     hairAccessories,
     hairAccessoryApplies,
+    headscarfStyles,
     hairLengths,
     hairDrapeApplies,
     isLooseHair,
@@ -90,7 +91,8 @@ const TABS: Tab[] = [
         { field: "frontHairStyle", title: "Overhead", options: keys(frontHairStyles), crop: "head" },
         { field: "backHairStyle", title: "Behind head", options: keys(backHairStyles), crop: "head" },
         { field: "hairDrape", title: "Shoulders", hint: "Does the hair fall over the shoulders, hang behind them, or have some of each?", options: keys(hairDrapes), crop: "head" },
-        { field: "hairAccessory", title: "Accessory", hint: "Ties up a ponytail or pigtails.", options: keys(hairAccessories), crop: "head" },
+        { field: "hairAccessory", title: "Accessory", hint: "A hairtie, scrunchie or bow ties up a ponytail or pigtails. A headscarf covers any hair.", options: keys(hairAccessories), crop: "head" },
+        { field: "headscarfStyle", title: "Headscarf style", hint: "How the scarf is worn: a long, loose throwback wrap, or tucked neatly into the neckline.", options: keys(headscarfStyles), crop: "head" },
         { field: "hairAccessoryColor", title: "Accessory colour", options: keys(clothesPalettes), crop: "head", colors: clothesPalettes }
     ] },
     { id: "top", label: "Top", crop: "body", sections: [
@@ -285,6 +287,7 @@ const ELEMENT_OF: Partial<Record<Field, Element>> = {
     hairTexture: "hair",
     hairDrape: "hair",
     hairAccessory: "hair",
+    headscarfStyle: "hair",
     frontHairStyle: "hair",
     backHairStyle: "hair",
     topStyle: "top",
@@ -469,7 +472,9 @@ export function AvatarsPage({ route }: { route: Route }) {
                             </button>
                         ))}
                     </div>
-                    {tab.sections.filter((section) => !(look.hairLength === "bald" && (section.field === "frontHairStyle" || section.field === "backHairStyle" || section.field === "hairTexture")) && !(section.field === "hairDrape" && (!hairDrapeApplies(look.hairLength) || isMiddlePonytail(look.backHairStyle))) && !((section.field === "hairAccessory" || section.field === "hairAccessoryColor") && (!hairAccessoryApplies(look.hairLength, look.backHairStyle) || (section.field === "hairAccessoryColor" && look.hairAccessory === "none"))) && !((section.field === "topLength" || section.field === "sleeveLength" || section.field === "collar") && look.topStyle !== "top") && !(section.field === "sleeveLength" && !collarHasSleeves(look.collar)) && !(section.field === "tuck" && (look.topStyle !== "top" || look.bottomStyle === "none")) && !(section.field === "bottomColor" && look.tuck === "onePiece") && !(section.field === "skirtShape" && look.bottomStyle !== "skirt") && !(section.field === "bottomLength" && (look.bottomStyle !== "skirt" && look.bottomStyle !== "pants"))).map((section) => {
+                    {tab.sections.filter((section) => !(look.hairLength === "bald" && (section.field === "frontHairStyle" || section.field === "backHairStyle" || section.field === "hairTexture")) && !(section.field === "hairDrape" && (!hairDrapeApplies(look.hairLength) || isMiddlePonytail(look.backHairStyle))) && !(section.field === "hairAccessoryColor" && look.hairAccessory === "none") && !(section.field === "headscarfStyle" && look.hairAccessory !== "headscarf") && !((section.field === "topLength" || section.field === "sleeveLength" || section.field === "collar") && look.topStyle !== "top") && !(section.field === "sleeveLength" && !collarHasSleeves(look.collar)) && !(section.field === "tuck" && (look.topStyle !== "top" || look.bottomStyle === "none")) && !(section.field === "bottomColor" && look.tuck === "onePiece") && !(section.field === "skirtShape" && look.bottomStyle !== "skirt") && !(section.field === "bottomLength" && (look.bottomStyle !== "skirt" && look.bottomStyle !== "pants"))).map((section) => {
+                        // Tying accessories need tied hair; a headscarf goes with any.
+                        const options = section.field === "hairAccessory" && !hairAccessoryApplies(look.hairLength, look.backHairStyle) ? section.options.filter((id) => id === "none" || id === "headscarf") : section.options;
                         // A piece without a colour of its own shows the clothes colour.
                         const current = (look[section.field] ?? (isPieceColour(section.field) ? look.clothesColor : undefined)) as string;
                         return (
@@ -477,10 +482,10 @@ export function AvatarsPage({ route }: { route: Route }) {
                                 <div className="h opt-title">{section.title}</div>
                                 {section.hint && <p className="muted opt-note">{section.hint}</p>}
                                 {section.slider ? (
-                                    <StepSlider options={section.options} current={current} label={section.title} onChange={(id) => choose(section.field, id)} />
+                                    <StepSlider options={options} current={current} label={section.title} onChange={(id) => choose(section.field, id)} />
                                 ) : section.colors ? (
                                     <div className="swatches">
-                                        {section.options.map((id) => {
+                                        {options.map((id) => {
                                             const name = NAMES[section.field]?.[id] ?? words(id);
                                             const active = id === current && !custom[section.field as ColourField];
                                             return (

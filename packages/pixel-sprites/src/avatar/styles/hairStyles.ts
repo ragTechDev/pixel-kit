@@ -414,7 +414,7 @@ export const backHairStylesByLength = Object.fromEntries(
     })
 ) as Record<Exclude<HairLength, "bald">, Record<HairDrape, Record<BackHairStyle, HairFamilyDefinition>>>;
 
-/** An accessory ties up a tail, so it needs hair that is tied: hair of chin length or longer in a ponytail or pigtails. */
+/** A hairtie, scrunchie or bow ties up a tail, so it needs hair that is tied: hair of chin length or longer in a ponytail or pigtails. A headscarf needs no tied hair. */
 export const hairAccessoryApplies = (length: HairLength, style: BackHairStyle): boolean => length !== "bald" && length !== "ear" && !isLooseHair(style);
 
 /** A tail down the middle hangs behind the head, so it has no shoulder to fall over. */

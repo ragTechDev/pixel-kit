@@ -8,13 +8,15 @@ export interface ViewMasks {
     readonly front: PixelMask;
     readonly side: PixelMask;
     readonly back?: PixelMask;
+    /** Facing left, for a part that is not the same on both sides. Left out, it is the side mask flipped. */
+    readonly left?: PixelMask;
 }
 
-/** Picks the mask for an orientation. Facing left is the side mask flipped. */
+/** Picks the mask for an orientation. Facing left is the side mask flipped, unless the part has a mask of its own for it. */
 export function maskForView(masks: ViewMasks, orientation: HeadOrientation): PixelMask {
     switch (orientation) {
         case "left":
-            return mirrorMask(masks.side);
+            return masks.left ?? mirrorMask(masks.side);
         case "right":
             return masks.side;
         case "back":

@@ -13,6 +13,8 @@ import {
     defaultAvatarConfig,
     eyePalettes,
     hairAccessories,
+    headscarfStyles,
+    headscarfMasks,
     hairDrapes,
     hairPalettes,
     hairTextures,
@@ -330,7 +332,7 @@ test("a ponytail can be on the right, on the left or in the middle", () => {
 
 test("a ponytail or pigtails can have a hairtie, a scrunchie or a bow in a colour", () => {
     assert.equal(defaultAvatarConfig.hairAccessory, "none");
-    assert.deepEqual(Object.keys(hairAccessories), ["none", "hairtie", "scrunchie", "bow"]);
+    assert.deepEqual(Object.keys(hairAccessories), ["none", "hairtie", "scrunchie", "bow", "headscarf"]);
     assert.equal(resolveAvatarConfig({ backHairStyle: "lowPigtails", hairAccessory: "feather" }).hairAccessory, "none");
     const red = Object.values(clothesPalettes.red);
     const reds = (config) => {
@@ -350,6 +352,61 @@ test("a ponytail or pigtails can have a hairtie, a scrunchie or a bow in a colou
         }
     }
     assert.ok(reds({ hairLength: "armpit", backHairStyle: "lowPigtails", hairAccessory: "bow", hairAccessoryColor: "red" }) > reds({ hairLength: "armpit", backHairStyle: "lowPigtails", hairAccessory: "hairtie", hairAccessoryColor: "red" }));
+});
+
+test("a headscarf goes with any hair, covers it, and takes the accessory colour", () => {
+    for (const config of [{ hairLength: "bald" }, { hairLength: "ear" }, { hairLength: "midBack", backHairStyle: "looseU" }, { hairLength: "armpit", backHairStyle: "lowPigtails", frontHairStyle: "bangs" }]) {
+        for (const headOrientation of ["front", "left", "right", "back"]) {
+            const look = { ...config, headOrientation, hairAccessory: "headscarf" };
+            assert.equal(resolveAvatarConfig(look).hairAccessory, "headscarf", JSON.stringify(look));
+            const scarf = buildAvatar({ ...look, hairAccessoryColor: "red", clothesColor: "blue" });
+            const bare = buildAvatar({ ...look, hairAccessory: "none", clothesColor: "blue" });
+            assert.notDeepEqual(scarf.px, bare.px, JSON.stringify(look));
+            assert.notEqual(avatarKey(look), avatarKey({ ...look, hairAccessory: "none" }));
+        }
+    }
+    // Hair is hidden under it, so the hair colour does not show.
+    const hairless = (hairColor) => buildAvatar({ hairLength: "midBack", backHairStyle: "looseBlunt", hairAccessory: "headscarf", hairColor });
+    assert.deepEqual(hairless("brown").px, hairless("blonde").px);
+    assert.notEqual(avatarKey({ hairAccessory: "headscarf", hairAccessoryColor: "red" }), avatarKey({ hairAccessory: "headscarf" }));
+    // Each style is its own look, in every view, and only a headscarf has one.
+    assert.deepEqual(Object.keys(headscarfStyles), ["throwback", "tucked"]);
+    for (const headOrientation of ["front", "right", "back"]) {
+        const looks = Object.keys(headscarfStyles).map((headscarfStyle) => JSON.stringify([...buildAvatar({ headOrientation, hairAccessory: "headscarf", headscarfStyle }).px]));
+        assert.equal(new Set(looks).size, looks.length, headOrientation);
+    }
+    // The throwback scarf's long end hangs over the left shoulder, so it has a left-facing mask of its own; the other styles are
+    // the same on both sides and are drawn facing left by flipping the side mask.
+    const flip = (mask) => mask.map((row) => [...row].reverse().join(""));
+    for (const style of Object.keys(headscarfStyles)) {
+        const { side, left } = headscarfMasks[style];
+        if (style === "throwback") {
+            assert.ok(left && JSON.stringify(left) !== JSON.stringify(flip(side)));
+            assert.equal(left.length > side.length, true, "the long end reaches lower on the left");
+        } else assert.equal(left, undefined, style);
+    }
+    assert.equal(resolveAvatarConfig({ hairAccessory: "headscarf", headscarfStyle: "veil" }).headscarfStyle, "throwback");
+    assert.equal(avatarKey({ hairAccessory: "bow", hairLength: "armpit", backHairStyle: "lowPigtails", headscarfStyle: "tucked" }), avatarKey({ hairAccessory: "bow", hairLength: "armpit", backHairStyle: "lowPigtails" }));
+    assert.notEqual(avatarKey({ hairAccessory: "headscarf", headscarfStyle: "tucked" }), avatarKey({ hairAccessory: "headscarf" }));
+});
+
+test("the loose end of the throwback headscarf sways in a walk, in every view that shows them", () => {
+    // The lowest row the scarf reaches: the column of its end, in a raster that is the same size in every pose.
+    const endColumn = (style, headOrientation, legPose) => {
+        const r = buildAvatar({ headOrientation, legPose, hairAccessory: "headscarf", headscarfStyle: style, hairAccessoryColor: "red", clothesColor: "blue", topStyle: "none", bottomStyle: "none", shoeStyle: "none" });
+        const red = new Set(clothesPalettes.red ? Object.values(clothesPalettes.red).filter((v) => typeof v === "string") : []);
+        let lowest = -1, column = -1;
+        for (let y = 0; y < r.height; y += 1) for (let x = 0; x < r.width; x += 1) if (red.has(r.colors[r.px[y * r.width + x]]) && y >= lowest) { lowest = y; column = x; }
+        return { column, size: [r.width, r.height] };
+    };
+    for (const view of ["front", "back", "left"]) {
+        const [stand, left, right] = ["neutral", "contactLeft", "contactRight"].map((pose) => endColumn("throwback", view, pose));
+        assert.notEqual(left.column, right.column, view);
+        assert.ok(Math.abs(left.column - stand.column) > 0 && Math.abs(right.column - stand.column) > 0, view);
+        assert.deepEqual([left.size, right.size], [stand.size, stand.size], `${view} keeps its size`);
+        // The tucked style has no loose end, so they do not move.
+        for (const style of ["tucked"]) assert.equal(endColumn(style, view, "contactLeft").column, endColumn(style, view, "contactRight").column, `${style} ${view}`);
+    }
 });
 
 test("only tied hair has an accessory, and with none its colour does not count", () => {

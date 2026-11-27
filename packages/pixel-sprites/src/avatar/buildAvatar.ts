@@ -13,7 +13,7 @@ import { swingLayer } from "./hairSwing";
 import { armsFrames, handsFrames } from "./arms";
 import { torsoFrontMask } from "./masks/torsoFront.mask";
 import { torsoSideMask } from "./masks/torsoSide.mask";
-import { accessoryParts, hairAccessories, type HairAccessory } from "./styles/hairAccessories";
+import { accessoryParts, hairAccessories, headscarfMasks, headscarfOffset, headscarfStyles, headscarfSwingRows, type HairAccessory, type HeadscarfStyle } from "./styles/hairAccessories";
 import { hairTextures, textureMask, texturePad, type HairTexture } from "./styles/hairTextures";
 import { headOrientations, maskForView, type HeadOrientation } from "./orientation";
 import {
@@ -78,6 +78,8 @@ export interface AvatarConfig {
     hairTexture?: HairTexture;
     /** Ties up a ponytail or pigtails. Only tied hair has one. */
     hairAccessory?: HairAccessory;
+    /** How a `headscarf` is worn. Only a headscarf has one. */
+    headscarfStyle?: HeadscarfStyle;
     backHairStyle?: BackHairStyle;
     hairColor?: HairColor;
     eyeColor?: EyeColor;
@@ -128,6 +130,7 @@ export const defaultAvatarConfig: Readonly<Required<Omit<AvatarConfig, PieceColo
     hairDrape: "overShoulder",
     hairTexture: "straight",
     hairAccessory: "none",
+    headscarfStyle: "throwback",
     backHairStyle: "lowPonytailRight",
     hairColor: "brown",
     eyeColor: "dark",
@@ -155,6 +158,7 @@ const allowed: { [K in Exclude<keyof AvatarConfig, PieceColorField>]-?: object }
     hairDrape: hairDrapes,
     hairTexture: hairTextures,
     hairAccessory: hairAccessories,
+    headscarfStyle: headscarfStyles,
     backHairStyle: backHairStyles,
     hairColor: hairPalettes,
     eyeColor: eyePalettes,
@@ -200,9 +204,11 @@ export function resolveAvatarConfig(config: AvatarConfig = {}): ResolvedAvatarCo
     if (isMiddlePonytail(out.backHairStyle as BackHairStyle)) out.hairDrape = defaultAvatarConfig.hairDrape;
     // Only loose hair has some left to hang behind; a tail just falls over the shoulder.
     if (out.hairDrape === "overAndBehindShoulder" && !isLooseHair(out.backHairStyle as BackHairStyle)) out.hairDrape = defaultAvatarConfig.hairDrape;
-    // Only tied hair has an accessory, and the colour of no accessory does not count.
-    if (!hairAccessoryApplies(out.hairLength as HairLength, out.backHairStyle as BackHairStyle)) out.hairAccessory = "none";
+    // Only tied hair has a hairtie, scrunchie or bow. A headscarf goes with any hair. The colour of no accessory does not count.
+    if (out.hairAccessory !== "headscarf" && !hairAccessoryApplies(out.hairLength as HairLength, out.backHairStyle as BackHairStyle)) out.hairAccessory = "none";
     if (out.hairAccessory === "none") delete out.hairAccessoryColor;
+    // Only a headscarf has a style.
+    if (out.hairAccessory !== "headscarf") out.headscarfStyle = defaultAvatarConfig.headscarfStyle;
     // Only a top has a length, sleeves and a collar, and a collar with no sleeves leaves the arms bare.
     if (out.topStyle !== "top") {
         out.topLength = defaultAvatarConfig.topLength;
@@ -255,10 +261,12 @@ function flatSprite(mask: PixelMask, outlined: boolean): Sprite {
     let sprite = cache.get(mask);
     if (!sprite) {
         const shadedOne = shadedSprite(mask);
-        sprite = {
-            ...shadedOne,
-            px: shadedOne.px.map((slot) => (slot === SLOT.highlight || slot === SLOT.shadow ? SLOT.base : slot === SLOT.outline && !outlined ? 0 : slot))
-        };
+        const px = shadedOne.px.map((slot) => (slot === SLOT.highlight || slot === SLOT.shadow ? SLOT.base : slot === SLOT.outline && !outlined ? 0 : slot));
+        // A fold ("S") the mask marks itself stays in the shadow colour.
+        mask.forEach((row, y) => {
+            for (let x = 0; x < row.length; x += 1) if (row[x] === "S") px[(y + 1) * shadedOne.width + x + 1] = SLOT.shadow;
+        });
+        sprite = { ...shadedOne, px };
         cache.set(mask, sprite);
     }
     return sprite;
@@ -289,7 +297,9 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         y
     });
 
-    const hairLayers: readonly HairLayer[] = resolveHairLayers(c.frontHairStyle, c.backHairStyle, c.hairLength, c.hairDrape, o);
+    // A headscarf covers the hair, whatever its style, so no hair is drawn under it.
+    const scarf = c.hairAccessory === "headscarf";
+    const hairLayers: readonly HairLayer[] = scarf ? [] : resolveHairLayers(c.frontHairStyle, c.backHairStyle, c.hairLength, c.hairDrape, o);
     // In a walking pose the lower hair swishes. The size covers both swings, so the avatar keeps it in every pose.
     const hairIn = (pose: LegPose) => hairLayers.map((h) => swingLayer(h, pose, o));
     const hairNow = hairIn(c.legPose);
@@ -341,7 +351,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
     const accessorySlots = rampSlots(clothesPalettes[c.hairAccessoryColor ?? c.clothesColor]);
     const flatLayer = (mask: PixelMask, outlined: boolean, x: number, y: number): Layer => ({ sprite: flatSprite(mask, outlined), slots: accessorySlots, x, y });
     const accessoryLayers = (h: HairLayer): Layer[] => {
-        if (c.hairAccessory === "none" || !h.tie) return [];
+        if (c.hairAccessory === "none" || c.hairAccessory === "headscarf" || !h.tie) return [];
         const { mask, above, tilted, outlined } = accessoryParts[c.hairAccessory];
         const { x, y, tilt } = h.tie;
         // A band slants across a sloping tail, through the tie point; anything else lies flat, centred on it.
@@ -354,6 +364,15 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         return [flatLayer(mask, outlined, x - Math.floor(mask[0].length / 2), y - above)];
     };
     // An accessory goes just after its tail, or just before it where the tail falls over the tie.
+    // The scarf is worn over the head and shoulders, over the clothes and everything else.
+    // A loose end of it sways in a walking pose, as a tail of hair does.
+    const scarfRow = headscarfSwingRows[c.headscarfStyle]?.[o];
+    const scarfAt = (pose: LegPose): Layer => {
+        const top = -5 + headscarfOffset.y;
+        const base = { mask: maskForView(headscarfMasks[c.headscarfStyle], o), offsetX: 1 + headscarfOffset.x, offsetY: top, ...(scarfRow === undefined ? {} : { swing: { pivot: top + scarfRow } }) };
+        const placed = swingLayer(base, pose, o);
+        return flatLayer(placed.mask, true, placed.offsetX, placed.offsetY);
+    };
     const withAccessory = (h: HairLayer): Layer[] => (h.tie?.under ? [...accessoryLayers(h), hairLayer(h)] : [hairLayer(h), ...accessoryLayers(h)]);
     const hairAt = (placement: HairLayer["placement"]) => hairNow.filter((h) => h.placement === placement).flatMap(withAccessory);
 
@@ -406,7 +425,8 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         ...eyeLayers,
         ...hairAt("front"),
         ...garmentsAt("overlay"),
-        ...hairAt("top")
+        ...hairAt("top"),
+        ...(scarf ? [scarfAt(c.legPose)] : [])
     ];
 
     // Bounds include every candidate layer (even pose-hidden ones) and the front-view body, so the
@@ -420,6 +440,7 @@ export function buildAvatar(config: AvatarConfig = {}): Raster {
         torso,
         arms,
         head,
+        ...(scarf ? [scarfAt("contactLeft"), scarfAt("contactRight")] : []),
         ...[...hairLayers, ...hairIn("contactLeft"), ...hairIn("contactRight")].flatMap(withAccessory),
         ...[...garments, ...garmentsFor("contactLeft"), ...garmentsFor("contactRight")].map((g) => layer(g.mask, g.slots, g.offsetX, g.offsetY))
     ]);

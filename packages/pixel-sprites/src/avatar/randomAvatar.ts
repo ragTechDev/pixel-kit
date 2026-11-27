@@ -1,7 +1,7 @@
 import { clothesPalettes, eyePalettes, hairPalettes, skinPalettes } from "../core/palette";
 import { pieceColorFields, resolveAvatarConfig, type ResolvedAvatarConfig } from "./buildAvatar";
 import { backHairStylesFor, frontHairStyles, hairDrapes, hairLengths, type HairLength } from "./styles/hairStyles";
-import { hairAccessories } from "./styles/hairAccessories";
+import { hairAccessories, headscarfStyles } from "./styles/hairAccessories";
 import { hairTextures } from "./styles/hairTextures";
 import { bottomLengths, collars, skirtShapes, shoeStyles, sleeveLengths, topLengths, tucks } from "./styles/clothesStyles";
 
@@ -45,6 +45,7 @@ export function randomAvatar(seed: number = Math.floor(Math.random() * 429496729
         frontHairStyle: pick(keys(frontHairStyles)),
         backHairStyle: pick(backHairStylesFor(hairLength)),
         hairAccessory: pick(keys(hairAccessories)),
+        headscarfStyle: pick(keys(headscarfStyles)),
         clothesColor,
         ...colors,
         topStyle: "top",
