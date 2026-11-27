@@ -229,6 +229,8 @@ A placed building blocks walking like a tree does, and the tile at the foot of i
 
 <p align="center"><img src="docs/images/themes.svg" alt="The same village in the spring, summer, autumn and winter palettes" width="100%"></p>
 
+**A war-torn city.** `"ash"` is a fifth palette in `tileThemes`, for a city after a war: dead grass, murky water, sooty pavement and roads, a sky of smoke, and trees and flowers that have burnt. It is not a season, so `tileSeasons` lists the four that come round (use it if your game changes the weather). The ground has five damaged tiles in every palette (`cracked_road` with a pothole, `cracked_pavement`, `scorched_earth`, `rubble` and `broken_floor`), and `townTileset` has blocks for them (`J` road, `K` brick pavement, `L` cracked pavement, `M` cracked road, `N` scorched earth, `O` rubble, `Q` rubble in scorched earth), and `houseTileset` one for a broken floor (`b`). Together with `damage` on buildings and objects, a map such as `defineMap(townTileset, ["NOQ", "LMJ"], [{ id: "tree", x: 0, y: 0, damage: "ruin" }])` drawn with `buildMap(map, "ash")` is a ruined street. None of the damaged ground blocks movement.
+
 Everything is picked from built-in tables, so configs are plain data that you can store and cache. Anything unknown falls back to a default. Every item is a `Raster` you can also turn into an SVG string with `toSvg`. The ids to pick from are `iconIds`, `tileIds` and `objectIds`, and the avatar options are the exported tables such as `skinPalettes` and `topStyles`.
 
 ### Smaller sizes and fewer colours

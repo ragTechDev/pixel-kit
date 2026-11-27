@@ -1,4 +1,4 @@
-import { defineMap, houseTileset, townTileset, type ObjectId, type PlacedObject } from "@ragtechdev/pixel-sprites";
+import { buildingBox, defineMap, houseTileset, townTileset, type BuildingConfig, type ObjectDamage, type ObjectId, type PlacedObject } from "@ragtechdev/pixel-sprites";
 
 const at = (id: ObjectId, ...spots: [number, number][]): PlacedObject[] => spots.map(([x, y]) => ({ id, x, y }));
 
@@ -54,7 +54,33 @@ export const streetMap = defineMap(townTileset, [
     { config: { width: 5, roof: "flat", rooftop: "boxes", wall: "brick", wallColor: "yellow", roofColor: "grey", doorStyle: "arched", windowStyle: "arched", props: "planters", porch: "deck" }, x: 22, y: 6 }
 ]);
 
-export const worlds = { Town: townMap, House: houseMap, Street: streetMap } as const;
+// A street after a war: scorched ground and rubble, a cracked road and pavement, buildings that are half or all gone, and burnt trees.
+// Show it in the wartorn season. Each building stands with its foot on the row above the pavement.
+const hurt = (id: ObjectId, damage: ObjectDamage, ...spots: [number, number][]): PlacedObject[] => spots.map(([x, y]) => ({ id, x, y, damage }));
+const onStreet = (config: BuildingConfig, x: number) => ({ config, x, y: 10 - buildingBox(config).height });
+
+export const ruinsMap = defineMap(townTileset, [
+    "NNNNNNNNNNNNNN",
+    "NNOQNNNNNQOQNN",
+    "NNNNNNNNNNNNNN",
+    "NQNNNNNNNNNNQN",
+    "NNNNNNNOQNNNNN",
+    "LLLLLLLLLLLLLL",
+    "JJMJJJMJJJJMJJ",
+    "KKKKKKKKKKKKKK"
+], [
+    ...hurt("tree", "ruin", [1, 2], [27, 7]),
+    ...hurt("tree", "half", [13, 1]),
+    ...hurt("fence", "ruin", [18, 8], [19, 8]),
+    ...hurt("fence", "half", [8, 8]),
+    ...hurt("flower", "ruin", [8, 3], [24, 2])
+], [
+    onStreet({ width: 6, roof: "hipFlat", wall: "brick", damage: "half" }, 2),
+    onStreet({ width: 7, storeys: 2, roof: "gable", wall: "stone", damage: "ruin" }, 10),
+    onStreet({ width: 5, roof: "flat", wall: "clapboard", damage: "half" }, 21)
+]);
+
+export const worlds = { Town: townMap, House: houseMap, Street: streetMap, Ruins: ruinsMap } as const;
 export type WorldName = keyof typeof worlds;
 
 /** A small town that fits in a card: a house, a path, a tree and some flowers (160x96 px). */

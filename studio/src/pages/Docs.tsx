@@ -75,6 +75,15 @@ const map = defineMap(townTileset, Array(8).fill("gggggggg"), [], [
 <Building roof="gable" wall="brick" roofColor="blue" pixelSize={4} />`} />
             <p>An object placed on a map can also take a <code>color</code> (<code>{'{ id: "door", x: 3, y: 2, color: "blue" }'}</code>), a common colour or a hex colour, for the objects that have one.</p>
             <p>
+                For a war-torn city there is a fifth palette, <code>ash</code> (dead grass, soot, smoke and burnt trees; it is not a season), five damaged ground tiles, and blocks for them in <code>townTileset</code>: <code>J</code> road, <code>M</code> cracked road, <code>L</code> cracked pavement, <code>N</code> scorched earth, <code>O</code> rubble and <code>Q</code> rubble in scorched earth. The <a href="#/worlds">Ruins map</a> is built from them.
+            </p>
+            <Demo>{(["scorched_earth", "rubble", "cracked_road", "cracked_pavement", "broken_floor"] as const).map((id) => <Tile key={id} id={id} theme="ash" pixelSize={4} />)}</Demo>
+            <CodeBlock code={`import { buildMap, defineMap, tileSeasons, townTileset } from "@ragtechdev/pixel-sprites";
+
+const map = defineMap(townTileset, ["NOQ", "LMJ"], [{ id: "tree", x: 0, y: 0, damage: "ruin" }]);
+buildMap(map, "ash");   // ash is a palette, not a season
+tileSeasons;            // the four that come round: spring, summer, autumn, winter`} />
+            <p>
                 Buildings and objects can be shown damaged by war. <code>damage</code> is <code>"half"</code> or <code>"ruin"</code>: a building loses a corner and part of its roof (or most of its walls) and shows the rooms inside, a window loses its glass, a bookshelf its books, a tree burns down to a trunk.
                 It is the same every time for the same thing, keeps its colours, and does not change what blocks movement.
             </p>
