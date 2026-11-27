@@ -33,6 +33,10 @@ export {
     type BuildingWall, type DoorPosition, type DoorStyle, type WindowStyle, type Porch, type Chimney,
     type BuildingProps, type BuildingColor, type MaterialColor, type RoofMaterial, type BuildingDamage
 } from "./world/buildings";
+export {
+    buildTent, tentBox, tentFootprint, resolveTentConfig, defaultTentConfig, tentStyles, tentSizes, tentDamage,
+    type TentConfig, type ResolvedTentConfig, type TentStyle, type TentSize, type TentColor, type TentDamage
+} from "./world/buildings/tent";
 export { townTileset } from "./world/tilesets/town";
 export { houseTileset } from "./world/tilesets/house";
 export type { Raster } from "./core/compose";
