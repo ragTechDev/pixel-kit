@@ -2,6 +2,7 @@ import { composeSprites, type Layer, type Raster } from "../../core/compose";
 import { SLOT } from "../../core/sprite";
 import { TILE_SIZE } from "../size";
 import { buildingKey, resolveBuildingConfig, type BuildingConfig, type ResolvedBuildingConfig, type VolumeConfig } from "./config";
+import { damageRaster, rasterLayer, type Room } from "./damage";
 import { doorColumn, drawFacade } from "./facade";
 import { makeFrame, volumeBox } from "./frame";
 import { drawChimney, drawRoof, type RoofKind } from "./roof";
@@ -102,6 +103,16 @@ function draw(c: ResolvedBuildingConfig): Layer[] {
     });
 }
 
+/** The room behind each volume's wall, where the wall can be broken open: from under the eave to the foundation, with a floor under each storey. */
+function rooms(c: ResolvedBuildingConfig): Room[] {
+    return buildingVolumes(c).map((v) => {
+        const f = makeFrame(v.config, v.x * TILE_SIZE);
+        const dx = v.x * TILE_SIZE;
+        const dy = v.y * TILE_SIZE;
+        return { x0: dx + f.wx0, x1: dx + f.wx1, top: dy + f.yb + 3, floors: [...(v.config.storeys === 2 ? [dy + f.yw + 32] : []), dy + f.H - 4] };
+    });
+}
+
 const drawn = new Map<string, readonly Layer[]>();
 
 /** Internal: the layers of a building with its box's top-left corner at pixel (px, py). */
@@ -111,6 +122,11 @@ export function buildingLayers(config: BuildingConfig | undefined, px: number, p
     let layers = drawn.get(key);
     if (!layers) {
         layers = draw(c);
+        // A damaged building is the finished picture with the damage cut into it, as one layer.
+        if (c.damage !== "none") {
+            const box = buildingBox(c);
+            layers = [rasterLayer(damageRaster(composeSprites(layers, { x: 0, y: 0, width: box.width * TILE_SIZE, height: box.height * TILE_SIZE }), c.damage, key, rooms(c)))];
+        }
         if (drawn.size > 256) drawn.clear();
         drawn.set(key, layers);
     }

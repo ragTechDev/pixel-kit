@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-    TILE_SIZE, colorRamps, buildBuilding, buildMap, buildingDepths, buildingWings, buildingRooftops, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
+    TILE_SIZE, buildingDamage, colorRamps, buildBuilding, buildMap, buildingDepths, buildingWings, buildingRooftops, buildingBox, buildingColors, buildingFootprint, buildingMap, buildingProps, buildingStoreys, buildingWalls, buildingWidths,
     chimneys, objectRamps, defaultBuildingConfig, defineMap, doorPositions, doorStyles, porches, queryCell, randomBuilding, resolveBuildingConfig, roofPitches, roofShapes, roofMaterials,
     townTileset, windowStyles, maxWindows, MAX_WINDOWS
 } from "../dist/index.js";
@@ -544,4 +544,55 @@ test("windows are a number, spaced evenly, and never more than fit", () => {
     }
     assert.ok(maxWindows(8, "shuttered") < maxWindows(8, "plain"));
     assert.ok(maxWindows(8, "plain", "centre") < maxWindows(8, "plain"));
+});
+
+test("war damage: every building can be damaged, the same way each time, and keeps its size, footprint and ground line", () => {
+    assert.deepEqual([...buildingDamage], ["none", "half", "ruin"]);
+    assert.equal(resolveBuildingConfig({ damage: "burnt" }).damage, "none");
+    assert.equal(randomBuilding(3).damage, "none");
+    for (const roof of roofShapes) {
+        for (const wing of buildingWings) {
+            const config = { roof, wing, storeys: 2, wall: "brick" };
+            const whole = buildBuilding(config);
+            for (const damage of ["half", "ruin"]) {
+                const hurt = buildBuilding({ ...config, damage });
+                const label = `${roof} ${wing} ${damage}`;
+                assert.equal(hurt.width, whole.width, label);
+                assert.equal(hurt.height, whole.height, label);
+                assert.deepEqual(buildingFootprint({ ...config, damage }), buildingFootprint(config), label);
+                assert.notDeepEqual(paint(hurt), paint(whole), label);
+                assert.deepEqual(paint(buildBuilding({ ...config, damage })), paint(hurt), label);
+                assert.ok(paint(hurt).slice(-hurt.width).some((c) => c !== ""), `${label}: stands on the ground`);
+                assert.equal(hurt.px[0], 0, label);
+                assert.equal(hurt.px[hurt.width - 1], 0, label);
+                assert.ok(hurt.colors.length <= 256, label);
+                // Damage takes pixels away: less of the picture is building than before, and a ruin has lost more than half a building.
+                const solid = (r) => [...r.px].filter((i) => i !== 0).length;
+                assert.ok(solid(hurt) < solid(whole), label);
+                if (damage === "ruin") assert.ok(solid(hurt) < solid(buildBuilding({ ...config, damage: "half" })), label);
+            }
+        }
+    }
+    // Different buildings are damaged differently, and none of the damage is chosen by a caller.
+    assert.notDeepEqual(paint(buildBuilding({ damage: "half" })), paint(buildBuilding({ wall: "stone", damage: "half" })));
+    // Damaged buildings draw on a map, and untouched ones are not changed by the option.
+    buildMap(buildingMap({ damage: "ruin" }));
+    assert.deepEqual(paint(buildBuilding({ damage: "none" })), paint(buildBuilding()));
+});
+
+test("war damage shows the rooms behind a broken wall: a back wall, floorboards and furniture, in fixed tones", () => {
+    // Soot darkens every tone a little, so look for a colour near each of the room's own.
+    const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    const has = (raster, target) => raster.colors.some((c) => c && rgb(c).every((v, k) => Math.abs(v - rgb(target)[k]) <= 24));
+    for (const damage of ["half", "ruin"]) {
+        for (const storeys of [1, 2]) {
+            const raster = buildBuilding({ roof: "hip", wall: "brick", width: 8, storeys, damage });
+            const label = `${damage} ${storeys} storeys`;
+            assert.ok(has(raster, "#6b5848"), `${label}: a back wall`);
+            assert.ok(has(raster, "#76563a") || has(raster, "#5c432d"), `${label}: floorboards`);
+            assert.ok(["#8a3b32", "#4d6b4a", "#7c8a96"].some((c) => has(raster, c)), `${label}: furniture`);
+        }
+    }
+    // A whole building shows no room: its brown wall tones sit further from the back wall's than the damaged one's.
+    assert.ok(buildBuilding({ roof: "hip", wall: "brick", width: 8, damage: "ruin" }).colors.length > buildBuilding({ roof: "hip", wall: "brick", width: 8 }).colors.length);
 });

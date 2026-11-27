@@ -1,5 +1,8 @@
 import { colorRamps, type ColorName } from "../../core/colors";
 import { parseHex, type HexColor } from "../../core/customColor";
+import { buildingDamage, type BuildingDamage } from "./damage";
+
+export { buildingDamage, type BuildingDamage };
 
 /** How many tiles wide a building is. */
 export const buildingWidths = [5, 6, 7, 8] as const;
@@ -106,6 +109,8 @@ export interface BuildingConfig {
     wallColor?: MaterialColor;
     trimColor?: BuildingColor;
     doorColor?: BuildingColor;
+    /** War damage: `none`, `half` (a collapsed corner, a bite out of the roof, shell holes, scorching and rubble) or `ruin` (a broken, blackened shell). The footprint does not change. */
+    damage?: BuildingDamage;
 }
 
 export type ResolvedBuildingConfig = Required<BuildingConfig>;
@@ -140,7 +145,8 @@ export const defaultBuildingConfig: ResolvedBuildingConfig = {
     roofColor: "natural",
     wallColor: "natural",
     trimColor: "brown",
-    doorColor: "blue"
+    doorColor: "blue",
+    damage: "none"
 };
 
 const oneOf = <T,>(list: readonly T[], value: unknown, fallback: T): T => (list.includes(value as T) ? (value as T) : fallback);
@@ -176,7 +182,8 @@ export function resolveBuildingConfig(config: BuildingConfig = {}): ResolvedBuil
         roofColor: colour(c.roofColor, d.roofColor, true),
         wallColor: colour(c.wallColor, d.wallColor, true),
         trimColor: colour(c.trimColor, d.trimColor),
-        doorColor: colour(c.doorColor, d.doorColor)
+        doorColor: colour(c.doorColor, d.doorColor),
+        damage: oneOf(buildingDamage, c.damage, d.damage)
     };
 }
 
@@ -218,6 +225,7 @@ export function randomBuilding(seed: number = Math.floor(Math.random() * 4294967
         roofColor: pick<MaterialColor>(["natural", "natural", ...colours]),
         wallColor: pick<MaterialColor>(["natural", "natural", "white", "yellow", "pink", "grey", "teal", "blue"]),
         trimColor: pick(["white", "brown", "grey"] as const),
-        doorColor: pick(colours)
+        doorColor: pick(colours),
+        damage: "none"
     };
 }

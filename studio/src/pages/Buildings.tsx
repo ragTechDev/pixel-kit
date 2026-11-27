@@ -4,6 +4,7 @@ import {
     buildBuilding,
     buildMap,
     buildingColors,
+    buildingDamage,
     buildingDepths,
     buildingMap,
     buildingProps,
@@ -94,7 +95,8 @@ const TABS: Tab[] = [
     ], colours: [{ field: "trimColor", title: "Trim colour" }] },
     { id: "extras", label: "Extras", sections: [
         { field: "chimney", title: "Chimney", options: chimneys },
-        { field: "props", title: "Front", hint: "Barrels beside the door, or flower boxes under the ground floor windows.", options: buildingProps }
+        { field: "props", title: "Front", hint: "Barrels beside the door, or flower boxes under the ground floor windows.", options: buildingProps },
+        { field: "damage", title: "War damage", hint: "Half has lost a corner and part of its roof; a ruin is a broken, blackened shell. The building still blocks the same tiles.", options: buildingDamage }
     ] }
 ];
 
