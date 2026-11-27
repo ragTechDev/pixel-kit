@@ -9,7 +9,7 @@ Full legal text: https://creativecommons.org/licenses/by/4.0/legalcode
 - Avatar masks: `src/avatar/masks/**`
 - World masks (terrain tiles and object parts): `src/world/masks/**`
 - Block layouts: `src/world/tilesets/**`
-- Building roofs and walls, which are drawn in code rather than from masks: `src/world/buildings/roof.ts`, `src/world/buildings/wall.ts`
+- Building roofs and walls, which are drawn in code rather than from masks: `src/world/buildings/roof/**`, `src/world/buildings/wall.ts`
 - Interface icons: `src/icons/**/*.mask.ts`
 - Images rendered from the art: `docs/images/**`
 

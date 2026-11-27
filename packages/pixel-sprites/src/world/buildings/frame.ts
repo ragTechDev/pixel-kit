@@ -1,7 +1,7 @@
 import type { Ramp } from "../../core/sprite";
 import { objectRamps } from "../objects/ramps";
 import { TILE_SIZE } from "../size";
-import { resolveBuildingConfig, type BuildingConfig, type ResolvedBuildingConfig } from "./config";
+import { buildingDepths, resolveBuildingConfig, type BuildingConfig, type VolumeConfig } from "./config";
 import { rampOf, shape, type Shape } from "./shapes";
 
 /** The ramps a building is drawn in: its own colours, and the fixed ones for materials. */
@@ -9,19 +9,30 @@ export type Role = "roof" | "wall" | "trim" | "door" | "wood" | "glass" | "gold"
 
 const stone: Ramp = { outline: "#4A4C50", base: "#A9ADB4", shadow: "#868A92", highlight: "#CBCED3" };
 
+/** How many tiles a front wing sticks out in front of the rest of the building. */
+export const WING_TILES = 2;
+
 /**
- * The size of a building in tiles: its width, its height and how many of those rows are roof. The ground floor is three
- * tiles tall and any upper storey two, so a door, with its step, and the windows all fit under the eave of the roof.
+ * The size in tiles of one volume of a building (a building without a front wing): its width, its height and how many
+ * of those rows are roof. The ground floor is three tiles tall and any upper storey two, so a door, with its step,
+ * and the windows all fit under the eave of the roof.
  */
+export function volumeBox(c: VolumeConfig): { width: number; height: number; roofTiles: number } {
+    // A steep roof is a tile taller, and each step of depth adds a tile of roof, further up the picture.
+    const roofTiles = (c.pitch === "steep" ? 4 : 3) + buildingDepths.indexOf(c.depth);
+    return { width: c.width, height: roofTiles + 1 + c.storeys * 2, roofTiles };
+}
+
+/** The size of a building in tiles. A front wing adds the rows it sticks out. */
 export function buildingBox(config?: BuildingConfig): { width: number; height: number; roofTiles: number } {
     const c = resolveBuildingConfig(config);
-    const roofTiles = c.pitch === "steep" ? 4 : 3;
-    return { width: c.width, height: roofTiles + 1 + c.storeys * 2, roofTiles };
+    const box = volumeBox(c);
+    return c.wing === "front" ? { ...box, height: box.height + WING_TILES } : box;
 }
 
 /** The measurements one building is drawn to, shared by its roof, wall and facade. */
 export interface Frame {
-    readonly c: ResolvedBuildingConfig;
+    readonly c: VolumeConfig;
     /** Width and height of the whole picture in pixels. */
     readonly W: number;
     readonly H: number;
@@ -41,8 +52,8 @@ export interface Frame {
     readonly here: () => Shape;
 }
 
-export function makeFrame(c: ResolvedBuildingConfig): Frame {
-    const box = buildingBox(c);
+export function makeFrame(c: VolumeConfig): Frame {
+    const box = volumeBox(c);
     const W = box.width * TILE_SIZE;
     const H = box.height * TILE_SIZE;
     const yw = box.roofTiles * TILE_SIZE;

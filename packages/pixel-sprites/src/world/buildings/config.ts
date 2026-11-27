@@ -5,10 +5,24 @@ import { parseHex, type HexColor } from "../../core/customColor";
 export const buildingWidths = [5, 6, 7, 8] as const;
 /** How many storeys of wall a building has. */
 export const buildingStoreys = [1, 2] as const;
-/** The roof: a hip roof (the ridge runs along the front) or the same with a gable facing you. */
-export const roofShapes = ["hip", "gable"] as const;
+/**
+ * The shape of the roof, as it looks from above and in front:
+ * - `gable`: a ridge running front to back, with the gable on the wall at the front.
+ * - `hip`: the same ridge with a sloping face at the front, so the wall is a plain rectangle.
+ * - `hipFlat`: a hip roof with a flat top, the front slope a trapezoid under it.
+ * - `mansard`: a hipped roof with a flat top and a flared skirt at the eave.
+ * - `gambrel`: a steep lower slope under a flatter upper one.
+ * - `saltbox`: a gable whose ridge is off to one side, so one slope is long and one short.
+ * - `flat`: a flat roof with a low wall round its edge.
+ * - `barrel`: a rounded roof.
+ */
+export const roofShapes = ["gable", "hip", "hipFlat", "mansard", "gambrel", "saltbox", "flat", "barrel"] as const;
+/** A section that sticks out at the front, in the middle, with the same kind of roof, so a gable roof gets a cross gable, a flat one a notch and a barrel roof a rounded front. */
+export const buildingWings = ["none", "front"] as const;
 /** How steep the roof is. A steep roof is one tile taller. */
 export const roofPitches = ["low", "steep"] as const;
+/** How long the building is from front to back. The picture is from above, so a longer building is a roof that goes further up: one more tile for each step. */
+export const buildingDepths = ["short", "medium", "long", "longest"] as const;
 /** What the walls are made of. A timber wall is plaster between wooden beams. */
 export const buildingWalls = ["clapboard", "brick", "stone", "timber"] as const;
 /** Which tile column the door is in. */
@@ -28,7 +42,9 @@ export const buildingColors = Object.keys(colorRamps) as ColorName[];
 export type BuildingWidth = (typeof buildingWidths)[number];
 export type BuildingStoreys = (typeof buildingStoreys)[number];
 export type RoofShape = (typeof roofShapes)[number];
+export type BuildingWing = (typeof buildingWings)[number];
 export type RoofPitch = (typeof roofPitches)[number];
+export type BuildingDepth = (typeof buildingDepths)[number];
 export type BuildingWall = (typeof buildingWalls)[number];
 export type DoorPosition = (typeof doorPositions)[number];
 export type DoorStyle = (typeof doorStyles)[number];
@@ -48,7 +64,9 @@ export interface BuildingConfig {
     width?: BuildingWidth;
     storeys?: BuildingStoreys;
     roof?: RoofShape;
+    wing?: BuildingWing;
     pitch?: RoofPitch;
+    depth?: BuildingDepth;
     wall?: BuildingWall;
     door?: DoorPosition;
     doorStyle?: DoorStyle;
@@ -65,11 +83,16 @@ export interface BuildingConfig {
 
 export type ResolvedBuildingConfig = Required<BuildingConfig>;
 
+/** What is drawn: a resolved config whose width may be any whole number of tiles, because the front wing of a building is narrower than the lists allow. */
+export type VolumeConfig = Omit<ResolvedBuildingConfig, "width"> & { width: number };
+
 export const defaultBuildingConfig: ResolvedBuildingConfig = {
     width: 6,
     storeys: 1,
-    roof: "hip",
+    roof: "gable",
+    wing: "none",
     pitch: "low",
+    depth: "short",
     wall: "clapboard",
     door: "centre",
     doorStyle: "plain",
@@ -99,7 +122,9 @@ export function resolveBuildingConfig(config: BuildingConfig = {}): ResolvedBuil
         width: oneOf(buildingWidths, c.width, d.width),
         storeys: oneOf(buildingStoreys, c.storeys, d.storeys),
         roof: oneOf(roofShapes, c.roof, d.roof),
+        wing: oneOf(buildingWings, c.wing, d.wing),
         pitch: oneOf(roofPitches, c.pitch, d.pitch),
+        depth: oneOf(buildingDepths, c.depth, d.depth),
         wall: oneOf(buildingWalls, c.wall, d.wall),
         door: oneOf(doorPositions, c.door, d.door),
         doorStyle: oneOf(doorStyles, c.doorStyle, d.doorStyle),
@@ -136,7 +161,9 @@ export function randomBuilding(seed: number = Math.floor(Math.random() * 4294967
         width: pick(buildingWidths),
         storeys: pick(buildingStoreys),
         roof: pick(roofShapes),
+        wing: pick(buildingWings),
         pitch: pick(roofPitches),
+        depth: pick(buildingDepths),
         wall: pick(buildingWalls),
         door: pick(doorPositions),
         doorStyle: pick(doorStyles),
