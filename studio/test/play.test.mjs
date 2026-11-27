@@ -30,7 +30,7 @@ before(async () => {
     globalThis.OffscreenCanvas = FakeOffscreenCanvas;
     const bundle = await build({
         stdin: {
-            contents: `export * from "./src/play/game"; export * from "./src/play/maps"; import { paintRaster } from "@ragtechdev/pixel-sprites/canvas"; export { paintRaster }; export { buildObject, doorBoxes, mapDrawables, solidBoxes } from "@ragtechdev/pixel-sprites";`,
+            contents: `export * from "./src/play/game"; export * from "./src/play/maps"; import { paintRaster } from "@ragtechdev/pixel-sprites/canvas"; export { paintRaster }; export { buildIcon, toVariant, buildObject, doorBoxes, mapDrawables, solidBoxes } from "@ragtechdev/pixel-sprites";`,
             resolveDir: fileURLToPath(new URL("..", import.meta.url)),
             loader: "ts"
         },
@@ -343,6 +343,62 @@ test("a tree in blossom or still young gives nothing", () => {
     hold(p, "up", 1);
     tap(p, "a");
     assert.equal(p.carrying(), undefined, "a young tree bears nothing");
+});
+
+test("speaking to a character puts a comment over them for a moment, and a heart (giving what the hero holds) if they are holding something", () => {
+    const p = play();
+    const npc = maps.places.town.npcs[0];
+    const small = (icon) => maps.paintRaster(maps.toVariant(icon, { size: 16 }));
+    const comment = small(maps.buildIcon("comment"));
+    const heart = small(maps.buildIcon("heart", { color: "red" }));
+    const drawn = (canvas) => {
+        const ctx = fakeContext();
+        p.game.render(ctx);
+        return ctx.draws.find(([c]) => c === canvas);
+    };
+    put(p, npc.x - 1, npc.y, "right");
+    p.game.advance(frame);
+    assert.equal(drawn(comment), undefined, "nothing before they are spoken to");
+    tap(p, "a");
+    const popup = drawn(comment);
+    assert.ok(popup, "a comment appears");
+    assert.equal(drawn(heart), undefined, "and not a heart");
+    // It sits over the character: centred on them and above their head.
+    const spot = (npc.x + 0.5) * 16 - p.camera.x;
+    assert.ok(Math.abs(popup[1] + popup[3] / 2 - spot) <= 6, "centred over the character");
+    assert.ok(popup[2] + popup[4] <= npc.y * 16 - p.camera.y - 8 + 6, "above their head");
+    // Speaking again restarts it rather than adding another.
+    tap(p, "a");
+    const ctx = fakeContext();
+    p.game.render(ctx);
+    assert.equal(ctx.draws.filter(([c]) => c === comment).length, 1);
+    wait(p, 1.5);
+    assert.equal(drawn(comment), undefined, "gone after a moment");
+    // Holding a vegetable, the same press shows a heart.
+    put(p, 0, 9, "down");
+    tap(p, "a");
+    wait(p, 1.2);
+    assert.equal(p.carrying(), "veg_carrot");
+    put(p, npc.x - 1, npc.y, "right");
+    tap(p, "a");
+    assert.ok(drawn(heart), "a heart appears");
+    assert.equal(drawn(comment), undefined, "instead of the comment");
+    assert.equal(p.carrying(), undefined, "and the carrot is given away: it is gone from their hands");
+    wait(p, 1.5);
+    assert.equal(drawn(heart), undefined, "gone after a moment");
+});
+
+test("a popup does not follow the hero through a door", () => {
+    const p = play();
+    const npc = maps.places.town.npcs[0];
+    put(p, npc.x - 1, npc.y, "right");
+    tap(p, "a");
+    holdThroughDoor(p, "up");
+    p.hero.teleport(7 * 16, 5 * 16);
+    const comment = maps.paintRaster(maps.toVariant(maps.buildIcon("comment"), { size: 16 }));
+    const ctx = fakeContext();
+    p.game.render(ctx);
+    assert.equal(ctx.draws.filter(([c]) => c === comment).length, 0);
 });
 
 test("a character in the way blocks the hero", () => {

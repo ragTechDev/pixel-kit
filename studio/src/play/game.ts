@@ -1,8 +1,8 @@
 import { defineMap, doorBoxes, mapDrawables, mapTileSize, objectInfo, produceLimits, randomAvatar, tileSeasons, walkCycle, TILE_SIZE, type AvatarConfig, type Box, type ObjectId, type PlacedObject, type Raster, type TileMap } from "@ragtechdev/pixel-sprites";
 import { drawRaster } from "@ragtechdev/pixel-sprites/canvas";
-import { createCamera, createCarry, createGame, createMover, isOpen, overlaps, type Camera, type Direction, type Game, type Mover, type Scene } from "@ragtechdev/pixel-engine";
+import { createCamera, createCarry, createGame, createPopups, createMover, isOpen, overlaps, type Camera, type Direction, type Game, type Mover, type Scene } from "@ragtechdev/pixel-engine";
 import { heroLook, places, start, type Npc, type Place, type PlaceId, type Spawn } from "./maps";
-import { avatarFrame, trimmedObject } from "./sprites";
+import { avatarFrame, trimmedIcon, trimmedObject, type Trimmed } from "./sprites";
 
 export interface View {
     readonly width: number;
@@ -74,7 +74,7 @@ function harvest(o: PlacedObject): { item: ObjectId; left: PlacedObject | null }
  * A small world to try the sprites and the engine together: a town and the inside of a house, joined by
  * doors. The hero walks freely, a pixel at a time, right up to the outline of water, trees, walls and other
  * characters, behind a building (its roof covers them) and through a door to warp. A speaks to the character in front (they turn to face you) or, in front of a crop or a tree bearing fruit, picks it
- * and holds it (the engine's `createCarry`), holding B runs, and START changes the season. Nothing here knows about React or the page.
+ * and holds it (the engine's `createCarry`), and a heart (if the hero was holding something, which is given away) or a comment appears over a character (`createPopups`), holding B runs, and START changes the season. Nothing here knows about React or the page.
  */
 export function createPlay(options: PlayOptions = { theme: "summer" }, view: View = DESKTOP_VIEW): Play {
     const hero = createMover({ x: start.spawn.x * TILE_SIZE, y: start.spawn.y * TILE_SIZE, facing: start.spawn.facing, assist: 3 });
@@ -83,6 +83,8 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
     // What has been picked is gone from the map, so each place keeps its own map as it is now.
     const maps = new Map<PlaceId, TileMap>();
     const carry = createCarry<ObjectId>();
+    // Pictures that appear over a character for a moment: a comment when the hero speaks to them, a heart when the hero holds something for them.
+    const popups = createPopups<Trimmed>();
     const facing = (npc: Npc): Direction => turned.get(npc) ?? "down";
     let current: PlaceId = start.place;
     // The looks are this world's own, so a new random one changes nothing for another world made from the same maps.
@@ -109,7 +111,16 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
         const speakToAhead = () => {
             const point = hero.ahead(12);
             const npc = place.npcs.find((n) => point.x >= n.x * TILE_SIZE && point.x < (n.x + 1) * TILE_SIZE && point.y >= n.y * TILE_SIZE && point.y < (n.y + 1) * TILE_SIZE);
-            if (npc) turned.set(npc, OPPOSITE[hero.facing]);
+            if (npc) {
+                turned.set(npc, OPPOSITE[hero.facing]);
+                // Over the character's own picture, where it is drawn. A character who is spoken to again gets a fresh popup, not a second one.
+                const raster = avatarFrame(lookOf(npc), facing(npc));
+                const box = { x: npc.x * TILE_SIZE + Math.floor((TILE_SIZE - raster.width) / 2), y: npc.y * TILE_SIZE - LIFT, width: raster.width, height: raster.height };
+                // Holding something is giving it: it goes to them, and a heart shows instead of a comment.
+                const icon = carry.item ? trimmedIcon("heart", "red") : trimmedIcon("comment");
+                carry.drop();
+                popups.show(icon, box, icon, npc);
+            }
             return npc !== undefined;
         };
         // The crop or tree in front of the hero that has something to pick, with the tile it covers.
@@ -151,6 +162,7 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
         return {
             enter() {
                 current = place.id;
+                popups.clear();
                 hero.teleport(spawn.x * TILE_SIZE, spawn.y * TILE_SIZE, spawn.facing);
                 camera.setBounds(mapPixels(place));
                 camera.follow(hero.x + TILE_SIZE / 2, hero.y + TILE_SIZE / 2);
@@ -166,6 +178,7 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
                     else if (!target) carry.drop();
                 }
                 carry.update(dt);
+                popups.update(dt);
                 // The hero stands still while picking something up. Holding B runs: the same walk, faster.
                 hero.step(dt, carry.busy ? null : input.heldDirection(), open, input.isDown("b") ? RUN : 1);
                 // Reaching a door is the moment to warp.
@@ -218,6 +231,13 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
                     // Stable: at the same line a character goes after what is built there, since the sort keeps the order above.
                 ].sort((a, b) => a.sortY - b.sortY);
                 for (const thing of things) thing.draw(ctx);
+
+                // Over everything, so a character in front of the one spoken to does not hide it.
+                for (const popup of popups.active) {
+                    ctx.globalAlpha = popup.alpha;
+                    drawRaster(ctx, popup.item.raster, popup.x - popup.item.left - camera.x, popup.y - popup.item.top - camera.y);
+                }
+                ctx.globalAlpha = 1;
 
                 if (fade > 0) {
                     ctx.fillStyle = `rgba(0, 0, 0, ${fade / FADE})`;

@@ -433,6 +433,26 @@ const pose = carry.pose({ width: 22, height: 24 }, { width: 10, height: 10 }, he
 // pose.behind: draw the avatar over the object (its back is turned).
 
 carry.drop();     // puts it down and gives it back`} />
+            <h2>Showing something over something else</h2>
+            <p>
+                <code>createPopups</code> puts a picture on top of another for a moment: a heart over a character, a mark over a door.
+                It draws nothing and takes any item, an icon, an object or an avatar, so what appears and what it appears on is up to you.
+                A popup is centred above a rectangle, or above a function that gives the rectangle each frame, so it follows something that moves. It floats up a little and fades out.
+            </p>
+            <CodeBlock code={`import { createPopups } from "@ragtechdev/pixel-engine";
+
+const popups = createPopups();
+
+// Over a character: its rectangle (or a function, if it moves), and the size of what appears. A key restarts the same popup if you show it again.
+popups.show("heart", { x: 72, y: 56, width: 22, height: 24 }, { width: 12, height: 11 }, "npc");
+
+// Each update, then each render.
+popups.update(dt);
+for (const popup of popups.active) {
+    // popup.item, popup.x and popup.y (top-left, world pixels), popup.alpha (1 falling to 0 as it fades)
+}
+
+popups.clear();   // removes them all`} />
             <h2>What blocks the way</h2>
             <p>
                 <code>isWalkable</code> reads the sprites package's map data, so collision always agrees with what you drew. It is false off the map, on solid terrain, on water, and on the blocking cells of an object.
