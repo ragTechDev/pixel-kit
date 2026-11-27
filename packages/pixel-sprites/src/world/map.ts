@@ -22,7 +22,7 @@ export interface PlacedObject {
     readonly damage?: ObjectDamage;
     /** For a `fruit_tree`: how far it has grown (`treeStages`). */
     readonly stage?: TreeStage;
-    /** For a `fruit_tree`: leaves only, flowers or fruit (`treeBearings`). Only a mature tree bears. */
+    /** For a `fruit_tree`: leaves only, flowers or fruit (`treeBearings`). Only a mature tree bears. For a bush crop (`bushVegetables`), `"none"` is the bare plant left after picking. */
     readonly bearing?: TreeBearing;
     /** For a `fruit_tree`: which crop it is (`treeCrops`). */
     readonly crop?: TreeCrop;

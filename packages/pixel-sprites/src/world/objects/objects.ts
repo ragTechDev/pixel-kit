@@ -11,7 +11,7 @@ import { objectParts, type ObjectPart } from "./objectParts";
 
 export { objectDamage, type ObjectDamage };
 import { objectRamps, type ObjectRampId } from "./ramps";
-import { cropIds, vegIds } from "./vegetables";
+import { cropFieldParts, cropIds, isBushCrop, vegIds } from "./vegetables";
 import { fruitIds, fruitTreeParts, resolveFruitTree, type FruitTreeOptions } from "./fruitTree";
 
 export interface ObjectInfo {
@@ -23,6 +23,11 @@ export interface ObjectInfo {
     readonly layer: "ground" | "standing";
     /** One string per tile row. `#` blocks movement, `.` is open. */
     readonly footprint: readonly string[];
+    /**
+     * Only the lowest this many pixels of what is drawn in the blocking cells block movement, so a character can walk in behind the rest
+     * of the object (a bush's leaves) and fit between plants. The default is all of what is drawn there.
+     */
+    readonly foot?: number;
     /** A warp, such as a door. */
     readonly door?: true;
     /** Something you can interact across, such as a shop counter. */
@@ -33,9 +38,9 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
     tree: { width: 1, height: 2, layer: "standing", footprint: [".", "#"] },
     fruit_tree: { width: 2, height: 3, layer: "standing", footprint: ["..", "..", "##"] },
     ...(Object.fromEntries(fruitIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<FruitId, ObjectInfo>),
-    // A crop is solid where it is drawn, like a tree trunk, so a character walks round a cabbage and stops flush against it. Corn is two tiles
-    // tall and blocks only its foot, so a character walks behind its leaves. Crops stand, and are drawn in order with the characters.
-    ...(Object.fromEntries(cropIds.map((id) => [id, id === "crop_corn" ? { width: 1, height: 2, layer: "standing", footprint: [".", "#"] } : { width: 1, height: 1, layer: "standing", footprint: ["#"] }])) as unknown as Record<CropId, ObjectInfo>),
+    // A crop blocks only its base, like a tree trunk: a character stops flush against the foot of a cabbage and walks in behind its leaves, or
+    // between two plants. Corn is two tiles tall and its stalk blocks at the bottom tile.
+    ...(Object.fromEntries(cropIds.map((id) => [id, id === "crop_corn" ? { width: 1, height: 2, layer: "standing", footprint: [".", "#"], foot: 4 } : { width: 1, height: 1, layer: "standing", footprint: ["#"], foot: 4 }])) as unknown as Record<CropId, ObjectInfo>),
     ...(Object.fromEntries(vegIds.map((id) => [id, { width: 1, height: 1, layer: "ground", footprint: ["."] }])) as unknown as Record<VegId, ObjectInfo>),
     fence: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     door: { width: 1, height: 1, layer: "standing", footprint: ["."], door: true },
@@ -97,7 +102,7 @@ export const seasonalObjectIds = objectIds.filter((id) => objectParts[id].some((
 
 /** Internal: the layers of an object placed with its top-left corner at pixel (px, py). */
 export function objectLayers(id: ObjectId, px: number, py: number, theme: TileTheme = defaultTileTheme, color?: ColorName | HexColor, damage: ObjectDamage = "none", grow?: FruitTreeOptions): Layer[] {
-    const parts = id === "fruit_tree" ? fruitTreeParts(grow) : objectParts[id];
+    const parts = id === "fruit_tree" ? fruitTreeParts(grow) : isBushCrop(id) ? cropFieldParts(id, grow?.bearing === "none") : objectParts[id];
     if (!parts) throw new Error(`Unknown object: ${String(id)}`);
     if (objectDamage.includes(damage) && damage !== "none") return [{ ...rasterLayer(buildObject(id, theme, color, damage, grow)), x: px, y: py }];
     return parts.flatMap((part) => (part.seasonal?.[theme] === null ? [] : [{
@@ -116,15 +121,16 @@ const built = new Map<string, Raster>();
  * unknown values fall back to summer. `color` is one of the object's common colours
  * (`objectColors`) or any hex colour such as `"#e8873a"`; anything else is ignored. `damage` is `"half"` or
  * `"ruin"` for a broken or burnt object (see `objectDamage`); anything else is the object as it was made. `grow` is the stage, bearing and
- * crop of a `fruit_tree` (see `FruitTreeOptions`) and is ignored for other objects.
+ * crop of a `fruit_tree` (see `FruitTreeOptions`). For a bush crop (`bushVegetables`) only `bearing` counts, and `"none"` is the bare plant. It is ignored for other objects.
  */
 export function buildObject(id: ObjectId, theme?: string, color?: ColorName | HexColor, damage?: ObjectDamage, grow?: FruitTreeOptions): Raster {
     const season = resolveTheme(theme);
     const chosen = objectColors[id] && color ? (objectColors[id]!.includes(color as ColorName) ? (color as ColorName) : parseHex(color)) : undefined;
     // A colour replaces the season's colour for the same part, so it does not need a season in its key.
     const level = damage === "half" || damage === "ruin" ? damage : "none";
-    const shape = id === "fruit_tree" ? resolveFruitTree(grow) : undefined;
-    const kind = shape ? `${id}:${shape.stage}:${shape.bearing}:${shape.crop}` : id;
+    // A tree is drawn from its options; a bush crop is ripe, or bare once picked (`bearing: "none"`).
+    const shape: FruitTreeOptions | undefined = id === "fruit_tree" ? resolveFruitTree(grow) : isBushCrop(id) ? { bearing: grow?.bearing === "none" ? "none" : "fruit" } : undefined;
+    const kind = id === "fruit_tree" ? `${id}:${shape!.stage}:${shape!.bearing}:${shape!.crop}` : isBushCrop(id) ? `${id}:${shape!.bearing}` : id;
     const whole = chosen ? `${kind}:${season}:${chosen}` : seasonalObjectIds.includes(id) ? `${kind}:${season}` : kind;
     const key = level === "none" ? whole : `${whole}!${level}`;
     let raster = built.get(key);

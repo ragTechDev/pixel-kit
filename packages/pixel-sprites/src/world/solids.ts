@@ -84,7 +84,25 @@ function compute(map: TileMap): Boxes {
             }
         }
         // Nothing drawn there (a blank mask): keep the whole cells.
-        solid.push(x0 === Infinity ? area : { x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
+        if (x0 === Infinity) {
+            solid.push(area);
+            continue;
+        }
+        // An object with a foot blocks only the lowest rows of what is drawn, as wide as the drawing is there.
+        if (info.foot !== undefined && y1 - y0 > info.foot) {
+            y0 = y1 - info.foot;
+            x0 = Infinity;
+            x1 = -Infinity;
+            for (let sy = y0 - bounds.y; sy < y1 - bounds.y; sy += 1) {
+                for (let sx = 0; sx < raster.width; sx += 1) {
+                    const x = bounds.x + sx;
+                    if (x < area.x || x >= area.x + area.width || raster.px[sy * raster.width + sx] === 0) continue;
+                    x0 = Math.min(x0, x);
+                    x1 = Math.max(x1, x + 1);
+                }
+            }
+        }
+        solid.push({ x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
     }
 
     // A building is solid where its wall is drawn, from the outline on either side down to the ground line. The roof rows above it

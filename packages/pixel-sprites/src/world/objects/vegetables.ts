@@ -31,6 +31,9 @@ export const vegetables = ["carrot", "radish", "turnip", "beet", "cabbage", "pum
 /** The ones that grow in the ground, and show only their top until they are picked. */
 export const rootVegetables = ["carrot", "radish", "turnip", "beet"] as const satisfies readonly Vegetable[];
 
+/** The ones that keep their plant when picked (tomato and corn): the crop is drawn bare, with `bearing: "none"`, instead of being taken away. */
+export const bushVegetables = ["tomato", "corn"] as const satisfies readonly Vegetable[];
+
 export const cropIds: readonly CropId[] = vegetables.map((v) => `crop_${v}` as const);
 export const vegIds: readonly VegId[] = vegetables.map((v) => `veg_${v}` as const);
 
@@ -40,8 +43,10 @@ const centred = (mask: PixelMask, ramp: ObjectRampId, y: number, extra: Partial<
 interface Look {
     /** What the vegetable looks like picked. */
     readonly item: readonly ObjectPart[];
-    /** What it looks like in the field. */
+    /** What it looks like in the field, ripe. */
     readonly field: readonly ObjectPart[];
+    /** What is left of a bush once its produce is picked: the plant alone. */
+    readonly bare?: readonly ObjectPart[];
 }
 
 /** A root vegetable: picked, with leaves on top of it, and in the field, only the leaves and the top of it. */
@@ -71,7 +76,8 @@ const looks: Record<Vegetable, Look> = {
             { mask: vegetableBushMask, ramp: "leaf", x: 1, y: 3 },
             { mask: vegetableTomatoMask, ramp: "fruit_red", x: 3, y: 7 },
             { mask: vegetableTomatoMask, ramp: "fruit_red", x: 10, y: 8 }
-        ]
+        ],
+        bare: [{ mask: vegetableBushMask, ramp: "leaf", x: 1, y: 3 }]
     },
     corn: {
         item: [centred(vegetableCobMask, "veg_corn", 3), { mask: vegetableStemMask, ramp: "leaf", x: 7, y: 11 }],
@@ -79,7 +85,8 @@ const looks: Record<Vegetable, Look> = {
             { mask: vegetableStalkMask, ramp: "leaf", x: 2, y: 3 },
             { mask: vegetableCobMask, ramp: "veg_corn", x: 3, y: 12 },
             { mask: vegetableCobMask, ramp: "veg_corn", x: 9, y: 17 }
-        ]
+        ],
+        bare: [{ mask: vegetableStalkMask, ramp: "leaf", x: 2, y: 3 }]
     }
 };
 
@@ -91,3 +98,12 @@ export const vegItemParts = record(vegIds, "veg_", (look) => look.item);
 
 /** The vegetables in a field, standing objects that block where they are drawn. Corn is two tiles tall (16×32) and the rest one (16×16). */
 export const cropParts = record(cropIds, "crop_", (look) => look.field);
+
+/** Whether a crop is a bush, which stays in the field, bare, when it is picked. */
+export const isBushCrop = (id: string): id is CropId => (bushVegetables as readonly string[]).includes(id.slice(5)) && id.startsWith("crop_");
+
+/** The parts of a crop in a field. A bush (tomato, corn) is drawn bare, with only its plant, when `bare` is true; the others have no bare form. */
+export function cropFieldParts(id: CropId, bare = false): readonly ObjectPart[] {
+    const look = looks[id.slice(5) as Vegetable];
+    return (bare && look.bare) || look.field;
+}

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
     buildMap, buildObject, buildTile, defineMap, defineTileSet, solidBoxes, houseTileset, mapTileSize,
-    colorRamps, colorableObjectIds, cropIds, rootVegetables, treeCrops, treeStages, vegIds, vegetables, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
+    colorRamps, colorableObjectIds, bushVegetables, cropIds, rootVegetables, treeCrops, treeStages, vegIds, vegetables, objectColors, objectIds, objectInfo, objectRamps, queryCell, seasonalObjectIds, tileAt, defaultTileTheme, tileSeasons, tileIds, tilePalettes, tileThemes, townTileset
 } from "../dist/index.js";
 
 test("every tile is 16×16, opaque terrain, and only uses palette colours", () => {
@@ -463,4 +463,30 @@ test("a field is a map: soil tiles with crops on them, and picked vegetables on 
     // A crop blocks only where it is drawn: a cabbage fills most of its tile, a carrot far less.
     const widthOf = (id) => solidBoxes(defineMap(townTileset, ["gg"], [{ id, x: 0, y: 0 }])).reduce((sum, b) => sum + b.width, 0);
     assert.ok(widthOf("crop_carrot") < widthOf("crop_cabbage") && widthOf("crop_cabbage") <= 16);
+    // It blocks only its foot, so a character can walk in behind the rest of the plant.
+    for (const v of vegetables) {
+        const [box] = solidBoxes(defineMap(townTileset, ["gg"], [{ id: `crop_${v}`, x: 0, y: 0 }]));
+        assert.ok(box.height <= 4, `${v} blocks only its lowest ${box.height} px`);
+    }
+});
+
+test("a bush crop can be bare: the plant stays when its tomatoes or cobs are picked", () => {
+    assert.deepEqual([...bushVegetables], ["tomato", "corn"]);
+    const count = (id, grow) => buildObject(id, "summer", undefined, undefined, grow).px.filter(Boolean).length;
+    for (const v of bushVegetables) {
+        const id = `crop_${v}`;
+        const ripe = buildObject(id);
+        const bare = buildObject(id, "summer", undefined, undefined, { bearing: "none" });
+        assert.equal(bare.width, ripe.width, v);
+        assert.equal(bare.height, ripe.height, v);
+        assert.ok(count(id, { bearing: "none" }) > 0, `${v}: the plant is left`);
+        assert.deepEqual([...buildObject(id, "summer", undefined, undefined, { bearing: "fruit" }).px], [...ripe.px], `${v}: anything else is ripe`);
+        const produce = { tomato: objectRamps.fruit_red.outline, corn: objectRamps.veg_corn.outline }[v];
+        assert.ok(ripe.colors.includes(produce) && !bare.colors.includes(produce), v);
+    }
+    // Crops that are taken whole have no bare form, and the bare plant still blocks.
+    assert.deepEqual([...buildObject("crop_carrot", "summer", undefined, undefined, { bearing: "none" }).px], [...buildObject("crop_carrot").px]);
+    const map = defineMap(townTileset, ["gg"], [{ id: "crop_tomato", x: 0, y: 0, bearing: "none" }]);
+    assert.equal(queryCell(map, 0, 0).solid, true);
+    for (const damage of ["half", "ruin"]) assert.ok(buildObject("crop_tomato", "summer", undefined, damage, { bearing: "none" }).px.some(Boolean), damage);
 });
