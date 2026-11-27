@@ -27,20 +27,26 @@ function compute(map: TileMap): Boxes {
     const doors: Box[] = [];
     const { width, height } = mapTileSize(map);
 
-    // Terrain and standing objects fill whole tiles. A run of solid tiles along a row is one box.
+    // Terrain fills whole tiles, or the lower part of one (a shore tile is water only from a pixel row down). A run of them along a row is one box.
     for (let ty = 0; ty < height; ty += 1) {
         let runStart = -1;
+        let runFrom = 0;
         const close = (end: number) => {
-            if (runStart >= 0) solid.push({ x: runStart * TILE_SIZE, y: ty * TILE_SIZE, width: (end - runStart) * TILE_SIZE, height: TILE_SIZE });
+            if (runStart >= 0) solid.push({ x: runStart * TILE_SIZE, y: ty * TILE_SIZE + runFrom, width: (end - runStart) * TILE_SIZE, height: TILE_SIZE - runFrom });
             runStart = -1;
         };
         for (let tx = 0; tx < width; tx += 1) {
             const cell = queryCell(map, tx, ty)!;
             // Only the terrain is whole tiles. A building's cells are covered by its drawn wall below, and an object's by what is drawn of it.
-            const wall = !cell.building && map.tileset.solid.has(cell.tile) && !cell.door;
+            const free = !cell.building && !cell.door;
+            const from = free && map.tileset.solid.has(cell.tile) ? 0 : free ? (map.tileset.solidFrom.get(cell.tile) ?? -1) : -1;
             if (!cell.building && cell.door) doors.push({ x: tx * TILE_SIZE, y: ty * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE });
-            if (wall && runStart < 0) runStart = tx;
-            if (!wall) close(tx);
+            // A run ends where the part that blocks changes.
+            if (runStart >= 0 && from !== runFrom) close(tx);
+            if (from >= 0 && runStart < 0) {
+                runStart = tx;
+                runFrom = from;
+            }
         }
         close(width);
     }

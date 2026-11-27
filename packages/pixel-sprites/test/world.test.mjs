@@ -521,3 +521,15 @@ test("fruit and vegetables on a tree or a bush are counted, up to a limit, and m
     assert.doesNotThrow(() => defineMap(townTileset, ["gggg", "gggg"], [{ id: "crop_tomato", x: 0, y: 0, count: 2 }]));
     assert.throws(() => defineMap(townTileset, ["gggg", "gggg"], [{ id: "crop_tomato", x: 0, y: 0, count: "2" }]), /fruit/);
 });
+
+test("only the water part of a shore tile blocks: the grass and sand above it are open", () => {
+    // `s` is a shore row over a water row. The shore tile is grass, then sand, then water from pixel row 9.
+    const map = defineMap(townTileset, ["ss", "gg"], []);
+    const boxes = [...solidBoxes(map)].sort((a, b) => a.y - b.y);
+    assert.deepEqual(boxes[0], { x: 0, y: 9, width: 64, height: 7 }, "one box along the shore row, its lower part");
+    assert.deepEqual(boxes[1], { x: 0, y: 16, width: 64, height: 16 }, "and the water row under it, all of it");
+    assert.equal(queryCell(map, 0, 0).solid, false, "the shore tile itself is still a walkable cell");
+    assert.equal(townTileset.solidFrom.get("shore"), 9);
+    for (const row of [0, 16, -1, 1.5]) assert.throws(() => defineTileSet({ id: "x", blocks: { a: [["grass", "grass"], ["grass", "grass"]] }, solidFrom: { shore: row } }), /solidFrom/, String(row));
+    assert.throws(() => defineTileSet({ id: "x", blocks: { a: [["grass", "grass"], ["grass", "grass"]] }, solidFrom: { nope: 4 } }), /unknown tile/);
+});

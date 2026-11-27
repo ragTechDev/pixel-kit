@@ -82,6 +82,8 @@ export const townTileset = defineTileSet({
         "roof_top_left", "roof_top", "roof_top_right", "roof_left", "roof", "roof_right",
         "roof_bottom_left", "roof_bottom", "roof_bottom_right"
     ],
+    // A shore tile is grass and sand over the water's edge: only the water part blocks.
+    solidFrom: { shore: 9 },
     water: ["water"],
     grass: ["tall_grass"]
 });

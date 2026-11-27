@@ -17,6 +17,11 @@ export interface TileSetDefinition {
     blocks: Readonly<Record<string, Block>>;
     /** Tiles that block movement. */
     solid?: readonly TileId[];
+    /**
+     * Tiles that block movement only from a pixel row down, counted from the top of the tile (1 to 15): the part of a shore tile that is
+     * water blocks, and the grass and sand above it do not. A `solid` tile ignores this.
+     */
+    solidFrom?: Readonly<Partial<Record<TileId, number>>>;
     /** Water tiles (swim or surf). */
     water?: readonly TileId[];
     /** Tiles that can trigger encounters. */
@@ -28,6 +33,7 @@ export interface TileSet {
     readonly blockSize: number;
     readonly blocks: Readonly<Record<string, Block>>;
     readonly solid: ReadonlySet<TileId>;
+    readonly solidFrom: ReadonlyMap<TileId, number>;
     readonly water: ReadonlySet<TileId>;
     readonly grass: ReadonlySet<TileId>;
 }
@@ -52,11 +58,17 @@ export function defineTileSet(def: TileSetDefinition): TileSet {
         }
         for (const row of block) checkTiles(def.id, `block "${key}"`, row);
     }
+    const solidFrom = Object.entries(def.solidFrom ?? {}) as [TileId, number][];
+    checkTiles(def.id, "solidFrom", solidFrom.map(([id]) => id));
+    for (const [id, row] of solidFrom) {
+        if (!Number.isInteger(row) || row < 1 || row > 15) throw new Error(`Tileset "${def.id}": solidFrom for "${id}" must be a whole pixel row from 1 to 15`);
+    }
     return Object.freeze({
         id: def.id,
         blockSize,
         blocks: def.blocks,
         solid: checkTiles(def.id, "solid", def.solid ?? []),
+        solidFrom: new Map(solidFrom),
         water: checkTiles(def.id, "water", def.water ?? []),
         grass: checkTiles(def.id, "grass", def.grass ?? [])
     });
