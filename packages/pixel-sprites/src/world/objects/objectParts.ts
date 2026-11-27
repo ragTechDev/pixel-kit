@@ -27,6 +27,7 @@ import { chalkboardChalkMask } from "../masks/objects/chalkboard/chalk.mask";
 import { chalkboardFrameMask } from "../masks/objects/chalkboard/frame.mask";
 import { fridgeBodyMask } from "../masks/objects/fridge/body.mask";
 import { fridgeHandleMask } from "../masks/objects/fridge/handle.mask";
+import { fridgeVentMask } from "../masks/objects/fridge/vent.mask";
 import { fridgeSeamMask } from "../masks/objects/fridge/seam.mask";
 import { groceryShelfBoxesMask } from "../masks/objects/groceryShelf/boxes.mask";
 import { groceryShelfCansMask } from "../masks/objects/groceryShelf/cans.mask";
@@ -150,12 +151,13 @@ export const objectParts: Record<ObjectId, readonly ObjectPart[]> = {
         { mask: sinkBasinMask, ramp: "glass", x: 4, y: 5 },
         { mask: sinkFaucetMask, ramp: "steel", x: 6, y: 1 }
     ],
-    // 1×2 tiles (16×32). A tall steel fridge with a seam between its doors and two handles.
+    // 2×2 tiles (32×32). A double-door steel fridge: a seam down the middle, a thin handle either side of it and a vent grille on top.
     fridge: [
         { mask: fridgeBodyMask, ramp: "steel", x: 2, y: 2 },
-        { mask: fridgeSeamMask, ramp: "steel", tone: "shadow", x: 2, y: 10 },
-        { mask: fridgeHandleMask, ramp: "cast_iron", x: 4, y: 4 },
-        { mask: fridgeHandleMask, ramp: "cast_iron", x: 4, y: 13 }
+        { mask: fridgeSeamMask, ramp: "steel", tone: "shadow", x: 15, y: 3 },
+        { mask: fridgeHandleMask, ramp: "cast_iron", tone: "shadow", x: 13, y: 10 },
+        { mask: fridgeHandleMask, ramp: "cast_iron", tone: "shadow", x: 17, y: 10 },
+        { mask: fridgeVentMask, ramp: "steel", tone: "shadow", x: 10, y: 4 }
     ],
     // 1×1 tile. A counter with a till on it.
     cash_register: [

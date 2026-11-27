@@ -288,14 +288,25 @@ const base: Record<Exclude<ObjectId, FurnishingId>, Recipe> = {
     }
 };
 
-/** The furniture breaks like what it most resembles: a table like a counter, a tall fridge or shelf like a bookshelf, the rest like a door. */
+/** The furniture breaks like what it most resembles: a table like a counter, a shelf like a bookshelf, the rest like a door. */
 const recipes: Record<ObjectId, Recipe> = {
     ...base,
     table: base.counter,
     chair: base.door,
     stove: base.door,
     sink: base.door,
-    fridge: base.bookshelf,
+    // Dented and holed on one door; a ruin is the foot of it with the doors on the floor.
+    fridge: (c, rng, breaks, level) => {
+        if (level === "half") {
+            bite(c, rng, breaks, rng() < 0.5 ? 2 : 17, 12, 7);
+            hole(c, rng, 6 + Math.floor(rng() * 18), 14 + Math.floor(rng() * 8), 1 + Math.floor(rng() * 2), breaks);
+            crack(c, rng, 6 + Math.floor(rng() * 18), 4, 10);
+            return 0.12;
+        }
+        stub(c, rng, breaks, 10);
+        spill(c, rng, 2, 26);
+        return 0.4;
+    },
     cash_register: base.door,
     grocery_shelf: base.bookshelf,
     produce_crate: base.door,

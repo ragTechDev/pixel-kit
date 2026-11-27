@@ -53,7 +53,7 @@ export const objectInfo: Record<ObjectId, ObjectInfo> = {
     chair: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     stove: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
     sink: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
-    fridge: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
+    fridge: { width: 2, height: 2, layer: "standing", footprint: ["##", "##"] },
     cash_register: { width: 1, height: 1, layer: "standing", footprint: ["#"], counter: true },
     grocery_shelf: { width: 1, height: 2, layer: "standing", footprint: ["#", "#"] },
     produce_crate: { width: 1, height: 1, layer: "standing", footprint: ["#"] },
