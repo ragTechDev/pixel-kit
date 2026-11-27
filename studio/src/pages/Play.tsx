@@ -89,7 +89,7 @@ export function PlayPage({ route }: { route: Route }) {
                 <h1>Play</h1>
                 <p>
                     A small world built from the sprites and the engine. Click it, then walk with the arrow keys or WASD
-                    {" "}(or the pad on a touch screen). Step onto the house door to go inside, and back out through the door at the bottom.
+                    {" "}(or the pad on a touch screen). Step onto the door of the house or the brick shop to go inside, and back out through the door at the bottom.
                 </p>
                 <PlayCanvas play={play} maxScale={3} autoFocus />
                 <Actions play={play} route={route} />

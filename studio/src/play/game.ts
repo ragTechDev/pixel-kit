@@ -71,7 +71,7 @@ function harvest(o: PlacedObject): { item: ObjectId; left: PlacedObject | null }
 }
 
 /**
- * A small world to try the sprites and the engine together: a town and the inside of a house, joined by
+ * A small world to try the sprites and the engine together: a town and the inside of two buildings (a house and a shop), joined by
  * doors. The hero walks freely, a pixel at a time, right up to the outline of water, trees, walls and other
  * characters, behind a building (its roof covers them) and through a door to warp. A speaks to the character in front (they turn to face you) or, in front of a crop or a tree bearing fruit, picks it
  * and holds it (the engine's `createCarry`), and a heart (if the hero was holding something, which is given away) or a comment appears over a character (`createPopups`), holding B runs, and START changes the season. Nothing here knows about React or the page.
@@ -185,7 +185,7 @@ export function createPlay(options: PlayOptions = { theme: "summer" }, view: Vie
                 const exit = doorUnderfoot();
                 if (exit) {
                     const next = places[exit.to];
-                    game.scenes.replace(placeScene(game, next, next.arrive));
+                    game.scenes.replace(placeScene(game, next, exit.spawn ?? next.arrive));
                     return;
                 }
                 camera.follow(hero.x + TILE_SIZE / 2, hero.y + TILE_SIZE / 2);

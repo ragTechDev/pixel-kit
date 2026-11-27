@@ -81,7 +81,7 @@ export function PlayCanvas({ play, maxScale = 4, autoFocus = false, scale: fixed
                         scale={scale}
                         autoFocus={autoFocus}
                         className="play-canvas"
-                        title="A small town to walk around. Click it, then use the arrow keys or WASD. Walk into the house door to go inside."
+                        title="A small town to walk around. Click it, then use the arrow keys or WASD. Walk into a door to go inside, the house or the shop."
                     />
                 )}
             </div>

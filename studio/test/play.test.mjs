@@ -93,6 +93,18 @@ test("walking up the path to the door goes inside, and walking down out of the d
     assert.equal(p.hero.facing, "down");
 });
 
+test("a shop stands on the pavement: its door leads in, and the way out puts the hero back in front of it", () => {
+    const p = play();
+    put(p, 12, 13, "up");
+    holdThroughDoor(p, "up"); // onto the shop door at (12,12)
+    assert.equal(p.place(), "shop");
+    assert.deepEqual(at(p), [7, 9], "arriving in front of the shop's inner door");
+    holdThroughDoor(p, "down");
+    assert.equal(p.place(), "town");
+    assert.deepEqual(at(p), [12, 13], "on the pavement in front of the shop door, not at the house");
+    assert.equal(p.hero.facing, "down");
+});
+
 test("the walls beside a door block the way, right up to the foot of the wall, even though the door itself is open", () => {
     const p = play();
     put(p, 6, 6, "up");
@@ -142,7 +154,7 @@ test("a hero behind a building is covered by it, and one in front covers it", ()
 test("the hero cannot walk onto the water part of the shore, only the grass and sand above it", () => {
     const p = play();
     // The shore row at y = 14 is grass, then sand, then water from its pixel row 9.
-    put(p, 10, 12, "down");
+    put(p, 9, 12, "down"); // grass beside the shop
     hold(p, "down", 2);
     assert.equal(p.hero.feet.y + p.hero.feet.height, 14 * 16 + 9, "stopped at the edge of the water, on the sand");
     hold(p, "right", 1);

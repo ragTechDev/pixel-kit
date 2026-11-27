@@ -20,7 +20,23 @@ export const interiorMap = defineMap(houseTileset, [
     ...at("door", [7, 10])
 ]);
 
-export type PlaceId = "town" | "interior";
+/** The inside of the shop on the pavement: the same size as the house, with counters across the room and shelves down the sides. */
+export const shopMap = defineMap(houseTileset, [
+    "hhhhhhhh",
+    "ffffffff",
+    "ffffffff",
+    "ffffffff",
+    "ffffffff",
+    "hhhhhhhh"
+], [
+    ...at("window", [5, 1], [9, 1]),
+    ...at("bookshelf", [1, 2], [2, 2], [3, 2], [12, 2], [13, 2], [14, 2]),
+    ...at("counter", [4, 4], [6, 4], [8, 4], [10, 4]),
+    ...at("rug", [7, 7]),
+    ...at("door", [7, 10])
+]);
+
+export type PlaceId = "town" | "interior" | "shop";
 
 export interface Spawn {
     /** Tile coordinates. */
@@ -34,6 +50,8 @@ export interface Exit {
     readonly x: number;
     readonly y: number;
     readonly to: PlaceId;
+    /** Where the hero appears on the other side, when it is not that place's usual arrival: the town has two doors in. */
+    readonly spawn?: Spawn;
 }
 
 /** A character who stands still, is drawn with the hero and blocks the way. */
@@ -61,7 +79,7 @@ export const places: Record<PlaceId, Place> = {
         map: townMap,
         npcs: [{ x: 9, y: 8, look: randomAvatar() }],
         arrive: { x: 7, y: 6, facing: "down" },
-        exits: [{ x: 7, y: 5, to: "interior" }]
+        exits: [{ x: 7, y: 5, to: "interior" }, { x: 12, y: 12, to: "shop" }]
     },
     interior: {
         id: "interior",
@@ -69,6 +87,14 @@ export const places: Record<PlaceId, Place> = {
         npcs: [{ x: 3, y: 6, look: randomAvatar() }],
         arrive: { x: 7, y: 9, facing: "up" },
         exits: [{ x: 7, y: 10, to: "town" }]
+    },
+    shop: {
+        id: "shop",
+        map: shopMap,
+        npcs: [{ x: 7, y: 3, look: randomAvatar() }],
+        arrive: { x: 7, y: 9, facing: "up" },
+        // Out of the shop to the pavement in front of its door.
+        exits: [{ x: 7, y: 10, to: "town", spawn: { x: 12, y: 13, facing: "down" } }]
     }
 };
 

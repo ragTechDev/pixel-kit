@@ -36,8 +36,12 @@ export const townMap = defineMap(townTileset, [
     ...at("flower", [2, 7], [18, 2]),
     ...orchard,
     ...field
-// The house is a building: its walls and roof are solid and the tile at the foot of its door is the way in.
-], [{ config: { width: 8, roof: "gable", roofMaterial: "ceramic", windows: 2, chimney: "right" }, x: 4, y: 1 }]);
+// The buildings: their walls and roof are solid and the tile at the foot of each door is the way in. The house is in the middle,
+// and a brick shop stands on the pavement, with a tile of it left in front of the door.
+], [
+    { config: { width: 8, roof: "gable", roofMaterial: "ceramic", windows: 2, chimney: "right" }, x: 4, y: 1 },
+    { config: { width: 6, roof: "gable", wall: "brick", roofMaterial: "shingle", windows: 2, chimney: "left", doorColor: "red" }, x: 10, y: 8 }
+]);
 
 export const houseMap = defineMap(houseTileset, [
     "hhhhhhhh",
