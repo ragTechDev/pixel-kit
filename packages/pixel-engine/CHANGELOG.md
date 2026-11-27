@@ -10,6 +10,11 @@ To draft the next entry from the commit history, run `pnpm changelog pixel-engin
 
 <!-- next-release -->
 
+## [Unreleased]
+
+### Added
+- **`createMover`, `isOpen` and `overlaps`: movement that is not tied to tiles.** A mover stands at any pixel and moves a pixel at a time, with a small box at its feet that collides, so it stops flush against the drawn outline of a building instead of a tile away. The roof rows of a building are open, so it can walk up behind one (draw with the sprites package's `mapDrawables` and it is covered). `assist` optionally nudges it round a corner or into a doorway. `createWalker` is unchanged. Core grows from about 1.5 KB to 2.1 KB gzipped, and the budgets are raised to match.
+
 ## [0.1.0] - 2026-11-26
 
 First release: a small game runtime for tile-based pixel-art worlds built with `@ragtechdev/pixel-sprites`, which is a peer dependency (`>=0.9.0 <1.0.0`). About 2.5 KB gzipped for all three entries. Guides are at <https://ragtechdev.github.io/pixel-kit/#/docs/engine>, and a playable world built with it is at <https://ragtechdev.github.io/pixel-kit/#/play>.

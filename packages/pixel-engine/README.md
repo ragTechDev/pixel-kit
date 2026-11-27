@@ -89,6 +89,7 @@ function Town() {
 | core | `createInput` | Held and just-pressed actions, and the direction held last. |
 | core | `createCamera`, `cameraOrigin` | Follows a point, stays inside the world, and centres a world smaller than the view. Whole pixels only. |
 | core | `createWalker`, `isWalkable`, `neighbor` | One tile step at a time, drawn smoothly between tiles. `update` returns true on arrival, the moment to check for a door with `queryCell`. |
+| core | `createMover`, `isOpen`, `overlaps` | Free movement: a pixel at a time, stopping flush against walls (a building's drawn outline, not the edge of its tiles), with the roof rows open so it can walk behind. `isOpen` checks a box against the map's `solidBoxes`. |
 | core | `createScenes` | A stack of scenes. Only the top one updates and renders. |
 | core | `createGame` | The loop, the input and a scene stack together. |
 | `/dom` | `attachKeyboard`, `defaultKeymap`, `start` | Keys to actions (by position, so any keyboard layout works), and a `requestAnimationFrame` runner. |
@@ -101,6 +102,7 @@ A few details that are easy to miss:
 - **A fresh press is visible to exactly one update**, even when a frame runs two (`input.wasPressed`). A tap shorter than an update is not lost: it counts as held for that update, so a quick touch still takes a step.
 - **Water counts as solid.** `isWalkable` is `false` off the map, on solid terrain, on water and on the blocking cells of an object. A tree's canopy is open and its trunk blocks.
 - **Doors are solid unless you ask.** A door in a wall sits on a solid tile, so `isWalkable(map, x, y, { doors: true })` lets a walker step onto it. When `walker.update` reports the arrival, check `queryCell(map, walker.tx, walker.ty)?.door` and switch scenes.
+- **A mover's position is the top-left of a tile-sized cell, and its feet are the box that collides** (10 by 4 pixels at the bottom edge by default). `step(dt, direction, open, scale)` moves a pixel at a time, so it stops exactly at an edge. Sort drawing by `feet` bottom (`y + 16`), and use the sprites package's `mapDrawables` so a building is drawn over a mover standing behind it. A door is a box in `doorBoxes(map)`: warp when `feet` overlaps one.
 - **Browser shortcuts keep working.** Keys pressed with Ctrl, Cmd or Alt are never taken, and everything is released when focus is lost.
 
 ## Size
@@ -109,12 +111,12 @@ Gzipped, each entry including the shared code it imports (`pnpm size` fails if o
 
 | Entry | Gzipped |
 |---|---|
-| core | about 1.5 KB |
-| `/dom` | about 2.1 KB |
-| `/react` | about 2.3 KB |
-| all three | about 2.5 KB |
+| core | about 2.1 KB |
+| `/dom` | about 2.7 KB |
+| `/react` | about 2.9 KB |
+| all three | about 3.1 KB |
 
-The `@ragtechdev/pixel-sprites` functions you import (`queryCell` and `TILE_SIZE` for the walker) are tree-shaken from that package and counted there.
+The `@ragtechdev/pixel-sprites` functions you import (`queryCell`, `TILE_SIZE`, `solidBoxes` and `mapTileSize` for the walker and the mover) are tree-shaken from that package and counted there.
 
 ## Licence
 

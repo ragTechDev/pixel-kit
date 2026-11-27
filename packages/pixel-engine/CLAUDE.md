@@ -14,6 +14,7 @@ A small, framework-agnostic game runtime for tile-based pixel-art worlds built o
 | `src/input.ts` | core | The fixed `Action` set, held and just-pressed state, the direction held last. |
 | `src/camera.ts` | core | Whole-pixel camera that follows a point, clamps to the world and centres a small world. |
 | `src/walker.ts` | core | One tile step at a time, smooth in between. `isWalkable` reads the library's `queryCell`. |
+| `src/mover.ts` | core | Free pixel movement: one pixel at a time, a small feet box, stops flush against `solidBoxes`. `isOpen` and `overlaps` read the library's boxes. |
 | `src/scenes.ts` | core | A scene stack; only the top scene updates and renders. |
 | `src/game.ts` | core | Loop, input and scene stack together. `createGame` knows nothing about the DOM. |
 | `src/dom/index.ts` | `/dom` | `attachKeyboard` (matches `event.code`) and `start` (a `requestAnimationFrame` runner). |
